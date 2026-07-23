@@ -1,0 +1,77 @@
+
+/* Mobil wizard footer standardı: Geri solda, İleri/Kaydet sağda.
+   Eski genel .modal-footer .btn-primary { order:-1; flex:100% } kuralını yalnızca
+   wizard footerlarda ezer; normal modal footerlara dokunmaz. */
+.modal-footer.swiz-mobile-footer,
+.modal-footer:has([id$="-step-back-btn"]):has([id$="-step-next-btn"]),
+.modal-footer:has([id$="-step-back-btn"]):has([id$="-step-save-btn"]){
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.modal-footer.swiz-mobile-footer .swiz-btn-back,
+.modal-footer [id$="-step-back-btn"]{
+  order:10!important;
+}
+.modal-footer.swiz-mobile-footer .swiz-btn-next,
+.modal-footer.swiz-mobile-footer .swiz-btn-save,
+.modal-footer [id$="-step-next-btn"],
+.modal-footer [id$="-step-save-btn"]{
+  order:20!important;
+}
+@media(max-width:768px){
+  .modal-footer.swiz-mobile-footer,
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-next-btn"]),
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-save-btn"]){
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-areas:
+      "back forward"
+      "cancel cancel"!important;
+    align-items:center!important;
+    justify-content:stretch!important;
+    gap:8px!important;
+    flex-wrap:nowrap!important;
+  }
+  .modal-footer.swiz-mobile-footer .btn,
+  .modal-footer:has([id$="-step-back-btn"]) .btn{
+    width:100%!important;
+    min-height:44px!important;
+    height:auto!important;
+    flex:0 0 auto!important;
+    margin:0!important;
+    white-space:normal!important;
+    justify-content:center!important;
+  }
+  .modal-footer.swiz-mobile-footer .swiz-btn-back,
+  .modal-footer [id$="-step-back-btn"]{
+    grid-area:back!important;
+    justify-self:stretch!important;
+    order:10!important;
+  }
+  .modal-footer.swiz-mobile-footer .swiz-btn-next,
+  .modal-footer.swiz-mobile-footer .swiz-btn-save,
+  .modal-footer [id$="-step-next-btn"],
+  .modal-footer [id$="-step-save-btn"]{
+    grid-area:forward!important;
+    justify-self:stretch!important;
+    order:20!important;
+  }
+  .modal-footer.swiz-mobile-footer .swiz-btn-cancel,
+  .modal-footer [id$="-step-cancel-btn"]{
+    grid-area:cancel!important;
+    order:30!important;
+    flex-basis:auto!important;
+  }
+  /* İlk adımda geri gizliyse ileri yine sağda kalsın, sol tarafı iptal doldursun. */
+  .modal-footer.swiz-mobile-footer .swiz-btn-back[style*="display:none"] ~ .swiz-btn-cancel,
+  .modal-footer.swiz-mobile-footer .swiz-btn-back[style*="display: none"] ~ .swiz-btn-cancel,
+  .modal-footer [id$="-step-back-btn"][style*="display:none"] ~ [id$="-step-cancel-btn"],
+  .modal-footer [id$="-step-back-btn"][style*="display: none"] ~ [id$="-step-cancel-btn"]{
+    grid-area:back!important;
+  }
+  .modal-footer.swiz-mobile-footer .swiz-btn-cancel[style*="display:none"],
+  .modal-footer.swiz-mobile-footer .swiz-btn-cancel[style*="display: none"]{
+    display:none!important;
+  }
+}

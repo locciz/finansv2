@@ -1,0 +1,76 @@
+
+/* Aylık gelir/gider/bakiye ay popupu:
+   Başlangıç, Bitiş ve Sıralama kontrollerinin görünen kutu boylarını eşitle. */
+#modal-tbk-ay-detay {
+  --tbk-filter-control-h: 48px;
+}
+
+#modal-tbk-ay-detay .tbk-ay-detay-tarih-bar {
+  align-items: flex-end !important;
+  gap: 10px !important;
+}
+
+#modal-tbk-ay-detay .tbk-adf-field,
+#modal-tbk-ay-detay .tbk-ay-detay-sort-field {
+  min-width: 0 !important;
+}
+
+#modal-tbk-ay-detay .tbk-adf-field .date-wrap,
+#modal-tbk-ay-detay .tbk-adf-field input[type="date"],
+#modal-tbk-ay-detay .tbk-adf-field .date-fake-input,
+#modal-tbk-ay-detay .tbk-sort-trigger {
+  height: var(--tbk-filter-control-h) !important;
+  min-height: var(--tbk-filter-control-h) !important;
+  box-sizing: border-box !important;
+}
+
+#modal-tbk-ay-detay .tbk-adf-field .date-wrap {
+  width: 100% !important;
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+#modal-tbk-ay-detay .tbk-adf-field .date-fake-input {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.2 !important;
+}
+
+#modal-tbk-ay-detay .tbk-adf-field input[type="date"] {
+  width: 100% !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.2 !important;
+}
+
+#modal-tbk-ay-detay .tbk-sort-trigger {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  align-items: center !important;
+}
+
+#modal-tbk-ay-detay .tbk-sort-trigger-copy {
+  justify-content: center !important;
+}
+
+@media (max-width: 640px) {
+  #modal-tbk-ay-detay {
+    --tbk-filter-control-h: 46px;
+  }
+
+  #modal-tbk-ay-detay .tbk-ay-detay-tarih-bar {
+    gap: 8px !important;
+  }
+
+  #modal-tbk-ay-detay .tbk-adf-field {
+    flex: 1 1 calc(50% - 4px) !important;
+  }
+
+  #modal-tbk-ay-detay .tbk-ay-detay-sort-field {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+}

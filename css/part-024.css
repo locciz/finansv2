@@ -1,0 +1,44 @@
+
+/* Prosedürel, hafif ve test edilen UI/performance katmanı */
+html { scroll-behavior: auto; }
+.page:not(.active) { display: none !important; }
+.page.active { content-visibility: auto; contain-intrinsic-size: 900px; }
+
+.tbl-filtre-bar,
+.tbl-siralama-bar,
+.toolbar,
+.page-header {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#kartlar-list .card,
+#hesaplar-list .card,
+.card { contain: layout paint style; }
+.modal-bg:not(.open) { display:none !important; }
+.modal-bg.open .modal { contain: layout paint style; }
+
+@media (max-width: 768px) {
+  .tbl-filtre-bar,
+  .tbl-siralama-bar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tbl-filtre-bar::-webkit-scrollbar,
+  .tbl-siralama-bar::-webkit-scrollbar { display:none; }
+  .filter-chip,
+  .sort-chip { flex: 0 0 auto; white-space: nowrap; }
+  .main-wrap { overscroll-behavior: contain; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

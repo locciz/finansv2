@@ -1,0 +1,33 @@
+
+/* Aylık gelir/gider/bakiye detay popupu: tutar labeli kaynaktan ve pseudo'dan kaldırıldı */
+#modal-tbk-ay-detay .tbk-ay-detay-scroll thead th:last-child{
+  font-size:0!important;
+  color:transparent!important;
+}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll thead th:last-child::before,
+#modal-tbk-ay-detay .tbk-ay-detay-scroll thead th:last-child::after,
+#modal-tbk-ay-detay .tbk-ay-detay-amount::before,
+#modal-tbk-ay-detay .tbk-ay-detay-amount::after,
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child::before,
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child::after{
+  content:''!important;
+  display:none!important;
+}
+@media(max-width:640px){
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child{
+    position:absolute!important;
+    top:14px!important;
+    right:14px!important;
+    width:auto!important;
+    max-width:132px!important;
+    text-align:right!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  #modal-tbk-ay-detay .tbk-ay-detay-amount .mono{
+    display:block!important;
+    font-size:15px!important;
+    line-height:1.15!important;
+    font-weight:800!important;
+  }
+}

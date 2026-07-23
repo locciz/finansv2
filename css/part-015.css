@@ -1,0 +1,103 @@
+
+/* Kredi kartları + mobil popup UI iyileştirmeleri:
+   - Kredi kartı arama ikon/placeholder boşluğu
+   - Mobil filtre toolbar görünürlüğü
+   - Mobil kart işlem satırında kategori ikonunu gizleme
+   - Wizard popup footer buton hizası */
+:root{
+  --rf-card-search-icon-left:15px;
+  --rf-card-search-input-left:46px;
+  --rf-card-mobile-gap:9px;
+  --rf-popup-footer-gap:8px;
+  --rf-popup-footer-pad-x:14px;
+  --rf-popup-footer-btn-h:42px;
+}
+
+/* Kart işlem satırları: mobilde kategori ikonunu kaldır, grid'i sıkışmayacak hale getir */
+@media(max-width:640px){
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-icon-wrap,
+  #kd2-islem-list .islem-row2-icon-wrap{display:none!important;}
+
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2{
+    display:grid!important;
+    grid-template-columns:44px minmax(0,1fr) auto!important;
+    grid-template-areas:"date body actions" "date amount actions"!important;
+    column-gap:10px!important;
+    row-gap:5px!important;
+  }
+  #kd2-islem-list .islem-row2{
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr) auto!important;
+    grid-template-areas:"date body amount" "date actions actions"!important;
+    column-gap:10px!important;
+    row-gap:6px!important;
+  }
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-kat-line,
+  #kd2-islem-list .islem-row2-kat-line{
+    padding:5px 0 0!important;
+    margin:0!important;
+  }
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-amount{text-align:left!important;}
+}
+
+/* Popup footer: dağılmadan sol/sağ aksiyon grubu hissi */
+@media(max-width:768px){
+  .modal-footer.swiz-mobile-footer{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:var(--rf-popup-footer-gap)!important;
+    padding:11px var(--rf-popup-footer-pad-x) calc(11px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .modal-footer.swiz-mobile-footer .btn{
+    flex:0 1 auto!important;
+    width:auto!important;
+    min-height:var(--rf-popup-footer-btn-h)!important;
+    height:var(--rf-popup-footer-btn-h)!important;
+    white-space:nowrap!important;
+    line-height:1.1!important;
+    padding:0 12px!important;
+    font-size:13px!important;
+  }
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-cancel,[id$="-step-cancel-btn"]){
+    order:1!important;
+    min-width:72px!important;
+    max-width:86px!important;
+  }
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-back,[id$="-step-back-btn"]){
+    order:2!important;
+    min-width:84px!important;
+    max-width:104px!important;
+    margin-right:auto!important;
+    justify-content:center!important;
+  }
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-next,.swiz-btn-save,[id$="-step-next-btn"],[id$="-step-save-btn"]){
+    order:3!important;
+    min-width:96px!important;
+    max-width:156px!important;
+    margin-left:0!important;
+    justify-content:center!important;
+  }
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-save,[id$="-step-save-btn"]){font-weight:800!important;}
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-next,[id$="-step-next-btn"]):not([style*="display: none"]):not([style*="display:none"]) ~ :is(.swiz-btn-save,[id$="-step-save-btn"]){
+    display:none!important;
+  }
+  .modal-footer:not(.swiz-mobile-footer){
+    justify-content:flex-end!important;
+    gap:8px!important;
+  }
+  .modal-footer:not(.swiz-mobile-footer) .btn{
+    flex:0 1 auto!important;
+    min-width:88px!important;
+    width:auto!important;
+  }
+  .modal-footer:not(.swiz-mobile-footer) :is(.btn-primary,.btn-success,.btn-danger){min-width:108px!important;}
+}
+@media(max-width:390px){
+  .modal-footer.swiz-mobile-footer{--rf-popup-footer-gap:6px;--rf-popup-footer-pad-x:10px;}
+  .modal-footer.swiz-mobile-footer .btn{padding:0 9px!important;font-size:12.5px!important;}
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-cancel,[id$="-step-cancel-btn"]){min-width:64px!important;max-width:76px!important;}
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-back,[id$="-step-back-btn"]){min-width:76px!important;max-width:92px!important;}
+  .modal-footer.swiz-mobile-footer :is(.swiz-btn-next,.swiz-btn-save,[id$="-step-next-btn"],[id$="-step-save-btn"]){min-width:88px!important;max-width:132px!important;}
+}

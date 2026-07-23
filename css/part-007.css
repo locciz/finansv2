@@ -1,0 +1,81 @@
+
+/* Ödeme durumu popup tutar inputu — Hızlı Transfer inputun sol üstünde,
+   Tümü/Kalan kısayolları inputun sağ üstünde. */
+#od-pop-tutar-wrap{
+  position:relative!important;
+  min-height:104px!important;
+  padding-top:12px!important;
+  overflow:visible!important;
+}
+#od-pop-tutar-wrap input#od-pop-tutar{
+  height:96px!important;
+  padding:42px 18px 18px!important;
+  text-align:center!important;
+}
+#od-pop-tutar-wrap #od-hizli-transfer-btn,
+#od-pop-tutar-wrap #od-tumu-btn,
+#od-pop-tutar-wrap #od-kalan-tamamini-btn{
+  position:absolute!important;
+  top:8px!important;
+  z-index:8!important;
+  display:inline-flex;
+  align-items:center!important;
+  justify-content:center!important;
+  height:24px!important;
+  min-height:24px!important;
+  border-radius:8px!important;
+  padding:0 8px!important;
+  font-size:10px!important;
+  font-weight:650!important;
+  line-height:1!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+}
+#od-pop-tutar-wrap #od-hizli-transfer-btn{
+  left:8px!important;
+  right:auto!important;
+}
+#od-pop-tutar-wrap #od-tumu-btn{
+  left:auto!important;
+  right:86px!important;
+}
+#od-pop-tutar-wrap #od-kalan-tamamini-btn{
+  left:auto!important;
+  right:8px!important;
+}
+#od-pop-tutar-wrap #od-tumu-btn[style*="display: none"] + #od-kalan-tamamini-btn,
+#od-pop-tutar-wrap #od-tumu-btn[style*="display:none"] + #od-kalan-tamamini-btn{
+  right:8px!important;
+}
+#od-pop-tutar-wrap #od-hizli-transfer-btn .mhtb-icon,
+#od-pop-tutar-wrap #od-tumu-btn .mhtb-icon,
+#od-pop-tutar-wrap #od-kalan-tamamini-btn .mhtb-icon{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:12px!important;
+  height:12px!important;
+  min-width:12px!important;
+}
+#od-pop-tutar-wrap #od-hizli-transfer-btn .mhtb-icon svg,
+#od-pop-tutar-wrap #od-tumu-btn .mhtb-icon svg,
+#od-pop-tutar-wrap #od-kalan-tamamini-btn .mhtb-icon svg{
+  width:12px!important;
+  height:12px!important;
+  display:block!important;
+}
+@media(max-width:430px){
+  #od-pop-tutar-wrap #od-hizli-transfer-btn,
+  #od-pop-tutar-wrap #od-tumu-btn,
+  #od-pop-tutar-wrap #od-kalan-tamamini-btn{
+    width:28px!important;
+    min-width:28px!important;
+    padding:0!important;
+    gap:0!important;
+    border-radius:50%!important;
+  }
+  #od-pop-tutar-wrap #od-hizli-transfer-btn{left:8px!important;right:auto!important;}
+  #od-pop-tutar-wrap #od-tumu-btn{left:auto!important;right:44px!important;}
+  #od-pop-tutar-wrap #od-kalan-tamamini-btn{left:auto!important;right:8px!important;}
+  #od-pop-tutar-wrap .mhtb-label{display:none!important;}
+}

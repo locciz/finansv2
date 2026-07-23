@@ -1,0 +1,1046 @@
+
+#ee-dropzone.dragover { border-color: var(--accent) !important; background: var(--accent-glow2) !important; }
+.ee-section { margin-bottom: 22px; }
+.ee-section-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.ee-section-title { font-size:13px; font-weight:700; color:var(--text); }
+.ee-section-count { font-size:11px; padding:2px 8px; border-radius:20px; font-weight:700; }
+.ee-row { display:flex; align-items:center; gap:10px; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; margin-bottom:6px; font-size:12.5px; flex-wrap:wrap; }
+.ee-row-main { flex:1; min-width:180px; display:flex; flex-direction:column; gap:2px; }
+.ee-row .ee-inline-field { flex: 1 1 130px; max-width: 200px; }
+.ee-row-date { color:var(--text3); font-size:10.5px; }
+.ee-row-desc { color:var(--text); font-weight:500; }
+.ee-row-amt { font-family:var(--mono); font-weight:700; flex-shrink:0; }
+.ee-inline-field { padding:6px 9px; font-size:12px; border-radius:7px; border:1px solid var(--border2); background:var(--surface3); color:var(--text); min-width:130px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; }
+.ee-actions { display:flex; gap:6px; flex-shrink:0; }
+.ee-btn-mini { padding:6px 12px; font-size:11.5px; font-weight:600; border-radius:7px; border:1px solid var(--border2); background:var(--surface3); color:var(--text2); cursor:pointer; transition:.15s; white-space:nowrap; }
+.ee-btn-mini:hover { background:var(--surface4); color:var(--text); }
+.ee-btn-mini.primary { background:var(--accent); color:#1a1206; border-color:var(--accent); }
+.ee-btn-mini.primary:hover { filter:brightness(1.08); }
+.ee-btn-mini.danger { background:rgba(251,113,133,.12); color:var(--rose); border-color:rgba(251,113,133,.3); }
+.ee-btn-mini.danger:hover { background:rgba(251,113,133,.2); }
+.ee-btn-mini:disabled { opacity:.45; cursor:not-allowed; }
+.ee-empty { color:var(--text3); font-size:12px; padding:18px; text-align:center; background:var(--surface2); border-radius:10px; border:1px dashed var(--border2); }
+
+/* ── GELECEK 1 YIL TAHMİNİ BAKİYE ─────────────────────────────── */
+.tbk-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.tbk-stat { position:relative; background:linear-gradient(145deg, var(--surface) 0%, var(--bg2) 100%); border:1px solid var(--border); border-radius:var(--radius-sm); padding:13px 14px 12px; display:flex; flex-direction:column; gap:6px; overflow:hidden; transition:border-color .15s, transform .15s; }
+.tbk-stat:hover { border-color:var(--border2); transform:translateY(-1px); }
+.tbk-stat-icon { position:absolute; top:10px; right:10px; width:25px; height:25px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.tbk-stat-label { font-size:9.5px; color:var(--text3); font-weight:700; text-transform:uppercase; letter-spacing:.07em; padding-right:26px; }
+.tbk-stat-val { font-size:16px; font-weight:700; color:var(--text); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+
+.tbk-alert { display:flex; align-items:flex-start; gap:9px; padding:10px 14px; background:var(--danger-glow); border:1px solid rgba(251,113,133,.3); border-radius:10px; font-size:12px; line-height:1.5; color:var(--rose); margin-bottom:14px; }
+.tbk-alert b { color:var(--text); }
+
+.tbk-chart-wrap { position:relative; border-radius:var(--radius-sm); background:radial-gradient(ellipse 100% 80% at 50% 0%, rgba(255,255,255,.025) 0%, transparent 70%); padding:4px 0 0; }
+.tbk-tooltip { position:absolute; pointer-events:none; z-index:5; background:rgba(8,10,16,.98); border:1px solid var(--border2); border-radius:9px; padding:9px 12px; min-width:150px; max-width:230px; box-shadow:0 10px 30px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.03); transition:opacity .1s; transform:translateY(-50%); }
+html[data-theme="light"] .tbk-tooltip { background:#fff; border-color:rgba(0,0,0,.1); box-shadow:0 10px 30px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.03); }
+.tbk-tt-date { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-bottom:3px; }
+.tbk-tt-baki-line { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:10.5px; color:var(--text3); margin-bottom:1px; }
+.tbk-tt-baki-line b { font-size:12.5px; font-weight:700; color:var(--text); }
+.tbk-tt-bakiye { font-size:14.5px; font-weight:700; color:var(--text); }
+.tbk-tt-divider { height:1px; background:var(--border); margin:7px 0 6px; }
+.tbk-tt-row { display:flex; justify-content:space-between; gap:10px; font-size:10.5px; color:var(--text2); padding:2px 0; }
+.tbk-tt-row span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100px; }
+.tbk-tt-detay { font-size:9px; color:var(--text3); padding:0 0 4px; white-space:normal; line-height:1.4; }
+.tbk-ay-detay-detay { font-size:10.5px; color:var(--text3); white-space:normal; line-height:1.4; margin-top:2px; }
+.tbk-tt-more { font-size:9.5px; color:var(--text3); margin-top:3px; font-style:italic; }
+
+.tbk-legend { display:flex; align-items:center; gap:16px; margin-top:12px; font-size:11px; color:var(--text2); flex-wrap:wrap; }
+.tbk-legend span { display:flex; align-items:center; gap:5px; }
+.tbk-dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; box-shadow:0 0 6px currentColor; }
+
+.tbk-footnote { font-size:10.5px; color:var(--text3); margin-top:12px; padding-top:10px; border-top:1px solid var(--border); line-height:1.55; }
+
+.tbk-uyari-bos {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  background: rgba(251, 191, 36, .08);
+  border: 1px solid rgba(251, 191, 36, .2);
+  color: var(--text2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.tbk-uyari-bos svg { flex-shrink: 0; margin-top: 1px; color: var(--gold); }
+.tbk-uyari-bos strong { color: var(--text); font-weight: 600; }
+html[data-theme="light"] .tbk-uyari-bos { background: rgba(217, 119, 6, .08); border-color: rgba(217, 119, 6, .22); }
+
+.tbk-pb-chips { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.tbk-pb-chip.active {
+  background:var(--gold-glow); border-color:rgba(251,191,36,.45);
+  color:var(--gold); box-shadow:0 0 0 1px rgba(251,191,36,.15);
+}
+html[data-theme="light"] .tbk-pb-chip.active { background:rgba(196,122,0,.1); border-color:rgba(196,122,0,.4); color:var(--gold); }
+.tbk-card-header { flex-wrap:wrap; gap:8px 0; }
+.tbk-card-header .card-title { flex:1 1 auto; min-width:0; }
+.tbk-controls { display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap; }
+.tbk-settings-btn { position:relative; display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:7px; border:1px solid var(--border); background:var(--surface3); color:var(--text3); cursor:pointer; transition:all .15s; flex-shrink:0; }
+.tbk-settings-btn:hover { color:var(--text); background:var(--surface4); border-color:var(--border2,var(--border)); transform:rotate(30deg); }
+.tbk-settings-dot { position:absolute; top:-2px; right:-2px; width:7px; height:7px; border-radius:50%; border:1.5px solid var(--surface1); box-shadow:0 0 0 1px rgba(0,0,0,.15); pointer-events:none; }
+.tbk-faiz-listesi-wrap { display:flex; flex-direction:column; gap:8px; }
+.tbk-faiz-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 12px; background:var(--surface3); border:1px solid var(--border); border-radius:10px; transition:border-color .15s,background .15s; }
+.tbk-faiz-row-editing { border-color:var(--accent2); background:var(--surface4); box-shadow:0 0 0 1px var(--accent2) inset; }
+.tbk-faiz-row-main { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; flex:1 1 auto; }
+.tbk-faiz-row-date { font-size:12px; font-weight:600; color:var(--text); white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
+.tbk-faiz-row-date svg { flex-shrink:0; color:var(--text3); }
+.tbk-faiz-row-oran { font-variant-numeric:tabular-nums; }
+.tbk-faiz-row-stopaj { font-variant-numeric:tabular-nums; }
+.tbk-faiz-row-actions { display:flex; gap:6px; flex-shrink:0; margin-left:auto; }
+.tbk-faiz-row-btn { width:27px; height:27px; display:inline-flex; align-items:center; justify-content:center; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); cursor:pointer; font-size:12.5px; padding:0; transition:all .15s; }
+.tbk-faiz-row-btn:hover { border-color:var(--border2); color:var(--text); background:var(--surface4); }
+.tbk-faiz-row-btn-danger:hover { border-color:rgba(251,113,133,.4); color:var(--rose); background:rgba(251,113,133,.08); }
+.tbk-faiz-empty { text-align:center; padding:22px 12px; font-size:11.5px; color:var(--text3); background:var(--surface3); border:1px dashed var(--border); border-radius:10px; line-height:1.5; }
+.tbk-period-group { display:flex; gap:2px; background:var(--surface3); border:1px solid var(--border); border-radius:8px; padding:2px; }
+.tbk-period-btn { font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:6px; border:none; background:transparent; color:var(--text3); cursor:pointer; transition:all .15s; white-space:nowrap; }
+.tbk-period-btn:hover { color:var(--text); background:var(--surface4); }
+.tbk-period-btn.tbk-period-active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.3); }
+.tbk-period-labeled { display:flex; align-items:center; gap:7px; }
+.tbk-period-mini-label { display:flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.tbk-period-mini-label svg { flex-shrink:0; opacity:.85; }
+.tbk-period-mini-gecmis { color:var(--text3); }
+.tbk-period-mini-gelecek { color:var(--accent2,#34d399); }
+.tbk-period-divider { width:1px; align-self:stretch; min-height:20px; background:var(--border); opacity:.7; }
+.tbk-period-group-past { background:linear-gradient(135deg, rgba(148,163,184,.10), rgba(148,163,184,.02)); border-color:rgba(148,163,184,.22); }
+.tbk-period-group-past .tbk-period-btn:hover { color:var(--text); background:rgba(148,163,184,.16); }
+.tbk-period-group-past .tbk-period-btn.tbk-period-active { background:var(--text3); color:var(--surface); box-shadow:0 2px 8px -2px rgba(148,163,184,.5); font-weight:700; }
+.tbk-period-group-future { background:linear-gradient(145deg, rgba(45,212,191,.13), rgba(99,179,237,.05) 65%); border-color:rgba(45,212,191,.26); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+.tbk-period-group-future .tbk-period-btn:hover { color:var(--teal); background:rgba(45,212,191,.15); }
+.tbk-period-group-future .tbk-period-btn.tbk-period-active { background:linear-gradient(135deg, var(--teal), #1f9e93); color:#04140d; box-shadow:0 2px 12px -3px rgba(45,212,191,.55); font-weight:700; }
+html[data-theme="light"] .tbk-period-group-future .tbk-period-btn.tbk-period-active { color:#042416; }
+@media(max-width:640px) {
+  .tbk-controls { flex-wrap:wrap; row-gap:8px; }
+  .tbk-period-labeled { flex-wrap:wrap; }
+  .tbk-period-divider { display:none; }
+}
+
+/* Aylık breakdown tablosu */
+.tbk-aylik-wrap { margin-top:16px; border-top:1px solid var(--border); padding-top:14px; }
+.tbk-aylik-title { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.tbk-aylik-table { width:100%; border-collapse:collapse; font-size:11px; }
+.tbk-aylik-table th { font-size:9px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; padding:4px 8px; text-align:right; border-bottom:1px solid var(--border); white-space:nowrap; }
+.tbk-aylik-table th:first-child { text-align:left; }
+.tbk-aylik-table td { padding:5px 8px; text-align:right; border-bottom:1px solid rgba(255,255,255,.03); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tbk-aylik-table td:first-child { text-align:left; color:var(--text2); font-size:10.5px; }
+.tbk-aylik-table tr:hover td { background:var(--surface3); }
+.tbk-aylik-table tr.tbk-ay-row { cursor:pointer; }
+.tbk-ay-detay-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.tbk-ay-detay-stat { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; display:flex; flex-direction:column; gap:3px; }
+.tbk-ay-detay-stat span { font-size:9.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
+.tbk-ay-detay-stat b { font-size:13px; font-variant-numeric:tabular-nums; }
+@media (max-width:640px) { .tbk-ay-detay-stats { grid-template-columns:repeat(2,1fr); } }
+.tbk-aylik-table tr.tbk-ay-kritik td { background:rgba(251,113,133,.06); }
+/* ── Ay Detayı popup: tarih aralığı filtre barı ── */
+.tbk-ay-detay-tarih-bar { display:flex; align-items:flex-end; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.tbk-ay-detay-tarih-bar .tbk-adf-field { display:flex; flex-direction:column; gap:4px; flex:1 1 120px; min-width:110px; }
+.tbk-ay-detay-tarih-bar .tbk-adf-field label { font-size:9.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
+.tbk-ay-detay-tarih-bar .tbk-adf-field input[type="date"] { width:100%; height:34px; font-size:12.5px; padding:0 8px; }
+.tbk-ay-detay-tarih-bar .tbk-adf-sifirla { flex-shrink:0; height:34px; padding:0 12px; font-size:11.5px; }
+/* Ay Detayı işlem listesi — dar modal genişliğinde yer kazanmak için kompakt
+   satır/hücre boyutları; "Açıklama" kolon başlığı boş bırakılır (kolon
+   kalıyor, sadece etiket metni kaldırıldı — içerikten zaten anlaşılıyor). */
+#modal-tbk-ay-detay .tbk-ay-detay-scroll table { font-size: 11.5px; }
+#modal-tbk-ay-detay .tbk-ay-detay-scroll th { padding: 6px 8px; }
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td { padding: 6px 8px; }
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:first-child { white-space:nowrap; font-size:10.5px; color:var(--text3) }
+/* ── Ay Detayı popup: modal-body'nin kendisi scroll olmasın — çift iç içe
+   scroll konteyneri (modal-body + işlem listesi) mobilde (özellikle iOS'ta)
+   parmakla kaydırmanın hangi katmana ait olduğunu belirsizleştirip listenin
+   hiç kaymamasına sebep oluyordu. Burada modal-body'yi sabit (overflow:hidden)
+   flex konteynerine çeviriyoruz; özet kartları ve tarih barı kendi doğal
+   yüksekliğinde kalır, işlem listesi (.tbk-ay-detay-scroll) ise kalan alanı
+   flex:1 ile doldurup TEK ve GERÇEK scroll konteyneri olur. */
+#modal-tbk-ay-detay .modal-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+  min-height: 0;
+}
+#modal-tbk-ay-detay .modal-body > * { flex-shrink: 0; }
+#modal-tbk-ay-detay .tbk-ay-detay-scroll {
+  flex: 1 1 auto !important;
+  min-height: 120px;
+  max-height: none !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y !important;
+}
+@media (max-width:768px) {
+  #modal-tbk-ay-detay.modal-bg .modal { overflow: hidden !important; display:flex !important; flex-direction:column !important; }
+  #modal-tbk-ay-detay .modal-body { overflow: hidden !important; }
+}
+.tbk-aylik-table tr.tbk-ay-kritik td:first-child { color:var(--rose); }
+
+/* Kalemler özeti */
+.tbk-kalemler { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; border-top:1px solid var(--border); padding-top:14px; }
+.tbk-kalem-col { }
+.tbk-kalem-col-title { font-size:9.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:7px; display:flex; align-items:center; gap:4px; }
+.tbk-kalem-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,.03); }
+.tbk-kalem-row:last-child { border-bottom:none; }
+.tbk-kalem-ad { font-size:11px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; min-width:0; }
+.tbk-kalem-tutar { font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; flex:0 0 auto; }
+
+/* Section toggle */
+.tbk-section-toggle { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+.tbk-section-toggle svg { transition:transform .2s; }
+.tbk-section-collapsed svg { transform:rotate(-90deg); }
+.tbk-section-collapsed .tbk-aylik-body { display:none; }
+.tbk-aylik-body { max-height:400px; overflow-y:auto; }
+
+@media (max-width:640px) {
+  .tbk-stats-grid { grid-template-columns:repeat(2,1fr); }
+  .tbk-legend { gap:12px; }
+  .tbk-card-header { row-gap:10px; }
+  .tbk-card-header .card-title { flex-basis:100%; order:1; }
+  .tbk-controls { order:2; margin-left:0; width:100%; }
+  .tbk-period-group { flex:1; }
+  .tbk-period-btn { flex:1; text-align:center; }
+  .tbk-pb-chips { flex-wrap:wrap; }
+  .tbk-stat-val { font-size:14.5px; word-break:break-word; }
+  .tbk-kalemler { grid-template-columns:1fr; }
+  /* Aylık Gelir/Gider/Bakiye tablosu dar ekranda klasik tablo yerine
+     dikey "kart" düzenine döner — böylece yatay kaydırmaya gerek kalmaz.
+     Her ay bir blok: üstte ay adı, altında Gelir/Gider/Net/Bakiye
+     satır satır (etiket solda, tutar sağda) sıralanır. */
+  .tbk-aylik-table { display:block; width:100%; min-width:0 !important; font-size:12px; }
+  .tbk-aylik-table thead { display:none; }
+  .tbk-aylik-table tbody { display:block; width:100%; }
+  .tbk-aylik-table tr { display:block; width:100%; padding:9px 4px 8px; border-bottom:1px solid var(--border); box-sizing:border-box; }
+  .tbk-aylik-table tr:last-child { border-bottom:none; }
+  .tbk-aylik-table td { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:3px 2px; border-bottom:none; text-align:right; white-space:normal; }
+  .tbk-aylik-table td[data-label=""] { font-size:12.5px; font-weight:700; color:var(--text); padding-bottom:5px; justify-content:flex-start; }
+  .tbk-aylik-table td:not([data-label=""])::before { content:attr(data-label); font-size:9.5px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; text-align:left; flex-shrink:0; }
+}
+
+/* Telefon yatay (landscape) modda genişlik 640px'i geçebiliyor (ör. 700-930px),
+   bu yüzden yukarıdaki dikey-kart dönüşümü tetiklenmiyor ve tablo yine yatay
+   kaydırma istiyordu. Aynı dikey-kart düzenini landscape telefonlar için de
+   uyguluyoruz (tablet/masaüstü etkilenmesin diye max-width sınırlı tutuldu). */
+@media (max-width:930px) and (orientation:landscape) {
+  .tbk-aylik-table { display:block; width:100%; min-width:0 !important; font-size:11.5px; }
+  .tbk-aylik-table thead { display:none; }
+  .tbk-aylik-table tbody { display:block; width:100%; }
+  .tbk-aylik-table tr { display:block; width:100%; padding:7px 4px 6px; border-bottom:1px solid var(--border); box-sizing:border-box; }
+  .tbk-aylik-table tr:last-child { border-bottom:none; }
+  .tbk-aylik-table td { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 2px; border-bottom:none; text-align:right; white-space:normal; }
+  .tbk-aylik-table td[data-label=""] { font-size:12px; font-weight:700; color:var(--text); padding-bottom:4px; justify-content:flex-start; }
+  .tbk-aylik-table td:not([data-label=""])::before { content:attr(data-label); font-size:9px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; text-align:left; flex-shrink:0; }
+  .tbk-aylik-body { max-height:min(60vh,400px); }
+}
+
+/* ═══════════════════════════════════════════════
+   ARAYÜZ İYİLEŞTİRMELERİ — override bloğu
+   ═══════════════════════════════════════════════ */
+
+/* ── 1. Page header küçültme ── */
+.page-header {
+  margin-bottom: 18px !important;
+  padding-bottom: 14px !important;
+  gap: 10px !important;
+}
+.page-header h1 {
+  font-size: 21px !important;
+  letter-spacing: -.02em !important;
+}
+.page-header p {
+  font-size: 10px !important;
+  margin-top: 3px !important;
+  letter-spacing: .05em !important;
+  opacity: .7;
+}
+
+/* ── 2. Topbar başlık — küçük caps yerine normal ── */
+.topbar-title {
+  font-size: 12px !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  opacity: .75;
+}
+
+/* ── 3. Card — daha kompakt ── */
+.card {
+  padding: 16px 18px !important;
+  margin-bottom: 10px !important;
+  border-radius: 14px !important;
+}
+
+/* ── 4. +Yeni buton — daha hafif ── */
+.page-header .btn-primary,
+.action-row .btn-primary {
+  background: rgba(79,110,247,.18) !important;
+  color: rgba(160,180,255,.95) !important;
+  box-shadow: inset 0 0 0 1px rgba(79,110,247,.35) !important;
+  font-weight: 600 !important;
+}
+.page-header .btn-primary:hover,
+.action-row .btn-primary:hover {
+  background: rgba(79,110,247,.28) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(79,110,247,.55) !important;
+  transform: none !important;
+}
+html[data-theme="light"] .page-header .btn-primary,
+html[data-theme="light"] .action-row .btn-primary {
+  background: rgba(63,93,231,.1) !important;
+  color: #3a5ce0 !important;
+  box-shadow: inset 0 0 0 1px rgba(63,93,231,.3) !important;
+}
+html[data-theme="light"] .page-header .btn-primary:hover,
+html[data-theme="light"] .action-row .btn-primary:hover {
+  background: rgba(63,93,231,.18) !important;
+  color: #2a4ad0 !important;
+}
+
+/* ── 5. İşlem satırı — date-card daha minimal ── */
+.islem-date-card {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 9px !important;
+  background: rgba(255,255,255,.045) !important;
+  border-color: rgba(255,255,255,.07) !important;
+}
+html[data-theme="light"] .islem-date-card {
+  background: rgba(0,0,0,.04) !important;
+  border-color: rgba(0,0,0,.08) !important;
+}
+.islem-date-day { font-size: 13px !important; font-weight: 700 !important; }
+.islem-date-mon { font-size: 8.5px !important; }
+.islem-row2 { gap: 9px !important; padding: 8px 4px !important; }
+.islem-row2-icon {
+  width: 33px !important;
+  height: 33px !important;
+  border-radius: 9px !important;
+  font-size: 15px !important;
+}
+.islem-row2-title { font-size: 13px !important; }
+.islem-row2-sub { font-size: 10.5px !important; margin-top: 1px !important; }
+.islem-row2-amount-val { font-size: 13px !important; }
+
+/* ── 6. Kart listesi ── */
+.kart-extre-footer {
+  margin-top: 10px !important;
+  gap: 8px !important;
+}
+.kart-extre-box {
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+}
+.kart-extre-label { font-size: 9.5px !important; }
+.kart-extre-val { font-size: 13px !important; }
+.kart-extre-sub { font-size: 10px !important; }
+
+/* ── 7. İstatistik kutuları (islemler sayfası) ── */
+.islem-stats .card {
+  padding: 12px 14px !important;
+}
+
+/* ── 8. Özet Net Varlık kutusu ── */
+[id^="ozet-"] .card:first-child {
+  padding: 14px 16px !important;
+}
+
+/* ── 9. Stat kartlardaki label tipografisi ── */
+.ozet-stat-label {
+  font-size: 10px !important;
+  letter-spacing: .04em !important;
+}
+
+/* ── 10. Filtre / dönem tab butonları ── */
+.islem-donem-tab {
+  font-size: 11.5px !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+}
+
+/* ── 11. Card header daha kompakt ── */
+.card-header {
+  margin-bottom: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* ── 12. Progress bar yüksekliği ── */
+.progress-bar {
+  height: 3px !important;
+  border-radius: 2px !important;
+}
+.progress-fill { border-radius: 2px !important; }
+
+/* ── 13. İşlem satırı list wrapper — satır arası çizgi ── */
+.islem-list > .islem-row2-wrap + .islem-row2-wrap {
+  border-top: 1px solid rgba(255,255,255,.04);
+}
+html[data-theme="light"] .islem-list > .islem-row2-wrap + .islem-row2-wrap {
+  border-top-color: rgba(0,0,0,.05);
+}
+
+/* ── 14. Özet stat grid ── */
+.ozet-stat {
+  padding: 12px 14px 11px !important;
+  border-radius: 12px !important;
+}
+.ozet-stat-val { font-size: 17px !important; }
+.ozet-stat-label { font-size: 10px !important; margin-bottom: 4px !important; }
+.ozet-stat-icon {
+  width: 26px !important; height: 26px !important;
+  border-radius: 7px !important;
+}
+
+/* ── 15. Abonelik kartı ── */
+
+/* ── 16. Nakit Avans butonu — daha soft ── */
+.action-row .btn-success {
+  background: rgba(22,163,148,.15) !important;
+  color: rgba(45,212,191,.9) !important;
+  box-shadow: inset 0 0 0 1px rgba(22,163,148,.3) !important;
+}
+.action-row .btn-success:hover {
+  background: rgba(22,163,148,.25) !important;
+  color: #2dd4bf !important;
+  box-shadow: inset 0 0 0 1px rgba(22,163,148,.5) !important;
+  transform: none !important;
+}
+
+/* ── 17. Bottom nav daha kompakt ── */
+.bottom-nav { height: 56px !important; padding: 0 4px !important; }
+
+/* ── 18. Kart detay tab ── */
+
+/* ── 19. Mobilde page padding azalt ── */
+@media (max-width: 768px) {
+  .page { padding: 14px 12px 80px !important; }
+  .page-header { margin-bottom: 14px !important; padding-bottom: 12px !important; }
+  .card { padding: 14px 14px !important; margin-bottom: 8px !important; }
+}
+
+/* ── 20. btn-ghost ve btn-danger (aksiyonlar) biraz büyüt, netleştir ── */
+.btn-act {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  min-width: unset !important;
+  min-height: unset !important;
+}
+
+
+/* ── 21. Page subtitle — uppercase kaldır, daha okunaklı ── */
+.page-header p {
+  text-transform: none !important;
+  letter-spacing: .02em !important;
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  opacity: .55;
+}
+
+/* ── 22. Arama kutusu — daha minimal ── */
+/* NOT: önceden input[placeholder*="ara"] gibi genel bir seçici kullanılıyordu;
+   bu, placeholder'ında "ara" geçen TÜM inputları (ör. banka/kart seçim
+   popup'larındaki "Banka ara…", "Kart ara…") yakalayıp !important ile
+   padding'lerini eziyordu ve popup arama ikonuyla yazı üst üste biniyordu.
+   Artık sadece İşlemler sayfasındaki gerçek arama kutusunu (#filter-q) hedefliyor. */
+#filter-q {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  padding: 9px 14px !important;
+}
+html[data-theme="light"] #filter-q {
+  background: rgba(0,0,0,.03) !important;
+  border-color: rgba(0,0,0,.08) !important;
+}
+
+/* ── 23. Stat kutu ikon renk azalt ── */
+
+/* ── 24. "Bu Dönem / Önceki Dönem / Tümü" tab group ── */
+.islem-donem-tabs {
+  background: rgba(255,255,255,.03) !important;
+  border-radius: 10px !important;
+  padding: 3px !important;
+  gap: 2px !important;
+}
+.islem-donem-tab {
+  border-radius: 7px !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  font-weight: 500 !important;
+}
+.islem-donem-tab.active {
+  font-weight: 600 !important;
+}
+
+/* ── 25. Kart ekstre/ödeme footer kutuları daha entegre ── */
+.kart-extre-footer {
+  border-top: 1px solid rgba(255,255,255,.05) !important;
+  padding-top: 10px !important;
+}
+.kart-extre-box {
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(255,255,255,.06) !important;
+}
+html[data-theme="light"] .kart-extre-box {
+  background: rgba(0,0,0,.02) !important;
+  border-color: rgba(0,0,0,.06) !important;
+}
+html[data-theme="light"] .kart-extre-footer {
+  border-top-color: rgba(0,0,0,.06) !important;
+}
+
+/* ── 26. Card::before top line — daha ince, neredeyse görünmez ── */
+.card::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.05) 50%, transparent 100%) !important;
+}
+
+/* ── 27. Filtre butonu ── */
+.btn-ghost[onclick*="Filtre"], .btn-ghost[onclick*="filtre"] {
+  font-size: 12px !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+}
+
+/* ═══════════════════════════════════════════════
+   ARAYÜZ İYİLEŞTİRMELERİ — DALGA 2
+   ═══════════════════════════════════════════════ */
+
+/* ── 1. Tab-bar (Tanımlamalar gibi çok-sekmeli sayfalar):
+       yatay kaydırmalı, taşmayan, nowrap pill satırı ── */
+/* ── Genel tab-bar: yatay scroll (diğer sayfalar için korunur) ── */
+.tab-bar .tab-btn { flex-shrink: 0 !important; }
+
+/* ════════════════════════════════════════════
+   SETTINGS NAV (snav) — Tanımlamalar sayfası
+   ════════════════════════════════════════════ */
+#page-tanimlamalar .page-header { display: none; }
+
+/* Shell: sidebar + content yan yana */
+.snav-shell {
+  display: flex;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+  position: relative;
+}
+
+/* ── Sidebar ── */
+.snav-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--border);
+  padding: 10px 8px 24px;
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.snav-sidebar::-webkit-scrollbar { width: 4px; }
+.snav-sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* Search */
+.snav-search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.snav-search-icon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: var(--text3);
+  pointer-events: none;
+  font-style: normal;
+}
+.snav-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 10px 7px 28px;
+  font-size: 12.5px;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+.snav-search:focus { border-color: var(--accent); }
+
+/* Group */
+.snav-group { margin-bottom: 6px; }
+.snav-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--sans);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 8px 10px 4px;
+  -webkit-font-smoothing: antialiased;
+}
+.snav-group[data-hidden="true"] { display: none; }
+
+/* Item */
+.snav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  padding: 7px 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background .13s, transform .1s;
+  color: var(--text2);
+  position: relative;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+.snav-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+.snav-item.active {
+  background: var(--gold-glow);
+  color: var(--text);
+  border: 1px solid var(--border-active);
+}
+.snav-item[data-hidden="true"] { display: none; }
+.snav-icon {
+  font-size: 17px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 26px;
+  text-align: center;
+}
+.snav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.snav-name {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -.01em;
+}
+.snav-desc {
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--text3);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+.snav-item.active .snav-desc { color: var(--text2); }
+.snav-arrow {
+  font-size: 16px;
+  color: var(--text3);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform .13s, color .13s;
+}
+.snav-item.active .snav-arrow {
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* ── Content panel ── */
+.snav-content {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 24px;
+}
+.snav-content > div[id^="tab-"] {
+  animation: snavFadeIn .2s ease;
+}
+@keyframes snavFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Mobile header (hidden on desktop) ── */
+.snav-mobile-header { display: none; }
+
+/* ── Mobile overlay ── */
+.snav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 800;
+  backdrop-filter: blur(2px);
+}
+.snav-overlay.open { display: block; }
+
+/* ── MOBILE ── */
+@media (max-width: 720px) {
+  #page-tanimlamalar .page-header { display: none !important; }
+
+  .snav-shell {
+    flex-direction: column;
+    min-height: unset;
+  }
+
+  /* Mobile sticky top bar */
+  .snav-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .snav-mobile-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--sans);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -.01em;
+  }
+  .snav-mobile-back {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    color: var(--text2);
+    font-size: 12px;
+    font-family: var(--sans);
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .snav-mobile-menu {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: var(--sans);
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Sidebar slides in from left */
+  .snav-sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 248px;
+    height: 100dvh;
+    max-height: none;
+    background: var(--surface);
+    z-index: 850;
+    border-right: 1px solid var(--border2);
+    transition: left .22s cubic-bezier(.25,.46,.45,.94);
+    padding: 16px 10px 32px;
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
+  }
+  .snav-sidebar.mobile-open {
+    left: 0;
+  }
+
+  .snav-content {
+    padding: 14px 14px;
+  }
+}
+
+/* ── 2. Modal — body/header daha kompakt, label ve input daha okunaklı ── */
+.modal-body {
+  padding: 18px 20px !important;
+}
+.modal-body label {
+  font-size: 12px !important;
+  margin-bottom: 5px !important;
+  color: var(--text2) !important;
+  font-weight: 500 !important;
+}
+.modal-body .form-row {
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+.modal-header {
+  padding: 16px 20px 14px !important;
+}
+.modal-header-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+}
+.modal-footer {
+  padding: 12px 20px !important;
+  gap: 8px !important;
+}
+.msec-label {
+  font-size: 9px !important;
+  margin-bottom: 12px !important;
+  padding-bottom: 8px !important;
+}
+.modal-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.money-input):not(.date-fake-input):not(.itk-input),
+.modal-body textarea {
+  font-size: 13.5px !important;
+  padding: 9px 12px !important;
+  min-height: 40px !important;
+}
+/* money-input ve date-fake-input kendi özel padding'lerini korur (₺ simgesi / takvim ikonu için yer açar) */
+.modal-body input.money-input,
+.modal-body input.date-fake-input {
+  font-size: 13.5px !important;
+  min-height: 40px !important;
+}
+.modal-body select {
+  font-size: 13.5px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  min-height: 40px !important;
+}
+/* select-wrap içindeki select'lerde sol/sağ padding ikonlarla çakışmasın */
+.modal-body .select-wrap select {
+  padding-left: 34px !important;
+  padding-right: 32px !important;
+}
+/* ── Form alanı yükseklik birliği ──────────────────────────────────
+   Tarih inputu (date-wrap/date-fake-input), JS tarafında orijinal
+   inputun getComputedStyle()'ından "height" değerini birebir kopyalayıp
+   satır-içi (inline) style olarak yazıyor (bkz. initDateInputOverride/
+   copyStyles). Modal ilk açılışta gizliyken (ya da farklı bir anda)
+   hesaplanan bu değer, aşağıdaki 40px'lik standarttan sapabiliyor —
+   bu da "Tür"/"Para Birimi" (sc-popup-trigger-btn) gibi diğer alanlarla
+   aynı satırda boy farkı olarak görünüyor. height'i de (min-height
+   yanında) !important ile burada sabitleyip JS'in inline stilini eziyoruz,
+   böylece tüm alanlar (tarih, metin, sayı, para, select, popup-buton)
+   her zaman aynı yükseklikte hizalanır. */
+.modal-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.money-input):not(.itk-input),
+.modal-body select,
+.modal-body .date-wrap,
+.modal-body .date-wrap input.date-fake-input,
+.modal-body .sc-popup-trigger-btn {
+  height: 40px !important;
+  min-height: 40px !important;
+  box-sizing: border-box !important;
+}
+.modal-body .date-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+@media (max-width: 768px) {
+  .modal-body { padding: 14px 16px !important; }
+  .modal-header { padding: 14px 16px 12px !important; }
+  .modal-footer { padding: 12px 16px !important; }
+  .modal-footer .btn { min-height: 44px !important; font-size: 13.5px !important; flex: 1 1 auto !important; }
+}
+
+/* ── 3. Tanımlamalar tabloları — satır/hücre aralığı sıklaştırma ── */
+#page-tanimlamalar table th {
+  font-size: 10px !important;
+  padding: 8px 10px !important;
+  letter-spacing: .04em !important;
+}
+#page-tanimlamalar table td {
+  font-size: 12.5px !important;
+  padding: 9px 10px !important;
+}
+@media (max-width: 768px) {
+  #page-tanimlamalar table th { font-size: 9.5px !important; padding: 6px 8px !important; }
+  #page-tanimlamalar table td { font-size: 11.5px !important; padding: 7px 8px !important; }
+}
+
+/* ── 4. Kira / Mevduat tabloları — mobilde sıkışıklığı azalt ── */
+#page-kira table th, #page-mevduat table th {
+  font-size: 10px !important;
+  padding: 8px 9px !important;
+  white-space: nowrap;
+}
+#page-kira table td, #page-mevduat table td {
+  font-size: 12px !important;
+  padding: 9px 9px !important;
+}
+@media (max-width: 768px) {
+  #page-kira table th, #page-mevduat table th { font-size: 9.5px !important; padding: 6px 7px !important; }
+  #page-kira table td, #page-mevduat table td { font-size: 11px !important; padding: 7px 7px !important; }
+}
+
+/* ── 5. İşlem satırı aksiyon butonları: bu blok aşağıda
+       mobil media query düzeltmesiyle ele alınıyor (bkz. #8) ── */
+
+/* ── 6. Tanımlamalar aksiyon butonları (Düzenle/Sil) — boyut normalize ── */
+#page-tanimlamalar .btn-act {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* ── 7. Hesaplar sayfası stat kartları — üst renkli çizgi zaten mevcut,
+       ekstra ayrıştırma gerekmiyor ── */
+
+/* ── 8. IBAN inputları — dosyada birden çok yerde tekrarlanan genel
+       "input,select,textarea {font-size:16px !important}" (mobil dokunma-
+       hedefi) kuralları 32 karakterlik IBAN placeholder'ını taşırıyordu.
+       Bu blok bilerek bu \3c style> etiketinin EN SONUNA konuldu ki kaynak
+       sırası itibarıyla hiçbir önceki !important kuralı bunu ezemesin. ── */
+input.iban-input {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 12.5px !important;
+  letter-spacing: 0 !important;
+  padding: 9px 10px !important;
+}
+@media (max-width: 480px) {
+  input.iban-input {
+    font-size: 11px !important;
+    padding: 8px 8px !important;
+  }
+}
+
+
+/* ── PATCH: işlem satırı kategori hizası + ortak aksiyon butonları ── */
+.islem-row2-body .islem-row2-kat-line {
+  padding: 0 !important;
+  margin-top: 5px !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+}
+.islem-row2-body .islem-row2-kat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.055) !important;
+  border: 1px solid rgba(255,255,255,.07);
+  color: var(--text2);
+  font-size: 10.5px;
+  line-height: 1.25;
+}
+html[data-theme="light"] .islem-row2-body .islem-row2-kat-chip {
+  background: rgba(0,0,0,.045) !important;
+  border-color: rgba(0,0,0,.07);
+}
+.kd-islem-list .islem-row2-body .islem-row2-kat-line {
+  padding-left: 0 !important;
+}
+.btn-act {
+  position: relative;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.055) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 4px 14px rgba(0,0,0,.13);
+  color: rgba(240,244,255,.72) !important;
+}
+.btn-act svg { width: 14px !important; height: 14px !important; }
+.btn-act:hover {
+  transform: translateY(-1px) scale(1.06) !important;
+  background: rgba(255,255,255,.09) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px rgba(0,0,0,.18);
+}
+.btn-act[data-action="edit"],
+.btn-act.edit,
+.btn-act[title*="Düzenle"],
+.btn-act[onclick*="edit"], .btn-act[onclick*="Edit"],
+.btn-act[onclick*="Modal"], .btn-act[onclick*="modal"] {
+  color: var(--teal) !important;
+  background: rgba(45,212,191,.10) !important;
+  border-color: rgba(45,212,191,.22) !important;
+}
+.btn-act[data-action="edit"]:hover,
+.btn-act.edit:hover,
+.btn-act[title*="Düzenle"]:hover,
+.btn-act[onclick*="edit"]:hover, .btn-act[onclick*="Edit"]:hover,
+.btn-act[onclick*="Modal"]:hover, .btn-act[onclick*="modal"]:hover {
+  background: rgba(45,212,191,.16) !important;
+  border-color: rgba(45,212,191,.34) !important;
+  box-shadow: 0 0 0 1px rgba(45,212,191,.08), 0 8px 22px rgba(45,212,191,.14);
+}
+.btn-act[data-action="delete"],
+.btn-act.delete,
+.btn-act[title*="Sil"],
+.btn-act[onclick*="delete"], .btn-act[onclick*="Delete"],
+.btn-act[onclick*="sil"], .btn-act[onclick*="Sil"] {
+  color: var(--danger) !important;
+  background: rgba(251,113,133,.10) !important;
+  border-color: rgba(251,113,133,.22) !important;
+}
+.btn-act[data-action="delete"]:hover,
+.btn-act.delete:hover,
+.btn-act[title*="Sil"]:hover,
+.btn-act[onclick*="delete"]:hover, .btn-act[onclick*="Delete"]:hover,
+.btn-act[onclick*="sil"]:hover, .btn-act[onclick*="Sil"]:hover {
+  background: rgba(251,113,133,.16) !important;
+  border-color: rgba(251,113,133,.34) !important;
+  box-shadow: 0 0 0 1px rgba(251,113,133,.08), 0 8px 22px rgba(251,113,133,.14);
+}
+.btn-act[data-action="plan"], .btn-act[title*="Plan"] {
+  color: var(--violet) !important;
+  background: rgba(167,139,250,.10) !important;
+  border-color: rgba(167,139,250,.24) !important;
+}
+.btn-act[data-action="copy"], .btn-act[title*="Kopyala"], .btn-act[onclick*="clipboard"] {
+  color: var(--sky) !important;
+  background: rgba(56,189,248,.10) !important;
+  border-color: rgba(56,189,248,.24) !important;
+}
+.btn-act[data-action="move"], .btn-act[title*="Vadeli"], .btn-act[onclick*="Transfer"] {
+  color: var(--gold) !important;
+  background: rgba(251,191,36,.10) !important;
+  border-color: rgba(251,191,36,.24) !important;
+}
+.btn-act[data-action="log"], .btn-act[title*="Log"] {
+  color: var(--purple) !important;
+  background: rgba(167,139,250,.10) !important;
+  border-color: rgba(167,139,250,.24) !important;
+}
+html[data-theme="light"] .btn-act {
+  background: rgba(0,0,0,.045) !important;
+  border-color: rgba(0,0,0,.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 4px 14px rgba(0,0,0,.06);
+}
+html[data-theme="light"] .btn-act[data-action="edit"],
+html[data-theme="light"] .btn-act.edit,
+html[data-theme="light"] .btn-act[title*="Düzenle"],
+html[data-theme="light"] .btn-act[onclick*="edit"], html[data-theme="light"] .btn-act[onclick*="Edit"],
+html[data-theme="light"] .btn-act[onclick*="Modal"], html[data-theme="light"] .btn-act[onclick*="modal"] {
+  color: #0d9488 !important; background: rgba(13,148,136,.08) !important; border-color: rgba(13,148,136,.22) !important;
+}
+html[data-theme="light"] .btn-act[data-action="delete"],
+html[data-theme="light"] .btn-act.delete,
+html[data-theme="light"] .btn-act[title*="Sil"],
+html[data-theme="light"] .btn-act[onclick*="delete"], html[data-theme="light"] .btn-act[onclick*="Delete"],
+html[data-theme="light"] .btn-act[onclick*="sil"], html[data-theme="light"] .btn-act[onclick*="Sil"] {
+  color: #e11d48 !important; background: rgba(225,29,72,.08) !important; border-color: rgba(225,29,72,.22) !important;
+}
+html[data-theme="light"] .btn-act[data-action="plan"], html[data-theme="light"] .btn-act[title*="Plan"] { color:#7c3aed !important; background:rgba(124,58,237,.08) !important; border-color:rgba(124,58,237,.22) !important; }
+html[data-theme="light"] .btn-act[data-action="copy"], html[data-theme="light"] .btn-act[title*="Kopyala"], html[data-theme="light"] .btn-act[onclick*="clipboard"] { color:#0284c7 !important; background:rgba(2,132,199,.08) !important; border-color:rgba(2,132,199,.22) !important; }
+html[data-theme="light"] .btn-act[data-action="move"], html[data-theme="light"] .btn-act[title*="Vadeli"], html[data-theme="light"] .btn-act[onclick*="Transfer"] { color:#c47a00 !important; background:rgba(196,122,0,.08) !important; border-color:rgba(196,122,0,.22) !important; }
+html[data-theme="light"] .btn-act[data-action="log"], html[data-theme="light"] .btn-act[title*="Log"] { color:#7c3aed !important; background:rgba(124,58,237,.08) !important; border-color:rgba(124,58,237,.22) !important; }

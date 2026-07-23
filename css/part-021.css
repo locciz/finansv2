@@ -1,0 +1,95 @@
+
+/* Mobil wizard footer tek satır standardı.
+   Kullanıcı isteği: Geri / İptal / İleri yan yana dursun, karışık/dağınık görünmesin.
+   Yukarıdaki wrap/2 satır fallback'i burada bilinçli olarak override edilir. */
+@media (max-width: 768px) {
+  .modal-footer.swiz-mobile-footer,
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-next-btn"]),
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-save-btn"]) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    gap: 8px !important;
+    grid-template-columns: none !important;
+    grid-template-areas: none !important;
+    overflow: visible !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .btn,
+  .modal-footer:has([id$="-step-back-btn"]) .btn,
+  .modal-footer:has([id$="-step-next-btn"]) .btn,
+  .modal-footer:has([id$="-step-save-btn"]) .btn {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 46px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10px 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 13.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-back,
+  .modal-footer [id$="-step-back-btn"] {
+    order: 1 !important;
+    grid-area: auto !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-cancel,
+  .modal-footer [id$="-step-cancel-btn"] {
+    order: 2 !important;
+    grid-area: auto !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-next,
+  .modal-footer.swiz-mobile-footer .swiz-btn-save,
+  .modal-footer [id$="-step-next-btn"],
+  .modal-footer [id$="-step-save-btn"] {
+    order: 3 !important;
+    grid-area: auto !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .btn[style*="display:none"],
+  .modal-footer.swiz-mobile-footer .btn[style*="display: none"],
+  .modal-footer .btn[id$="-step-back-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-back-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-cancel-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-cancel-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-next-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-next-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-save-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-save-btn"][style*="display: none"] {
+    display: none !important;
+    flex: 0 0 0 !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Çok dar ekranlarda da tek satır kalsın; sadece buton iç boşluğu/yazı biraz küçülsün. */
+@media (max-width: 380px) {
+  .modal-footer.swiz-mobile-footer,
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-next-btn"]),
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-save-btn"]) {
+    gap: 6px !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .btn,
+  .modal-footer:has([id$="-step-back-btn"]) .btn,
+  .modal-footer:has([id$="-step-next-btn"]) .btn,
+  .modal-footer:has([id$="-step-save-btn"]) .btn {
+    padding: 9px 7px !important;
+    font-size: 12.5px !important;
+  }
+}

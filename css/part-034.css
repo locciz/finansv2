@@ -1,0 +1,13 @@
+
+/* Son audit: kalan küçük tıklama hedefleri */
+.ortak-grup-chip{min-height:28px !important;}
+#page-hesaplar button{min-width:32px !important;min-height:32px !important;}
+#page-hesaplar button:empty{display:inline-flex !important;align-items:center !important;justify-content:center !important;}
+@media (max-width:768px){
+  #kartlar-siralama-bar .kartlar-siralama-wrap-native,
+  #kartlar-siralama-bar .kartlar-siralama-wrap{
+    overflow-x:auto !important;
+    overscroll-behavior-x:contain !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+}

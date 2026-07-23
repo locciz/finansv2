@@ -1,0 +1,65 @@
+
+/* Senior QA UI hardening — no MutationObserver, no setInterval. */
+html, body { max-width: 100% !important; }
+body { overflow-x: clip !important; }
+* { box-sizing: border-box; }
+.app, .content, .page, .card, .modal, .modal-body, .tbl-wrap, .grid, .grid-2, .form-row { min-width: 0 !important; }
+.page { max-width: 100% !important; }
+.page.active { isolation: isolate; }
+img, svg, video, canvas { max-width: 100%; }
+input, select, textarea, button { font: inherit; max-width: 100%; }
+input, select, textarea { min-width: 0 !important; }
+button, .btn, .filter-chip, .sort-chip, .tab-btn, .nav-btn, .mob-nav-btn, .btn-act, [role="button"] { touch-action: manipulation; }
+:is(button, .btn, .filter-chip, .sort-chip, .tab-btn, .btn-act, input, select, textarea):focus-visible {
+  outline: 2px solid rgba(79,110,247,.72) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(79,110,247,.12) !important;
+}
+.tbl-wrap, .rf99-scroll-x { overflow-x: auto !important; overflow-y: hidden; max-width: 100% !important; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.rf99-touch-target { min-height: 44px !important; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.tbl-wrap table { min-width: max-content; }
+.rf-scroll-x { background-image: linear-gradient(to right, rgba(0,0,0,.06), transparent 16px); background-repeat: no-repeat; }
+.rf-scroll-y { background-image: linear-gradient(to bottom, rgba(0,0,0,.06), transparent 16px); background-repeat: no-repeat; }
+.card { overflow-wrap: anywhere; }
+.badge, .chip, .filter-chip, .sort-chip, .btn, .btn-sm { max-width: 100%; }
+.filter-chip span, .sort-chip span, .btn span { min-width: 0; }
+.modal-bg.open { align-items: center !important; justify-content: center !important; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important; }
+.modal-bg.open .modal { max-width: min(var(--modal-w, 720px), calc(100vw - 20px)) !important; max-height: calc(100dvh - 20px) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
+.modal-header,
+.modal-footer { flex: 0 0 auto !important; }
+.modal-body { flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: clip !important; -webkit-overflow-scrolling: touch; }
+.modal-footer { position: sticky !important; bottom: 0 !important; z-index: 5 !important; background: var(--surface, rgba(20,24,38,.98)); border-top: 1px solid var(--border); padding-bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+html[data-theme="light"] :is(.modal-footer,.wizard-footer,.swiz-footer) { background: rgba(255,255,255,.98); }
+.close-btn { min-width: 38px !important; min-height: 38px !important; }
+.mob-more-menu { max-width: calc(100vw - 20px) !important; max-height: min(70dvh, 520px) !important; overflow: auto !important; }
+.date-wrap, .money-wrap, .select-wrap { min-width: 0 !important; }
+.banka-logo,
+.bank-logo { overflow: hidden; }
+.banka-logo img,
+.bank-logo img { object-fit: contain !important; }
+.info-box, .empty-state, .toast { overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+  .content { padding-left: max(10px, env(safe-area-inset-left)) !important; padding-right: max(10px, env(safe-area-inset-right)) !important; }
+  .page-header { gap: 10px !important; }
+  .page-header .btn, .page-header .action-row .btn { min-height: 40px !important; }
+  .btn, .filter-chip, .sort-chip, .tab-btn { min-height: 38px !important; }
+  .btn-act { min-width: 34px !important; min-height: 34px !important; }
+  .modal-bg.open { align-items: flex-end !important; padding: 8px !important; }
+  .modal-bg.open .modal { width: 100% !important; max-width: 100% !important; max-height: calc(100dvh - 16px) !important; border-radius: 20px 20px 14px 14px !important; }
+  .modal-body { padding-bottom: 10px !important; }
+  .form-row, .grid-2, .grid-3, .cols-2, .cols-3 { grid-template-columns: 1fr !important; }
+  label { line-height: 1.25; }
+  .tbl-wrap { border-radius: 12px; }
+  .filter-chip, .sort-chip { white-space: nowrap !important; }
+  #kartlar-siralama-bar, #hesap-filtre-wrap, .tbl-filtre-bar, .tbl-siralama-bar { max-width: 100% !important; }
+  .snav-shell { min-width: 0 !important; }
+  .snav-content { min-width: 0 !important; }
+}
+@media (max-width: 390px) {
+  .content { padding-left: 8px !important; padding-right: 8px !important; }
+  .card { border-radius: 15px !important; }
+  .btn, .filter-chip, .sort-chip { font-size: 11.5px !important; }
+  .page-header h1 { font-size: 20px !important; }
+}
+

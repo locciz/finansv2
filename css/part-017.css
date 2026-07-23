@@ -1,0 +1,61 @@
+
+/* Kredi kartları arama/filtre/mobil işlem satırı polish:
+   - Arama ikonuyla placeholder arası açıldı
+   - Mobilde kart filtre toolbar zorla görünür ve yatay kayar
+   - Kart işlem kategori ikonları sadece masaüstünde kalır */
+:root{
+  --rf-card-search-icon-left:16px;
+  --rf-card-search-input-left:52px;
+}
+
+/* Kredi kartı işlem satırları: kategori ikonları masaüstünde var, mobilde yok */
+@media(max-width:640px){
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-icon-wrap,
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-icon,
+  #kd2-islem-list .islem-row2-icon-wrap,
+  #kd2-islem-list .islem-row2-icon{
+    display:none!important;
+  }
+
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2,
+  #kd2-islem-list .islem-row2{
+    display:grid!important;
+    grid-template-columns:44px minmax(0,1fr) auto!important;
+    grid-template-areas:
+      "date body actions"
+      "date amount actions"!important;
+    column-gap:10px!important;
+    row-gap:5px!important;
+    align-items:center!important;
+  }
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-date-card,
+  #kd2-islem-list .islem-date-card{grid-area:date!important;}
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-body,
+  #kd2-islem-list .islem-row2-body{grid-area:body!important;min-width:0!important;}
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-amount,
+  #kd2-islem-list .islem-row2-amount{
+    grid-area:amount!important;
+    min-width:0!important;
+    text-align:left!important;
+    padding-top:0!important;
+  }
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-actions,
+  #kd2-islem-list .islem-row2-actions{
+    grid-area:actions!important;
+    justify-content:flex-end!important;
+  }
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-kat-line,
+  #kd2-islem-list .islem-row2-kat-line{
+    padding:4px 0 0!important;
+    margin:0!important;
+  }
+}
+
+@media(min-width:641px){
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-icon-wrap,
+  :is(#modal-kart-detay,#kartlar-detay-view) .kd-islem-list .islem-row2-icon,
+  #kd2-islem-list .islem-row2-icon-wrap,
+  #kd2-islem-list .islem-row2-icon{
+    display:flex;
+  }
+}

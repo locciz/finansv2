@@ -1,0 +1,91 @@
+
+/* Mobil scroll-lock, transfer satırı wrap, TBK uzun açıklama, KMH/Kredi taksit planı kolonları */
+
+/* Mobil sayfada modal yoksa body kesin kayabilir. */
+@media (max-width: 768px){
+  html{overflow-y:auto!important;overflow-x:hidden!important;height:auto!important;min-height:100%!important;touch-action:pan-y!important;overscroll-behavior-y:auto!important;}
+  body:not(.rf-modal-scroll-locked){position:static!important;overflow-y:auto!important;overflow-x:hidden!important;height:auto!important;min-height:100dvh!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important;}
+  body.rf-modal-scroll-locked{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;overflow:hidden!important;touch-action:none!important;}
+  .page.active{overflow:visible!important;min-height:calc(100dvh - 96px)!important;}
+}
+
+/* Para Transferi zorunlu yıldız satırı: markup kaldırıldı, sonradan üretilirse de görünmesin. */
+#modal-transfer .transfer-hidden-account-label{display:none!important;}
+#modal-transfer label.rf-required-star-only{display:none!important;}
+
+/* Son transferler — asıl üretilen inline-flex satırları semantic class ile grid'e çekiliyor. */
+#transfer-log-liste{max-width:100%!important;min-width:0!important;overflow-x:hidden!important;}
+#transfer-log-liste .rf-transfer-row-compact{
+  width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) max-content max-content!important;
+  grid-template-areas:"main amount actions"!important;gap:8px!important;align-items:start!important;
+  padding:8px 10px!important;background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:10px!important;font-size:11.5px!important;overflow:hidden!important;
+}
+#transfer-log-liste .rf-transfer-compact-main{grid-area:main!important;min-width:0!important;max-width:100%!important;}
+#transfer-log-liste .rf-transfer-compact-route,
+#transfer-log-liste .rf-transfer-compact-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.28!important;min-width:0!important;max-width:100%!important;}
+#transfer-log-liste .rf-transfer-compact-amount{grid-area:amount!important;min-width:max-content!important;text-align:right!important;justify-self:end!important;}
+#transfer-log-liste .rf-transfer-compact-actions{grid-area:actions!important;display:inline-flex!important;gap:4px!important;justify-self:end!important;align-items:center!important;min-width:max-content!important;}
+#transfer-log-liste .rf-transfer-compact-actions button{min-width:32px!important;min-height:32px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0!important;border-radius:9px!important;}
+@media (max-width:520px){
+  #transfer-log-liste .rf-transfer-row-compact{grid-template-columns:minmax(0,1fr) max-content!important;grid-template-areas:"main main" "amount actions"!important;gap:6px 8px!important;}
+  #transfer-log-liste .rf-transfer-compact-amount{justify-self:start!important;text-align:left!important;}
+}
+@media (max-width:340px){
+  #transfer-log-liste .rf-transfer-row-compact{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"main" "amount" "actions"!important;}
+  #transfer-log-liste .rf-transfer-compact-actions{justify-self:start!important;}
+}
+
+/* Aylık gelir/gider/bakiye modalı: uzun açıklama tabloyu/modali genişletmesin.
+   NOT: #modal-tbk-ay-detay (backdrop) kasıtlı olarak listede yok — aynı pozisyon
+   bug'ının bir başka tekrarı olmasın diye yalnızca iç .modal karta uygulanıyor. */
+#modal-tbk-ay-detay .modal{max-width:min(96vw,980px)!important;width:min(96vw,980px)!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important;}
+#modal-tbk-ay-detay .modal-body{min-width:0!important;overflow-x:hidden!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll{max-width:100%!important;min-width:0!important;overflow-x:hidden!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll th:first-child,
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:first-child{width:110px!important;max-width:110px!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll th:nth-child(2),
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:nth-child(2){min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.32!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-scroll th:last-child,
+#modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child{width:150px!important;max-width:150px!important;text-align:right!important;white-space:nowrap!important;}
+#modal-tbk-ay-detay .tbk-ay-detay-detay{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}
+@media (max-width:640px){
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll table,
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll thead,
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll tbody,
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll tr,
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td{display:block!important;width:100%!important;max-width:100%!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll tbody{min-width:0!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll tr{position:relative!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;box-sizing:border-box!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:first-child{width:auto!important;max-width:calc(100% - 132px)!important;padding-right:0!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:nth-child(2){width:auto!important;max-width:100%!important;padding-right:132px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child{position:absolute!important;top:14px!important;right:14px!important;width:auto!important;max-width:126px!important;}
+}
+@media (max-width:360px){
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:nth-child(2){padding-right:0!important;margin-top:36px!important;}
+  #modal-tbk-ay-detay .tbk-ay-detay-scroll td:last-child{max-width:118px!important;}
+}
+
+/* KMH/Kredi taksit planı — no/taksit dar, tutar geniş ve sağ hizalı. */
+.tp-wrap{max-width:100%!important;min-width:0!important;overflow-x:hidden!important;}
+.tp-wrap .tp-header,
+.tp-wrap .tp-row{grid-template-columns:42px minmax(122px,1fr) minmax(70px,86px) minmax(148px,1.2fr) 34px!important;align-items:center!important;}
+.tp-wrap .tp-no{width:42px!important;max-width:42px!important;min-width:0!important;text-align:center!important;}
+.tp-wrap .tp-donem{min-width:0!important;max-width:86px!important;text-align:right!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.tp-wrap input[data-taksit-field="tutar"],
+.tp-wrap .tp-input-tutar{min-width:130px!important;width:100%!important;text-align:right!important;font-variant-numeric:tabular-nums!important;}
+.tp-wrap input[data-taksit-field="tarih"]{min-width:0!important;width:100%!important;}
+.tp-wrap .tp-del{width:32px!important;height:32px!important;min-width:32px!important;}
+@media (max-width:640px){
+  .tp-wrap .tp-header{display:none!important;}
+  .tp-wrap .tp-row{display:grid!important;grid-template-columns:34px minmax(0,1fr) 34px!important;grid-template-areas:"no tarih del" "no tutar tutar" "no donem donem"!important;gap:6px 8px!important;padding:10px!important;}
+  .tp-wrap .tp-row>.tp-no{grid-area:no!important;width:34px!important;max-width:34px!important;align-self:center!important;justify-self:center!important;}
+  .tp-wrap .tp-row>input[data-taksit-field="tarih"],
+  .tp-wrap .tp-row>.date-wrap{grid-area:tarih!important;min-width:0!important;width:100%!important;}
+  .tp-wrap .tp-row>.tp-donem{grid-area:donem!important;text-align:left!important;max-width:none!important;white-space:normal!important;}
+  .tp-wrap .tp-row>input[data-taksit-field="tutar"],
+  .tp-wrap .tp-row>.tp-input-tutar{grid-area:tutar!important;min-width:0!important;width:100%!important;text-align:right!important;font-size:13px!important;}
+  .tp-wrap .tp-row>.tp-del{grid-area:del!important;justify-self:end!important;}
+  .tp-footer{display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
+}

@@ -1,0 +1,4 @@
+
+/* External bank logo network requests removed; existing text fallbacks are shown instead. */
+.bank-logo img[src^="data:image/gif"], .kart-card-bank-logo img[src^="data:image/gif"], .bank-logo-square img[src^="data:image/gif"] { display:none !important; }
+.bank-logo img[src^="data:image/gif"] + span, .kart-card-bank-logo img[src^="data:image/gif"] + span, .bank-logo-square img[src^="data:image/gif"] + span { display:flex !important; }

@@ -1,0 +1,67 @@
+
+/* Wizard modal footer: mobile'de butonlar tek satıra sığarsa tek satır,
+   sığmazsa kontrollü biçimde 2 satıra düşsün. Eski grid/tek buton alta itme
+   yaklaşımını override eder. */
+@media (max-width: 768px) {
+  .modal-footer.swiz-mobile-footer,
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-next-btn"]),
+  .modal-footer:has([id$="-step-back-btn"]):has([id$="-step-save-btn"]) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    grid-template-columns: none !important;
+    grid-template-areas: none !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .btn,
+  .modal-footer:has([id$="-step-back-btn"]) .btn,
+  .modal-footer:has([id$="-step-save-btn"]) .btn,
+  .modal-footer:has([id$="-step-next-btn"]) .btn {
+    width: auto !important;
+    min-width: 116px !important;
+    max-width: 100% !important;
+    flex: 1 1 116px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-back,
+  .modal-footer [id$="-step-back-btn"] {
+    order: 1 !important;
+    grid-area: auto !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-cancel,
+  .modal-footer [id$="-step-cancel-btn"] {
+    order: 2 !important;
+    grid-area: auto !important;
+  }
+
+  .modal-footer.swiz-mobile-footer .swiz-btn-next,
+  .modal-footer.swiz-mobile-footer .swiz-btn-save,
+  .modal-footer [id$="-step-next-btn"],
+  .modal-footer [id$="-step-save-btn"] {
+    order: 3 !important;
+    grid-area: auto !important;
+  }
+
+  /* Gizli butonlar boş slot oluşturmasın. */
+  .modal-footer.swiz-mobile-footer .btn[style*="display:none"],
+  .modal-footer.swiz-mobile-footer .btn[style*="display: none"],
+  .modal-footer .btn[id$="-step-back-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-back-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-cancel-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-cancel-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-next-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-next-btn"][style*="display: none"],
+  .modal-footer .btn[id$="-step-save-btn"][style*="display:none"],
+  .modal-footer .btn[id$="-step-save-btn"][style*="display: none"] {
+    display: none !important;
+    flex-basis: 0 !important;
+    min-width: 0 !important;
+  }
+}

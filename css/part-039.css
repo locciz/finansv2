@@ -1,0 +1,77 @@
+/* Son Transferler — okunabilirlik ve hiyerarşi düzeltmesi.
+   Sorun: satırlar arasında boşluk yoktu (konteynerde gap tanımsızdı),
+   border kontrastı çok düşüktü (rgba(255,255,255,.055)) bu yüzden satırlar
+   birbirine yapışık/iç içe görünüyordu; ikonlar (emoji) düzensiz hizalıydı;
+   tutar rengi ile arka plan arasında yeterli ayrım yoktu. Bu dosya part-037
+   ile aynı seçicileri (daha yüksek özgüllük gerekmeden, sonradan yüklendiği
+   için) ezerek satırları kart haline getirir. */
+
+#transfer-log-liste{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+}
+
+#transfer-log-liste .rf-transfer-row-compact{
+  border:1px solid var(--border-active, rgba(255,255,255,.12))!important;
+  border-color:rgba(255,255,255,.09)!important;
+  background:var(--surface2)!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.15)!important;
+  padding:10px 12px!important;
+  border-radius:12px!important;
+  transition:border-color .15s ease, background .15s ease!important;
+}
+#transfer-log-liste .rf-transfer-row-compact:hover{
+  border-color:rgba(255,255,255,.18)!important;
+  background:color-mix(in srgb, var(--surface2) 92%, white 8%)!important;
+}
+[data-theme="light"] #transfer-log-liste .rf-transfer-row-compact,
+.light #transfer-log-liste .rf-transfer-row-compact{
+  border-color:rgba(0,0,0,.09)!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.05)!important;
+}
+
+/* Rota metni: ikon + hesap adları arasında net boşluk, ok işareti belirginleşsin */
+#transfer-log-liste .rf-transfer-compact-route{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  font-size:12.5px!important;
+  font-weight:600!important;
+  color:var(--text2, #cbd5e1)!important;
+}
+#transfer-log-liste .rf-transfer-compact-route span{
+  font-weight:700!important;
+  opacity:.55!important;
+  flex-shrink:0!important;
+}
+
+#transfer-log-liste .rf-transfer-compact-note{
+  font-size:11px!important;
+  color:var(--text3)!important;
+  margin-top:2px!important;
+}
+
+/* Tutar bloğu: rakam gerçekten öne çıksın, tarih altında sessiz kalsın */
+#transfer-log-liste .rf-transfer-compact-amount .mono{
+  font-size:13.5px!important;
+  font-weight:800!important;
+  letter-spacing:.2px!important;
+}
+#transfer-log-liste .rf-transfer-compact-amount div:last-child{
+  font-size:10.5px!important;
+  margin-top:2px!important;
+  opacity:.75!important;
+}
+
+/* Aksiyon butonları: dokunma alanı büyüsün, hover ile fark edilsin */
+#transfer-log-liste .rf-transfer-compact-actions button{
+  transition:background .15s ease, color .15s ease!important;
+}
+#transfer-log-liste .rf-transfer-compact-actions button:hover{
+  background:rgba(255,255,255,.08)!important;
+}
+[data-theme="light"] #transfer-log-liste .rf-transfer-compact-actions button:hover,
+.light #transfer-log-liste .rf-transfer-compact-actions button:hover{
+  background:rgba(0,0,0,.06)!important;
+}

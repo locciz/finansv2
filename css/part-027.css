@@ -1,0 +1,96 @@
+
+/* Sistem geneli hafif/prosedürel arayüz polish. Sürekli tarama yok. */
+:root {
+  --rf86-radius: 18px;
+  --rf86-gap: 12px;
+}
+
+.main, .content, #app, .page {
+  min-width: 0 !important;
+}
+
+.page.active {
+  animation-duration: .14s !important;
+}
+
+.card, .panel, .tbl-wrap, .modal, .modal-card, .info-box {
+  backface-visibility: hidden;
+}
+
+@media (max-width: 768px) {
+  body { overflow-x: hidden !important; }
+  .page { padding-bottom: 86px !important; }
+  .card, .panel, .tbl-wrap, .info-box { border-radius: 16px !important; }
+  .grid { max-width: 100% !important; min-width: 0 !important; }
+  .btn, button { touch-action: manipulation; }
+}
+
+/* Kredi kartları arama kutusu görünümü (diğer sayfalarda olmayan tek fark: arama input'u) */
+#kartlar-siralama-bar .kartlar-arama-grup {
+  flex: 1 1 260px !important;
+  min-width: 200px !important;
+}
+#kartlar-siralama-bar .kartlar-arama-box {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  width: min(100%, 360px) !important;
+}
+#kartlar-siralama-bar .kartlar-arama-box svg {
+  position: absolute !important;
+  left: 11px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 14px !important;
+  height: 14px !important;
+  color: var(--text3) !important;
+  pointer-events: none !important;
+}
+#kartlar-siralama-bar .kartlar-arama-input {
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 34px 0 32px !important;
+  border-radius: 11px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+#kartlar-siralama-bar .kartlar-arama-input:focus {
+  border-color: rgba(79,110,247,.45) !important;
+  box-shadow: 0 0 0 3px rgba(79,110,247,.10) !important;
+}
+#kartlar-siralama-bar .kartlar-arama-clear {
+  position: absolute !important;
+  right: 5px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--surface3) !important;
+  color: var(--text2) !important;
+  cursor: pointer !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+#kartlar-siralama-bar .kartlar-arama-box.has-value .kartlar-arama-clear { display: inline-flex !important; }
+
+@media (max-width: 900px) {
+  #kartlar-siralama-bar .kartlar-arama-grup {
+    flex: 0 0 min(82vw, 380px) !important;
+    min-width: min(82vw, 380px) !important;
+  }
+  #kartlar-siralama-bar .kartlar-durum-grup { flex: 0 0 auto !important; min-width: max-content !important; }
+}

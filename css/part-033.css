@@ -1,0 +1,47 @@
+
+/* Audit sonrası küçük click target + scroll containment düzeltmeleri */
+.tbl-filtre-clear,
+.snav-mobile-menu,
+.nb-logbtn,
+.card button,
+.table button,
+.tbl-wrap button{
+  min-height:32px !important;
+  min-width:32px !important;
+  touch-action:manipulation !important;
+}
+.nb-chip{
+  min-height:28px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+}
+.ortak-grup-chip{
+  min-height:24px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+}
+.tbl-wrap{
+  contain:layout paint !important;
+  position:relative !important;
+}
+.tbl-wrap::after{
+  content:'';
+  position:sticky;
+  right:0;
+  top:0;
+  width:1px;
+  height:1px;
+  display:block;
+  pointer-events:none;
+}
+@media (max-width:768px){
+  .tbl-wrap{
+    margin-left:-1px !important;
+    margin-right:-1px !important;
+    padding-bottom:2px !important;
+  }
+  .tbl-wrap > table{
+    min-width:min(720px, max-content) !important;
+  }
+  .snav-mobile-menu{height:34px !important;}
+}

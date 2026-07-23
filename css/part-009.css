@@ -1,0 +1,42 @@
+
+/* Ödeme durumu popupındaki hero tutar kutusunda üstteki para birimi
+   sembolü, önceki button-placement override'larından dolayı sola
+   kayıyordu. Son katmanda tekrar merkeze sabitliyoruz; Hızlı Transfer solda,
+   Tümü/Kalan sağda kalmaya devam eder. */
+#od-pop-tutar-wrap::before{
+  left:50%!important;
+  right:auto!important;
+  top:16px!important;
+  bottom:auto!important;
+  transform:translateX(-50%)!important;
+  width:auto!important;
+  min-width:0!important;
+  text-align:center!important;
+  font-size:13px!important;
+  line-height:1!important;
+  letter-spacing:1.8px!important;
+  opacity:.46!important;
+  z-index:5!important;
+  pointer-events:none!important;
+}
+#od-pop-tutar-wrap::after{
+  left:50%!important;
+  right:auto!important;
+  bottom:10px!important;
+  top:auto!important;
+  transform:translateX(-50%)!important;
+  text-align:center!important;
+  z-index:5!important;
+}
+#od-pop-tutar-wrap input#od-pop-tutar{
+  padding-left:18px!important;
+  padding-right:18px!important;
+  text-align:center!important;
+}
+@media(max-width:430px){
+  #od-pop-tutar-wrap::before{
+    top:17px!important;
+    font-size:12px!important;
+    letter-spacing:1.5px!important;
+  }
+}

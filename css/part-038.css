@@ -1,0 +1,707 @@
+
+
+/* Refactored UI Core
+   Bu blok dağınık UI iyileştirmelerini tek merkezde toplar.
+   Kapsam:
+   - TBK aylık detay popup body portal / center / close
+   - TBK sıralama popup z-index
+   - Mobil nav + Google giriş hit-test
+   - Dashboard/kart/faiz popup inline-display uyumluluğu
+   - Sticky hover katman düzeltmesi
+   - Card header layout refactor
+   - Son transfer uzun satır koruması
+   - Tanımlamalar > Gösterim seçili renkleri
+   - KMH/Kredi plan kolon oranları
+   - Genel modal/input/overflow güvenliği
+*/
+
+/* ---------- Foundation ---------- */
+html,
+body {
+  max-width: 100% !important;
+}
+
+body {
+  overflow-x: clip !important;
+}
+
+@supports not (overflow: clip) {
+  body { overflow-x: hidden !important; }
+}
+
+:is(.app,.main,main,.content,.page,.page.active,.container,.panel,.card,.modal,.modal-body,.popup,.popup-body,.drawer,.drawer-body,.tbl-wrap,.table-wrap,.list,.list-row,.item-row) {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+:is(input,select,textarea,button,.btn,.icon-btn,.filter-chip,.sort-chip) {
+  max-width: 100% !important;
+}
+
+:is(input,select,textarea) {
+  min-width: 0 !important;
+}
+
+:is(.field,.form-row,.form-grid,.grid,.toolbar,.filter-bar,.tbl-filtre-bar,.tbl-siralama-bar) > * {
+  min-width: 0 !important;
+}
+
+@media (max-width: 520px) {
+  :is(input,select,textarea) { font-size: 16px !important; }
+  :is(.btn,button,.filter-chip,.sort-chip,.icon-btn) { min-height: 38px; }
+}
+
+/* ---------- Mobile click / nav / auth hit-test ---------- */
+:is(nav,.navbar,.topbar,.mobile-nav,.bottom-nav,.mobile-bottom-nav,.sidebar,.nav,.nav-bar,.g_id_signin,#g_id_onload,[id*="google"],[class*="google"],[onclick*="Google"],[onclick*="google"]) {
+  pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+  body:not(.modal-open) {
+    position: static !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+
+  .page.active {
+    min-height: calc(100dvh - 74px) !important;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Topbar/nav hit-test: bottom nav fixed davranışına dokunma */
+  :is(.topbar,.navbar,.mobile-nav,nav:not(#mobile-bottom-nav):not(.mobile-bottom-nav)) {
+    position: relative;
+    z-index: 2147482000 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  :is(.topbar,.navbar,.mobile-nav,nav,#mobile-bottom-nav,.mobile-bottom-nav) :is(a,button,.btn,.nav-item,[onclick],[role="button"],.mob-nav-btn) {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :is(.g_id_signin,#g_id_onload,[id*="google"],[class*="google"]) {
+    position: relative !important;
+    z-index: 2147482100 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+}
+
+/* Closed overlays must not eat clicks; inline-display opened popups stay visible */
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop):not(.open):not(.show):not(.active)[style*="display: none"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop):not(.open):not(.show):not(.active)[style*="display:none"] {
+  pointer-events: none !important;
+}
+
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display: flex"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display:flex"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display: block"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display:block"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display: grid"],
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display:grid"],
+:is(.modal-bg.open,.popup-bg.open,.drawer-bg.open,.overlay.open,.backdrop.open,.modal-bg.show,.popup-bg.show,.drawer-bg.show,.overlay.show,.backdrop.show,.modal-bg.active,.popup-bg.active,.drawer-bg.active,.overlay.active,.backdrop.active) {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+:is(.modal-bg,.popup-bg,.drawer-bg,.overlay,.backdrop)[style*="display"] :is(.modal,.popup,.drawer,.modal-card,.popup-card,.drawer-card),
+:is(.modal-bg.open,.popup-bg.open,.drawer-bg.open,.overlay.open,.backdrop.open) :is(.modal,.popup,.drawer,.modal-card,.popup-card,.drawer-card) {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* ---------- Generic modal safety ---------- */
+:is(.modal,.popup,.drawer,.modal-card,.popup-card,.drawer-card) {
+  max-width: calc(100vw - 20px) !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  :is(.modal,.popup,.drawer,.modal-card,.popup-card,.drawer-card) {
+    max-height: calc(100dvh - 20px) !important;
+  }
+}
+
+:is(.modal-body,.popup-body,.drawer-body) {
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+:is(.modal-footer,.popup-footer,.drawer-footer) {
+  flex: 0 0 auto !important;
+  min-height: 48px !important;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* ---------- TBK monthly detail modal ---------- */
+body > #modal-tbk-ay-detay.tbk-modal-portal,
+body > #modal-tbk-ay-detay.tbk-modal-portal.modal-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 14px !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  transform: none !important;
+  z-index: 2147483000 !important;
+  box-sizing: border-box !important;
+}
+
+body > #modal-tbk-ay-detay.tbk-modal-portal.open,
+body > #modal-tbk-ay-detay.tbk-modal-portal.show,
+body > #modal-tbk-ay-detay.tbk-modal-portal.active,
+body > #modal-tbk-ay-detay.tbk-modal-portal[style*="display: flex"],
+body > #modal-tbk-ay-detay.tbk-modal-portal[style*="display:flex"],
+body > #modal-tbk-ay-detay.tbk-modal-portal[style*="display: block"],
+body > #modal-tbk-ay-detay.tbk-modal-portal[style*="display:block"] {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body > #modal-tbk-ay-detay.tbk-modal-portal.tbk-modal-portal-closed {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body > #modal-tbk-ay-detay.tbk-modal-portal > .modal {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  translate: none !important;
+  margin: auto !important;
+  width: min(820px, calc(100vw - 28px)) !important;
+  max-width: min(820px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 28px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+body > #modal-tbk-ay-detay.tbk-modal-portal .modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body > #modal-tbk-ay-detay.tbk-modal-portal .tbk-ay-detay-scroll {
+  flex: 1 1 auto !important;
+  min-height: 100px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+@media (max-width: 768px) {
+  body > #modal-tbk-ay-detay.tbk-modal-portal {
+    padding: 10px !important;
+  }
+
+  body > #modal-tbk-ay-detay.tbk-modal-portal > .modal {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    border-radius: 18px !important;
+  }
+
+  body > #modal-tbk-ay-detay.tbk-modal-portal > .modal::before {
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* TBK sort popup must be above TBK detail modal */
+body > #tbk-sort-popup.tbk-sort-popup-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  z-index: 2147483600 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 18px !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  pointer-events: none !important;
+}
+
+body > #tbk-sort-popup.tbk-sort-popup-backdrop.open,
+body > #tbk-sort-popup.tbk-sort-popup-backdrop[style*="display: flex"],
+body > #tbk-sort-popup.tbk-sort-popup-backdrop[style*="display:flex"],
+body > #tbk-sort-popup.tbk-sort-popup-backdrop[style*="display: block"],
+body > #tbk-sort-popup.tbk-sort-popup-backdrop[style*="display:block"] {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body > #tbk-sort-popup .tbk-sort-popup-panel {
+  position: relative !important;
+  z-index: 2147483601 !important;
+  max-width: min(440px, calc(100vw - 24px)) !important;
+  max-height: min(680px, calc(100dvh - 36px)) !important;
+  transform: none !important;
+  margin: auto !important;
+}
+
+@media (max-width: 640px) {
+  body > #tbk-sort-popup.tbk-sort-popup-backdrop {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  body > #tbk-sort-popup .tbk-sort-popup-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 78dvh !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-bottom: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Dashboard/card detail/interest popups should not disappear under compatibility layers */
+#page-ozet :is(.modal-bg,.popup-bg,.overlay),
+#page-kartlar :is(.modal-bg,.popup-bg,.overlay),
+#page-kredi-kartlari :is(.modal-bg,.popup-bg,.overlay),
+[id*="faiz"][id*="modal"],
+[id*="varsay"][id*="modal"] {
+  z-index: 2147482500 !important;
+}
+
+/* modal-kart-detay bilerek yukarıdaki listede DEĞİL: sabit dev z-index vermek,
+   üstüne açılan diğer modalların (örn. "+ Yeni İşlem" -> #modal-islem) her zaman
+   ALTTA kalmasına sebep oluyordu. Topbar/nav artık modal açıkken kendi z-index'ini
+   düşürdüğü için (bkz. normalizeMobileTopbar/promoteNavAndAuth) bu yamaya gerek
+   kalmadı — modal-kart-detay normal .modal-bg z-index'inde (1000) kalıyor. */
+
+/* ---------- Sticky hover / table layers ---------- */
+:is(.sticky,.sticky-top,.tbl-sticky,.table-sticky,.tbl-toolbar,.table-toolbar,.tbl-filtre-bar,.tbl-siralama-bar) {
+  isolation: isolate !important;
+  z-index: 30 !important;
+}
+
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) {
+  position: relative !important;
+  isolation: isolate !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) table thead,
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) table thead tr,
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) table th {
+  position: sticky !important;
+  top: 0;
+  z-index: 40 !important;
+  background: var(--surface, #fff) !important;
+  background-clip: padding-box !important;
+}
+
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) thead :is(th.sticky-col,th.sticky-left,th.sticky-right,th.actions-sticky,th:first-child.sticky,th:last-child.sticky) {
+  z-index: 55 !important;
+}
+
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) tbody tr,
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) tbody tr:hover,
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) tbody tr:focus-within,
+:is(.tbl-wrap,.table-wrap,.data-table-wrap,.rf-table-wrap) :is(.card,.list-row,.item-row,.log-row,.transfer-row):hover {
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  filter: none !important;
+}
+
+/* ---------- Card headers ---------- */
+.card-header.rf-card-header-smart {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 10px 12px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+.card-header.rf-card-header-smart:not(.rf-card-header-has-actions) {
+  padding-bottom: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.card-header.rf-card-header-smart > .card-title-icon {
+  flex: 0 0 auto !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+.card-header.rf-card-header-smart > .card-title {
+  flex: 1 1 220px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  padding-top: 5px !important;
+  margin: 0 !important;
+}
+
+.card-header.rf-card-header-smart > .rf-card-header-actionarea {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  margin-left: auto !important;
+  overflow: visible !important;
+}
+
+.card-header.rf-card-header-smart > :is(.tbl-filtre-bar,.tbl-siralama-bar).rf-card-header-actionarea {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  justify-content: flex-start !important;
+  padding-top: 8px !important;
+  border-top: 1px solid color-mix(in srgb, var(--border, rgba(255,255,255,.08)) 70%, transparent) !important;
+}
+
+.card-header.rf-card-header-smart.tbk-card-header > .tbk-controls.rf-card-header-actionarea {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  padding: 9px !important;
+  border: 1px solid var(--border, rgba(255,255,255,.08)) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.card-header.rf-card-header-smart.tbk-card-header .tbk-period-group {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  flex-wrap: nowrap !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+@media (max-width: 900px) {
+  .card-header.rf-card-header-smart > .card-title {
+    flex: 1 1 calc(100% - 42px) !important;
+  }
+
+  .card-header.rf-card-header-smart > .rf-card-header-actionarea {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: flex-start !important;
+  }
+
+  .card-header.rf-card-header-smart > :is(.tbl-filtre-bar,.tbl-siralama-bar).rf-card-header-actionarea {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+}
+
+/* ---------- Long text / amounts / transfers ---------- */
+:is(.title,.name,.desc,.description,.note,.subtitle,.meta,.route,.cell-main,.row-main,.card-title,.card-subtitle,td,th) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+:is(.amount,.tutar,.value,.money,.currency,.plan-tutar,[data-col="tutar"]) {
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  text-align: right;
+}
+
+#transfer-log-liste,
+#transfer-log-liste * {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#transfer-log-liste :is(.route,.note,.desc,.description,.subtitle,.meta,.title,.name) {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  text-overflow: clip !important;
+  overflow: visible !important;
+}
+
+#transfer-log-liste .rf-transfer-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  grid-template-columns: none !important;
+  grid-template-areas: none !important;
+  align-items: flex-start !important;
+  overflow: visible !important;
+}
+
+#transfer-log-liste .rf-transfer-row :is(.main,.content,.body,.route-wrap,.text,.info) {
+  flex: 1 1 220px !important;
+}
+
+#transfer-log-liste .rf-transfer-row :is(.amount,.tutar,.value) {
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+}
+
+/* Transfer hidden asterisk */
+.transfer-hidden-account-label { display: none !important; }
+
+/* ---------- KMH/Kredi plan columns ---------- */
+:is(#page-kmhkredi,#page-kredi,#modal-kmh,#modal-kredi,.kmh-modal,.kredi-modal) :is(table,.plan-table,.odeme-plan,.odeme-plani) {
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+:is(#page-kmhkredi,#page-kredi,#modal-kmh,#modal-kredi,.kmh-modal,.kredi-modal) :is(.plan-taksit,[data-col="taksit"]) {
+  width: 64px !important;
+  max-width: 72px !important;
+}
+
+:is(#page-kmhkredi,#page-kredi,#modal-kmh,#modal-kredi,.kmh-modal,.kredi-modal) :is(.plan-tutar,[data-col="tutar"]) {
+  width: clamp(126px, 32vw, 240px) !important;
+  min-width: 118px !important;
+  text-align: right !important;
+}
+
+/* ---------- Tanımlamalar > Gösterim selected colors ---------- */
+#page-tanimlamalar :is(
+  [data-section="gosterim"] .active,
+  [data-section="gosterim"] .selected,
+  [data-section="gosterim"] [aria-pressed="true"],
+  [data-section="gosterim"] [aria-selected="true"],
+  [data-section="gosterim"] input:checked + label,
+  .gosterim .active,
+  .gosterim .selected,
+  .gosterim [aria-pressed="true"],
+  .gosterim [aria-selected="true"],
+  .gosterim input:checked + label,
+  .gosterim-panel .active,
+  .gosterim-panel .selected,
+  .gosterim-panel [aria-pressed="true"],
+  .gosterim-panel [aria-selected="true"],
+  .gosterim-panel input:checked + label,
+  .display-settings .active,
+  .display-settings .selected,
+  .display-settings [aria-pressed="true"],
+  .display-settings [aria-selected="true"],
+  .display-settings input:checked + label,
+  .display-options .active,
+  .display-options .selected,
+  .display-options [aria-pressed="true"],
+  .display-options [aria-selected="true"],
+  .display-options input:checked + label,
+  .show-option.active,
+  .show-option.selected,
+  .gosterim-option.active,
+  .gosterim-option.selected,
+  .display-option.active,
+  .display-option.selected,
+  .view-option.active,
+  .view-option.selected,
+  .ui-pref-chip.active,
+  .ui-pref-chip.selected,
+  .gosterim-secili
+) {
+  border-color: color-mix(in srgb, var(--primary, #4f6ef7) 62%, transparent) !important;
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--primary, #4f6ef7) 20%, transparent),
+      color-mix(in srgb, var(--primary, #4f6ef7) 9%, transparent)
+    ) !important;
+  color: var(--primary, #4f6ef7) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary, #4f6ef7) 20%, transparent) inset,
+    0 8px 22px color-mix(in srgb, var(--primary, #4f6ef7) 10%, transparent) !important;
+  font-weight: 800 !important;
+}
+
+
+/* ---------- Integrated Mobile Navbar Restore ---------- */
+
+/* Integrated mobile navbar module */
+
+@media (max-width: 768px) {
+  body #mobile-bottom-nav.mobile-bottom-nav,
+  body .mobile-bottom-nav#mobile-bottom-nav,
+  body > nav.mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    min-height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 6px env(safe-area-inset-bottom, 0px) !important;
+    margin: 0 !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+    translate: none !important;
+    z-index: 2147482200 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    box-sizing: border-box !important;
+  }
+
+  body.rf-body-modal-open #mobile-bottom-nav.mobile-bottom-nav,
+  body.rf-body-sidebar-open #mobile-bottom-nav.mobile-bottom-nav,
+body #mobile-bottom-nav.mobile-bottom-nav .mob-nav-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 6px 2px 5px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    border: 0 !important;
+    background: transparent !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  body #mobile-bottom-nav.mobile-bottom-nav .mob-nav-btn:active {
+    transform: scale(.94) !important;
+  }
+
+  body #mobile-bottom-nav.mobile-bottom-nav .mob-nav-icon {
+    flex: 0 0 auto !important;
+    line-height: 1 !important;
+    font-size: 19px !important;
+  }
+
+  body #mobile-bottom-nav.mobile-bottom-nav .mob-nav-label {
+    display: block !important;
+    width: 100% !important;
+    max-width: calc((100vw - 18px) / 5) !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+    font-size: 9px !important;
+  }
+
+  /* More menu, bottom nav üstünde; modalların altında */
+  body #mob-more-backdrop.mob-more-backdrop.active {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147482240 !important;
+    pointer-events: auto !important;
+  }
+
+  body #mob-more-menu.mob-more-menu.open {
+    display: block !important;
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+    top: auto !important;
+    max-height: min(68dvh, 520px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 2147482250 !important;
+    pointer-events: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  body #mob-more-menu.mob-more-menu .mob-more-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body #mob-more-menu.mob-more-menu .mob-more-item {
+    min-width: 0 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  /* Mobile sidebar nav, bottom nav ile çakışmasın */
+  body .mobile-sidebar-backdrop.active {
+    z-index: 2147482300 !important;
+  }
+
+  body .sidebar.mobile-open {
+    z-index: 2147482350 !important;
+  }
+
+  body.rf-body-sidebar-open #mobile-bottom-nav.mobile-bottom-nav {
+    display: none !important;
+  }
+
+  /* Topbar sticky davranışı geri gelsin; bottom nav selectorundan etkilenmesin */
+  body .topbar {
+    position: sticky !important;
+    top: 0 !important;
+    bottom: auto !important;
+    z-index: 2147481900 !important;
+  }
+}
+
+/* Sıralama/filtre çubuklarında chip'ler hover'da yukarı kayıyor
+   (translateY(-1px)); önceki dosyalarda overflow-y:hidden olduğu için
+   bu kayan kısım üstten kırpılıp görünmüyordu. Dikey taşmayı serbest
+   bırakıp üstte küçük bir pay ekliyoruz (yatay scroll davranışı aynı kalır). */
+:is(.tbl-filtre-bar, .tbl-siralama-bar, .kartlar-siralama-wrap, .kartlar-filtre-bar) {
+  overflow-y: visible !important;
+  padding-top: 4px !important;
+  margin-top: -4px !important;
+}
+.card-header.rf-card-header-smart.tbk-card-header .tbk-period-group {
+  overflow-y: visible !important;
+  padding-top: 4px !important;
+  margin-top: -4px !important;
+}

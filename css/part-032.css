@@ -1,0 +1,131 @@
+
+/* Click/scroll UI iyileştirmeleri: mobil + masaüstü dokunma hedefleri, yatay scroll alanları ve görsel taşmalar */
+:root{
+  --rf96-hit:34px;
+  --rf96-hit-sm:32px;
+  --rf96-bottom-safe:92px;
+}
+
+/* Genel tıklanabilir hedefler: 27px kalan chipler artık rahat basılır */
+:is(.filter-chip,.sort-chip,.tbk-period-btn,.islem-donem-tab,.chip-select-opt,.cps-opt,.filtre-toggle-btn,.btn-sm,.btn-act){
+  min-height:var(--rf96-hit-sm) !important;
+  touch-action:manipulation !important;
+}
+:is(.filter-chip,.sort-chip,.tbk-period-btn,.islem-donem-tab,.chip-select-opt,.cps-opt){
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:6px !important;
+  line-height:1.1 !important;
+}
+:is(button,a,[onclick],[role="button"],input,select,textarea):focus-visible{
+  outline:2px solid rgba(79,110,247,.65) !important;
+  outline-offset:2px !important;
+}
+button{ -webkit-tap-highlight-color:transparent; }
+
+/* Kart içindeki küçük aksiyon ikonları 24px kalıp basması zor olmasın */
+:is(.card,.modal,.page) :is(.btn-act,.close-btn,.kd2-icon-btn,.kd-islem-search-clear,.kartlar-arama-clear,.kartlar-arama-clear-native){
+  min-width:var(--rf96-hit-sm) !important;
+  min-height:var(--rf96-hit-sm) !important;
+}
+
+/* Filtre/sıralama barları: yatay scroll gerçek scroll alanı olsun; body taşmasın */
+:is(.tbl-filtre-bar,.tbl-siralama-bar,.mev-durum-filtre-row,.kartlar-filtre-bar,.kartlar-siralama-wrap){
+  max-width:100% !important;
+  min-width:0 !important;
+  overscroll-behavior-x:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+:is(.tbl-siralama-bar,.kartlar-siralama-wrap){
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  flex-wrap:nowrap !important;
+  scrollbar-width:none !important;
+  scroll-padding-inline:14px !important;
+  padding-top:4px !important;
+  margin-top:-4px !important;
+}
+:is(.tbl-siralama-bar,.kartlar-siralama-wrap)::-webkit-scrollbar{display:none !important;}
+:is(.tbl-siralama-bar,.kartlar-siralama-wrap) :is(.filter-chip,.sort-chip){flex:0 0 auto !important;white-space:nowrap !important;}
+
+/* Tablolar: geniş tablo kart dışına taşmasın, kendi içinde kayabilsin */
+.tbl-wrap{
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  overscroll-behavior-x:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+  scrollbar-width:thin !important;
+}
+.tbl-wrap > table{
+  min-width:100% !important;
+  width:max-content !important;
+  border-collapse:separate;
+  border-spacing:0;
+}
+
+/* Headerlarda filtre/sıralama sıkışmasın */
+.card-header{
+  min-width:0 !important;
+  max-width:100% !important;
+}
+.card-header > :is(.tbl-filtre-bar,.tbl-siralama-bar),
+.card-header :is(.tbl-filtre-bar,.tbl-siralama-bar){
+  flex:1 1 100% !important;
+}
+
+/* Mobil genel layout: bottom nav kartların üstünü kapatmasın */
+@media (max-width:768px){
+  html,body{max-width:100% !important;overflow-x:hidden !important;}
+  .main-wrap,
+  main,
+  .content,
+  .page.active{
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+  .main-wrap{padding-bottom:calc(var(--rf96-bottom-safe) + env(safe-area-inset-bottom,0px)) !important;}
+  .page.active{padding-bottom:calc(var(--rf96-bottom-safe) + 10px) !important;}
+  .page-header{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+  .page-header .btn,
+  .page-header > button{
+    width:100% !important;
+    justify-content:center !important;
+    min-height:38px !important;
+  }
+  :is(.tbl-filtre-bar,.tbl-siralama-bar,.mev-durum-filtre-row){
+    display:flex !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    gap:6px !important;
+    scrollbar-width:none !important;
+    padding-bottom:1px !important;
+  }
+  :is(.tbl-filtre-bar,.tbl-siralama-bar,.mev-durum-filtre-row)::-webkit-scrollbar{display:none !important;}
+  :is(.tbl-filtre-bar,.tbl-siralama-bar,.mev-durum-filtre-row) :is(.tbl-filtre-grup,.filter-chip,.sort-chip,.tbl-siralama-label){
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+  .tbl-siralama-label{min-height:var(--rf96-hit-sm) !important;display:inline-flex !important;align-items:center !important;}
+  .mobile-bottom-nav{
+    z-index:9999 !important;
+    backdrop-filter:blur(18px) !important;
+    -webkit-backdrop-filter:blur(18px) !important;
+  }
+  .card{max-width:100% !important;min-width:0 !important;}
+  .grid-2,.grid-3,.grid-4,.grid-5{min-width:0 !important;}
+}
+
+/* Masaüstünde de chipler aynı boyda; ancak barlar kırılabilsin */
+@media (min-width:769px){
+  .tbl-filtre-bar{overflow-x:visible !important;flex-wrap:wrap !important;}
+  .tbl-siralama-bar{padding-bottom:1px !important;}
+}
