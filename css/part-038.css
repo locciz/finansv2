@@ -463,27 +463,75 @@ body > #tbk-sort-popup .tbk-sort-popup-panel {
 }
 
 #transfer-log-liste .rf-transfer-row {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  grid-template-columns: none !important;
-  grid-template-areas: none !important;
-  align-items: flex-start !important;
-  overflow: visible !important;
-  gap: 8px !important;
-  row-gap: 4px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  gap: 10px !important;
 }
 
 #transfer-log-liste .rf-transfer-row :is(.main,.content,.body,.route-wrap,.text,.info) {
-  flex: 1 1 220px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+#transfer-log-liste .rf-transfer-row .route,
+#transfer-log-liste .rf-transfer-row .note {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+#transfer-log-liste .rf-transfer-row .route .seg {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 #transfer-log-liste .rf-transfer-row :is(.amount,.tutar,.value) {
-  flex: 0 0 auto !important;
-  margin-left: auto !important;
+  flex: none !important;
+  margin-left: 0 !important;
+  min-width: max-content !important;
 }
 
 #transfer-log-liste .rf-transfer-row .act {
-  flex: 0 0 auto !important;
+  flex: none !important;
+  min-width: max-content !important;
+}
+
+@media (max-width: 520px) {
+  #transfer-log-liste .rf-transfer-row {
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+    grid-template-areas: none !important;
+    gap: 8px !important;
+  }
+  #transfer-log-liste .rf-transfer-row .amount {
+    justify-self: end !important;
+    text-align: right !important;
+  }
+  #transfer-log-liste .rf-transfer-row .act {
+    justify-self: end !important;
+  }
+}
+
+@media (max-width: 360px) {
+  #transfer-log-liste .rf-transfer-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "main amount"
+      "main act" !important;
+  }
+  #transfer-log-liste .rf-transfer-row .main {
+    grid-area: main !important;
+  }
+  #transfer-log-liste .rf-transfer-row .amount {
+    grid-area: amount !important;
+  }
+  #transfer-log-liste .rf-transfer-row .act {
+    grid-area: act !important;
+    justify-self: end !important;
+  }
 }
 
 /* Transfer hidden asterisk */
