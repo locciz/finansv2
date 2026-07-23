@@ -482,6 +482,10 @@ body > #tbk-sort-popup .tbk-sort-popup-panel {
   margin-left: auto !important;
 }
 
+#transfer-log-liste .rf-transfer-row .act {
+  flex: 0 0 auto !important;
+}
+
 /* Transfer hidden asterisk */
 .transfer-hidden-account-label { display: none !important; }
 
