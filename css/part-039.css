@@ -71,6 +71,39 @@
   gap:8px!important;
 }
 
+/* [BUG FIX - gercek kok neden] Yukaridaki `.rf-transfer-row-compact` blogu
+   (arkaplan/border/box-shadow kontrastini artiran kisim) YANLIS class'i
+   hedefliyordu: o markup'u ureten transfer-modal.js:renderTransferLog()
+   register('renderTransferLog', ...) ile KAYITLI DEGIL (bkz. o dosyadaki
+   "[BUG FIX] register(...) BILEREK KALDIRILDI" yorumu) — ekranda gercekte
+   calisan render, patches/01-transfer-log-senkron.js'teki register edilmis
+   versiyon ve o, duz `.rf-transfer-row` class'ini uretiyor. O class'in tek
+   stili (part-005.css) arkaplani modal arkaplaniyla neredeyse ayni tondaydi
+   ve border'i rgba(255,255,255,.055) gibi neredeyse gorunmez bir opaklikta;
+   sonuc olarak container'daki 8px gap FIILEN VARDI ama satirlar birbirinden
+   ayirt edilemiyor, "satirlar arasinda bosluk yok" gibi gorunuyordu. Asagidaki
+   blok gercek (kayitli) render'in urettigi class'a dogrudan uygulaniyor.
+   NOT: border-left-color kasitli olarak degistirilmiyor — onu part-005.css'teki
+   .state-ok/.state-no kurallari yonetiyor (yesil/kirmizi durum isareti). */
+#transfer-log-liste .rf-transfer-row{
+  background:var(--surface3)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.22)!important;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease!important;
+}
+#transfer-log-liste .rf-transfer-row:hover{
+  background:color-mix(in srgb, var(--surface3) 90%, white 10%)!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.3)!important;
+}
+[data-theme="light"] #transfer-log-liste .rf-transfer-row,
+.light #transfer-log-liste .rf-transfer-row{
+  box-shadow:0 1px 2px rgba(0,0,0,.08)!important;
+}
+[data-theme="light"] #transfer-log-liste .rf-transfer-row:hover,
+.light #transfer-log-liste .rf-transfer-row:hover{
+  background:color-mix(in srgb, var(--surface3) 94%, black 6%)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.12)!important;
+}
+
 #transfer-log-liste .rf-transfer-row-compact{
   border:1px solid var(--border-active, rgba(255,255,255,.12))!important;
   border-color:rgba(255,255,255,.09)!important;
