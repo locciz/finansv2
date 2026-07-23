@@ -8,7 +8,7 @@ import { _markFieldError, phSet, showToast } from './modal-genel.js';
 import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from './money-input.js';
 import { swizBakiyeHintGuncelle, swizOzetSatirHtmlKisa, swizUpdateStepIndicator } from './step-wizard.js';
 import { hesapOptionMetin } from '../pages/hesaplar/01-genel-yardimcilar.js';
-import { register } from '../../core/wrap-registry.js';
+import { register, call } from '../../core/wrap-registry.js';
 import { bankaIkonObj } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
 import { renderOzet } from '../pages/ozet.js';
 import { closeModal, openModal } from './modal-genel.js';
@@ -55,7 +55,7 @@ export function openTransferModal(kaynakHesapId) {
     }
   }
   _checkNakitNakit();
-  renderTransferLog();
+  call('renderTransferLog');
   openModal('modal-transfer');
   setTimeout(() => bindMoneyInputs(document.getElementById('modal-transfer')), 20);
 }
@@ -311,7 +311,7 @@ export function transferStepGoto(step) {
   const body = modal.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
   if (step === 2) _updateTransferTutarTumBtn();
-  if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); renderTransferLog(); }
+  if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); call('renderTransferLog'); }
 }
 
 // ── Seçili kaynağın kullanılabilir bakiyesini döndürür (hesap: bakiye + KMH, nakit: nakit bakiyesi) ──
@@ -567,7 +567,7 @@ function saveTransfer() {
   saveData();
   closeModal('modal-transfer');
   try { showToast(`✅ ${fmtCur(tutar, kaynakPb)} transfer edildi`, 'success'); } catch(e) {}
-  try { renderTransferLog(); } catch(e) {}
+  try { call('renderTransferLog'); } catch(e) {}
   try { if (typeof renderHesaplar === 'function') renderHesaplar(); } catch(e) {}
   try { if (typeof renderOzet === 'function') renderOzet(); } catch(e) {}
   try { _updateTopbarBakiye(); } catch(e) {}
@@ -747,6 +747,6 @@ export function deleteTransfer(id) {
   if (!DB.transferler) return;
   DB.transferler = DB.transferler.filter(t => t.id !== id);
   saveData();
-  renderTransferLog();
+  call('renderTransferLog');
 }
 

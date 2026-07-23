@@ -53,7 +53,18 @@
 }
 
 /* Tutar bloğu: rakam gerçekten öne çıksın, tarih altında sessiz kalsın */
+/* [BUG FIX] .mono class'ının global font-variant-numeric:tabular-nums +
+   font-feature-settings:"tnum" kuralı (bkz. part-001.css), bazı font/tarayıcı
+   kombinasyonlarında (özellikle JetBrains Mono henüz yüklenmemişken devreye
+   giren fallback anında) "." ve "," karakterlerinin genişliğini neredeyse
+   sıfıra indirip görsel olarak kaybolmasına yol açıyordu — DOM'daki metin
+   ("₺24.019,37") her zaman doğruydu, sadece ekranda "₺24 019 37" gibi
+   görünüyordu. Bu alanda tabular hizalamaya ihtiyaç olmadığından (tek
+   satırlık, tablo/kolon hizalaması yapılmıyor) özelliği burada kapatıyoruz.
+*/
 #transfer-log-liste .rf-transfer-compact-amount .mono{
+  font-variant-numeric:normal!important;
+  font-feature-settings:normal!important;
   font-size:13.5px!important;
   font-weight:800!important;
   letter-spacing:.2px!important;

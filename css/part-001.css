@@ -738,7 +738,7 @@ body {
   text-overflow: ellipsis;
 }
 /* Ana değer */
-.stat-val { font-family: var(--mono); font-size: 23px; font-weight: 700; line-height: 1; letter-spacing: -.04em; color: var(--text); font-variant-numeric: tabular-nums; }
+.stat-val { font-family: var(--mono); font-size: 23px; font-weight: 700; line-height: 1; letter-spacing: -.04em; color: var(--text); }
 .stat-val.green  { color: var(--teal); }
 .stat-val.red    { color: var(--rose); }
 .stat-val.blue   { color: var(--sky); }
@@ -3140,8 +3140,15 @@ tbody tr { transition: background .1s ease; }
 /* Section dividers in pages */
 /* Mono numbers — tabular */
 .mono, .stat-val, td.mono {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+  /* [BUG FIX] font-variant-numeric:tabular-nums + font-feature-settings:"tnum"
+     BİLEREK KALDIRILDI. Bazı Windows/Chrome + JetBrains Mono kombinasyonlarında
+     bu OpenType "tnum" özelliği "." ve "," karakterlerinin render genişliğini
+     bozup görsel olarak kaybolmasına yol açıyordu (DOM'daki metin her zaman
+     doğruydu — örn. "₺24.019,37" — sadece ekranda "₺24 019 37" gibi
+     görünüyordu). Rakam hizalaması zaten sabit genişlikli mono font
+     sayesinde büyük ölçüde korunur, bu yüzden tabular-nums olmadan
+     bırakılması güvenli.
+  */
 }
 /* Smooth page transitions */
 .page.active {
@@ -3740,7 +3747,7 @@ td:first-child { color: rgba(240,244,255,.82); font-weight: 500; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.09); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.18); }
 /* ─── MONO NUMBERS ───────────────────────────────────────── */
-.mono, .stat-val { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.mono, .stat-val { /* [BUG FIX] tabular-nums+tnum kaldirildi, bkz. yukaridaki ana .mono kurali notu */ }
 /* ─── ANIMATION ──────────────────────────────────────────── */
 .page.active { animation: pageFadeIn .22s cubic-bezier(.4,0,.2,1); }
 /* ─── MOBILE OVERHAUL ────────────────────────────────────── */
@@ -4934,7 +4941,7 @@ html[data-theme="light"] .ortak-limit-hint { background: rgba(124,58,237,.05); b
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.09); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.18); }
 /* ── MONO NUMBERS ────────────────────────────────────────── */
-.mono, .stat-val { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.mono, .stat-val { /* [BUG FIX] tabular-nums+tnum kaldirildi, bkz. yukaridaki ana .mono kurali notu */ }
 /* ── ANIMATION ───────────────────────────────────────────── */
 @keyframes pageFadeIn {
   from { opacity: 0; }
@@ -6486,7 +6493,7 @@ html[data-theme="light"] #scroll-top-btn {
 }
 .nb-chip {
   display: inline-flex; align-items: baseline; gap: 4px;
-  font-size: 10px; font-family: var(--mono); font-variant-numeric: tabular-nums;
+  font-size: 10px; font-family: var(--mono);
   padding: 3px 7px; border-radius: 6px;
   background: var(--surface3);
   border: 1px solid var(--border);
