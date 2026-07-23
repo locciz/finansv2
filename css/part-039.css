@@ -48,13 +48,21 @@
 }
 @media (max-width:520px){
   #transfer-log-liste .rf-transfer-row{
+    grid-template-columns:minmax(0,1fr) auto auto!important;
+    grid-template-areas:none!important;
+    gap:6px!important;
+  }
+}
+@media (max-width:400px){
+  #transfer-log-liste .rf-transfer-row{
     grid-template-columns:minmax(0,1fr) auto!important;
     grid-template-areas:"main amount" "main act"!important;
-    gap:6px 8px!important;
+    grid-template-rows:auto auto!important;
+    row-gap:4px!important;
   }
-  #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;}
-  #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:end!important;}
-  #transfer-log-liste .rf-transfer-row .act{grid-area:act!important;justify-self:end!important;}
+  #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;align-self:start!important;}
+  #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:end!important;align-self:start!important;}
+  #transfer-log-liste .rf-transfer-row .act{grid-area:act!important;justify-self:end!important;align-self:start!important;}
 }
 
 #transfer-log-liste{
