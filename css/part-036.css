@@ -44,89 +44,16 @@
   display: none !important;
 }
 
-/* 3) Son Transferler: sığmayan satırlar alta kırılsın; yatay taşma üretmesin. */
+/* 3) Son Transferler: sığmayan satırlar alta kırılsın; yatay taşma üretmesin.
+   [KONSOLİDASYON] .rf-transfer-row'un layout kuralları buradan kaldırıldı —
+   part-036/037/038/039 arasında aynı seçiciye dört farklı katman (grid→flex→grid,
+   çelişen white-space/overflow, media query'lerde eski .state grid-area'sı vb.)
+   satırların üst üste binmesine yol açıyordu. Artık TEK layout tanımı
+   part-039.css'te (son yüklenen dosya) toplu. */
 #transfer-log-liste {
   max-width: 100% !important;
   min-width: 0 !important;
   overflow-x: hidden !important;
-}
-
-#transfer-log-liste .rf-transfer-row {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-  display: grid !important;
-  grid-template-columns: 12px minmax(0, 1fr) auto auto !important;
-  align-items: start !important;
-  gap: 8px !important;
-  overflow: hidden !important;
-}
-
-#transfer-log-liste .rf-transfer-row .main,
-#transfer-log-liste .rf-transfer-row .route,
-#transfer-log-liste .rf-transfer-row .note {
-  min-width: 0 !important;
-  max-width: 100% !important;
-}
-
-#transfer-log-liste .rf-transfer-row .route,
-#transfer-log-liste .rf-transfer-row .note {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: initial !important;
-  overflow-wrap: anywhere !important;
-  word-break: break-word !important;
-  line-height: 1.25 !important;
-}
-
-#transfer-log-liste .rf-transfer-row .amount {
-  min-width: max-content !important;
-  text-align: right !important;
-  justify-self: end !important;
-}
-
-#transfer-log-liste .rf-transfer-row .act {
-  min-width: max-content !important;
-  display: inline-flex !important;
-  justify-content: flex-end !important;
-  gap: 4px !important;
-}
-
-@media (max-width: 520px) {
-  #transfer-log-liste .rf-transfer-row {
-    grid-template-columns: 12px minmax(0, 1fr) auto !important;
-    grid-template-areas:
-      "state main main"
-      "state amount act" !important;
-    gap: 6px 8px !important;
-  }
-
-  #transfer-log-liste .rf-transfer-row .state { grid-area: state !important; }
-  #transfer-log-liste .rf-transfer-row .main { grid-area: main !important; }
-  #transfer-log-liste .rf-transfer-row .amount {
-    grid-area: amount !important;
-    justify-self: start !important;
-    text-align: left !important;
-  }
-  #transfer-log-liste .rf-transfer-row .act {
-    grid-area: act !important;
-    justify-self: end !important;
-  }
-}
-
-@media (max-width: 360px) {
-  #transfer-log-liste .rf-transfer-row {
-    grid-template-columns: 10px minmax(0, 1fr) !important;
-    grid-template-areas:
-      "state main"
-      "state amount"
-      "state act" !important;
-  }
-
-  #transfer-log-liste .rf-transfer-row .act {
-    justify-self: start !important;
-  }
 }
 
 /* 4) Aylık gelir/gider/bakiye ay modalı: uzun açıklama satırı modalı genişletmesin.

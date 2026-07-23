@@ -6,6 +6,57 @@
    ile aynı seçicileri (daha yüksek özgüllük gerekmeden, sonradan yüklendiği
    için) ezerek satırları kart haline getirir. */
 
+/* [KONSOLİDASYON] .rf-transfer-row'un TÜM layout kuralları artık sadece
+   burada — part-036/037/038'deki eski, çelişen kopyalar kaldırıldı.
+   Bu dosya en son yüklendiği için cascade netleşiyor, satırların
+   üst üste binmesine yol açan çakışmalar ortadan kalkıyor. */
+#transfer-log-liste .rf-transfer-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+#transfer-log-liste .rf-transfer-row .main{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+#transfer-log-liste .rf-transfer-row .route,
+#transfer-log-liste .rf-transfer-row .note{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+#transfer-log-liste .rf-transfer-row .route .seg{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  min-width:0!important;
+}
+#transfer-log-liste .rf-transfer-row .amount{
+  min-width:max-content!important;
+  text-align:right!important;
+}
+#transfer-log-liste .rf-transfer-row .act{
+  min-width:max-content!important;
+  display:inline-flex!important;
+  gap:2px!important;
+}
+@media (max-width:520px){
+  #transfer-log-liste .rf-transfer-row{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:"main amount" "main act"!important;
+    gap:6px 8px!important;
+  }
+  #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;}
+  #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:end!important;}
+  #transfer-log-liste .rf-transfer-row .act{grid-area:act!important;justify-self:end!important;}
+}
+
 #transfer-log-liste{
   display:flex!important;
   flex-direction:column!important;
