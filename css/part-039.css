@@ -19,6 +19,7 @@
   max-width:100%!important;
   box-sizing:border-box!important;
   overflow:hidden!important;
+  flex-shrink:0!important;
 }
 #transfer-log-liste .rf-transfer-row .main{
   min-width:0!important;
@@ -59,6 +60,7 @@
     grid-template-areas:"main amount" "main act"!important;
     grid-template-rows:auto auto!important;
     row-gap:4px!important;
+    flex-shrink:0!important;
   }
   #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;align-self:start!important;}
   #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:end!important;align-self:start!important;}
@@ -69,49 +71,6 @@
   display:flex!important;
   flex-direction:column!important;
   gap:8px!important;
-}
-
-/* [BUG FIX - gercek kok neden] Yukaridaki `.rf-transfer-row-compact` blogu
-   (arkaplan/border/box-shadow kontrastini artiran kisim) YANLIS class'i
-   hedefliyordu: o markup'u ureten transfer-modal.js:renderTransferLog()
-   register('renderTransferLog', ...) ile KAYITLI DEGIL (bkz. o dosyadaki
-   "[BUG FIX] register(...) BILEREK KALDIRILDI" yorumu) — ekranda gercekte
-   calisan render, patches/01-transfer-log-senkron.js'teki register edilmis
-   versiyon ve o, duz `.rf-transfer-row` class'ini uretiyor. O class'in tek
-   stili (part-005.css) arkaplani modal arkaplaniyla neredeyse ayni tondaydi
-   ve border'i rgba(255,255,255,.055) gibi neredeyse gorunmez bir opaklikta;
-   sonuc olarak container'daki 8px gap FIILEN VARDI ama satirlar birbirinden
-   ayirt edilemiyor, "satirlar arasinda bosluk yok" gibi gorunuyordu. Asagidaki
-   blok gercek (kayitli) render'in urettigi class'a dogrudan uygulaniyor.
-   NOT: border-left-color kasitli olarak degistirilmiyor — onu part-005.css'teki
-   .state-ok/.state-no kurallari yonetiyor (yesil/kirmizi durum isareti). */
-#transfer-log-liste .rf-transfer-row{
-  background:var(--surface3)!important;
-  border-top-color:rgba(255,255,255,.14)!important;
-  border-right-color:rgba(255,255,255,.14)!important;
-  border-bottom-color:rgba(255,255,255,.14)!important;
-  box-shadow:0 1px 4px rgba(0,0,0,.28)!important;
-  margin-bottom:8px!important;
-  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease!important;
-}
-#transfer-log-liste .rf-transfer-row:last-child{
-  margin-bottom:0!important;
-}
-#transfer-log-liste .rf-transfer-row:hover{
-  background:color-mix(in srgb, var(--surface3) 90%, white 10%)!important;
-  box-shadow:0 1px 5px rgba(0,0,0,.36)!important;
-}
-[data-theme="light"] #transfer-log-liste .rf-transfer-row,
-.light #transfer-log-liste .rf-transfer-row{
-  border-top-color:rgba(0,0,0,.13)!important;
-  border-right-color:rgba(0,0,0,.13)!important;
-  border-bottom-color:rgba(0,0,0,.13)!important;
-  box-shadow:0 1px 3px rgba(0,0,0,.14)!important;
-}
-[data-theme="light"] #transfer-log-liste .rf-transfer-row:hover,
-.light #transfer-log-liste .rf-transfer-row:hover{
-  background:color-mix(in srgb, var(--surface3) 94%, black 6%)!important;
-  box-shadow:0 1px 3px rgba(0,0,0,.12)!important;
 }
 
 #transfer-log-liste .rf-transfer-row-compact{
