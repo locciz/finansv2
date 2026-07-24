@@ -13,6 +13,7 @@ import { kartLimitGecmisSonSil } from './01-kart-data.js';
 import { renderKartlar } from './10-kart-liste.js';
 import { bankaOptionMetin } from '../tanimlamalar/01-genel-yardimcilar.js';
 import { closeModal } from '../../components/modal-genel.js';
+import { register } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/kartlar/06-kart-form.js
 // Kart ekleme/düzenleme formu (step wizard)
@@ -39,6 +40,7 @@ export function kartStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === KART_STEP_COUNT) _kartOzetDoldur();
 }
+register('wizardStepGoto:modal-kart', kartStepGoto);
 
 export function kartStepNext() {
   if (!_kartValidateStep(_kartCurrentStep)) return;

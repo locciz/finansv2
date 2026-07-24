@@ -87,6 +87,7 @@ export function eldenStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === 2) _updateEldenTutarTumBtn();
 }
+register('wizardStepGoto:modal-elden', eldenStepGoto);
 
 export function _eldenValidateStep(step) {
   if (step === 1) {

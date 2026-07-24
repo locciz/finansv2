@@ -196,6 +196,7 @@ export function kiraStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === KIRA_STEP_COUNT) _kiraOzetDoldur();
 }
+register('wizardStepGoto:modal-kira', kiraStepGoto);
 
 export function _kiraValidateStep(step) {
   if (step === 1) {

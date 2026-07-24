@@ -17,6 +17,7 @@ import { readOtoGunlukOranGecmisi, renderOtoGunlukOranGecmis } from '../tanimlam
 import { getSubeAdFromKodlar } from '../tanimlamalar/08-subeler.js';
 import { closeModal, openModal } from '../../components/modal-genel.js';
 import { renderHesaplar } from './04-hesap-liste-render.js';
+import { register } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/hesaplar/03-hesap-form-crud.js
 // Hesap ekleme/düzenleme formu (step wizard)
@@ -144,6 +145,7 @@ export function hesapStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === HESAP_STEP_COUNT) _hesapOzetDoldur();
 }
+register('wizardStepGoto:modal-hesap', hesapStepGoto);
 
 export function _hesapValidateStep(step) {
   if (step === 1) {

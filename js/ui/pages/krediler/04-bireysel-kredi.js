@@ -144,6 +144,7 @@ export function krediStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === KREDI_STEP_COUNT) calcKredi(true);
 }
+register('wizardStepGoto:modal-kredi', krediStepGoto);
 
 export function _krediValidateStep(step) {
   if (step === 1) {

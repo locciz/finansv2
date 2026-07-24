@@ -94,6 +94,7 @@ export function kartOdemeStepGoto(step) {
   if (step === 1) _updateKartOdemeTutarTumBtn();
   if (step === KART_ODEME_STEP_COUNT) _kartOdemeOzetDoldur();
 }
+register('wizardStepGoto:modal-kart-odeme', kartOdemeStepGoto);
 
 export function kartOdemeStepNext() {
   if (!_kartOdemeValidateStep(_kartOdemeCurrentStep)) return;

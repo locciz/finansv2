@@ -160,6 +160,7 @@ export function abStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === AB_STEP_COUNT) _abOzetDoldur();
 }
+register('wizardStepGoto:modal-abonelik', abStepGoto);
 
 export function _abValidateStep(step) {
   if (step === 1) {

@@ -10,6 +10,7 @@ import { swizUpdateStepIndicator } from '../../components/step-wizard.js';
 import { DEFAULT_CURRENCY_CONFIG, PB_STEP_COUNT, _pbCurrentStep, editParaBirimiKod, setEditParaBirimiKod, set_pbCurrentStep } from './00-state.js';
 import { renderTanimlamalar } from './02-ana-sayfa.js';
 import { closeModal, openModal } from '../../components/modal-genel.js';
+import { register } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/06-para-birimi.js
 // Para birimi tanımlama (ekleme/düzenleme wizard + kur önizleme)
@@ -196,6 +197,7 @@ export function pbStepGoto(step) {
   const body = modal.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
 }
+register('wizardStepGoto:modal-para-birimi', pbStepGoto);
 
 export function _pbValidateStep(step) {
   if (step === 1) {

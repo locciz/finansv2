@@ -146,6 +146,7 @@ export function kmhKrediStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === KMHKREDI_STEP_COUNT) calcKmhKredi(true);
 }
+register('wizardStepGoto:modal-kmhkredi', kmhKrediStepGoto);
 
 export function _kmhKrediValidateStep(step) {
   if (step === 1) {

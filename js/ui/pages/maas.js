@@ -126,6 +126,7 @@ export function maasStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === MAAS_STEP_COUNT) _maasOzetDoldur();
 }
+register('wizardStepGoto:modal-maas', maasStepGoto);
 
 export function maasStepNext() {
   if (!_maasValidateStep(_maasCurrentStep)) return;

@@ -10,6 +10,7 @@ import { renderIslemler } from '../islemler/03-islem-liste-render.js';
 import { getKartCurrencies, getKartDefaultCurrency } from '../kartlar/01-kart-data.js';
 import { NA_STEP_COUNT, _naCurrentStep, _naLimitAutoSaveTimer, editNaId, setEditNaId, set_naCurrentStep, set_naLimitAutoSaveTimer } from './00-state.js';
 import { closeModal, openModal } from '../../components/modal-genel.js';
+import { register } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/krediler/02-nakit-avans.js
 // Nakit avans akışı (ekleme/düzenleme wizard, limit kontrolleri)
@@ -399,6 +400,7 @@ export function naStepGoto(step) {
   if (body) body.scrollTop = 0;
   if (step === NA_STEP_COUNT) calcNakitAvans();
 }
+register('wizardStepGoto:modal-nakit-avans', naStepGoto);
 
 export function _naValidateStep(step) {
   if (step === 1) {

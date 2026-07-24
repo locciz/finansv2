@@ -313,6 +313,7 @@ export function transferStepGoto(step) {
   if (step === 2) _updateTransferTutarTumBtn();
   if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); call('renderTransferLog'); }
 }
+register('wizardStepGoto:modal-transfer', transferStepGoto);
 
 // ── Seçili kaynağın kullanılabilir bakiyesini döndürür (hesap: bakiye + KMH, nakit: nakit bakiyesi) ──
 export function _transferKaynakKullanilabilirBakiye() {

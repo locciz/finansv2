@@ -14,6 +14,7 @@ import { renderMevduat } from './05-mevduat-liste-render.js';
 import { _fillMevHesapSel, _fillMevVadesizSel, _updateMevTutarBakiyeHint, onMevOtoHesapToggle, onMevStratejiChange } from './06-mevduat-hesap-secim-formu.js';
 import { closeModal } from '../../components/modal-genel.js';
 import { renderHesaplar } from '../hesaplar/04-hesap-liste-render.js';
+import { register } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/mevduat/01-mevduat-form-wizard.js
 // Mevduat açma formu (step wizard) + faiz hesaplayıcı + kaydetme/düzenleme
@@ -62,6 +63,7 @@ export function mevStepGoto(step) {
   // adım noktasından direkt atlanınca özet boş kalıyordu.
   if (step === MEV_STEP_COUNT && typeof _mevOzetDoldur === 'function') _mevOzetDoldur();
 }
+register('wizardStepGoto:modal-mevduat', mevStepGoto);
 
 export function _mevValidateStep(step) {
   const otoToggle = document.getElementById('mev-oto-hesap');

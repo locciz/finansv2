@@ -1,5 +1,6 @@
 import { NAV_BTN_ID_BY_PAGE, saveData, getShowPage, setShowPage } from '../../../core/app-core-base.js';
 import { DB } from '../../../core/state.js';
+import { call } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/components/mobile-nav-tema/01-mobil-nav.js
 // Mobil alt navigasyon (sekme geçişleri, profil paneli, sidebar)
@@ -60,31 +61,35 @@ document.addEventListener('DOMContentLoaded', function() {
 // serbest gezinme) çağıran tek merkezi delegasyon. Mevcut ~13 sihirbazın
 // hiçbirinin JS'ine dokunmadan, steps-bar id'sinden fonksiyon adına eşleniyor.
 export const WIZARD_STEP_GOTO_MAP = {
-  'pb-steps-bar':         'pbStepGoto',
-  'kmhkredi-steps-bar':   'kmhKrediStepGoto',
-  'kredi-steps-bar':      'krediStepGoto',
-  'kart-steps-bar':       'kartStepGoto',
-  'na-steps-bar':         'naStepGoto',
-  'kira-steps-bar':       'kiraStepGoto',
-  'maas-steps-bar':       'maasStepGoto',
-  'hesap-steps-bar':      'hesapStepGoto',
-  'elden-steps-bar':      'eldenStepGoto',
-  'kart-odeme-steps-bar': 'kartOdemeStepGoto',
-  'ab-steps-bar':         'abStepGoto',
-  'transfer-steps-bar':   'transferStepGoto',
-  'mev-steps-bar':        'mevStepGoto',
+  'pb-steps-bar':         'modal-para-birimi',
+  'kmhkredi-steps-bar':   'modal-kmhkredi',
+  'kredi-steps-bar':      'modal-kredi',
+  'kart-steps-bar':       'modal-kart',
+  'na-steps-bar':         'modal-nakit-avans',
+  'kira-steps-bar':       'modal-kira',
+  'maas-steps-bar':       'modal-maas',
+  'hesap-steps-bar':      'modal-hesap',
+  'elden-steps-bar':      'modal-elden',
+  'kart-odeme-steps-bar': 'modal-kart-odeme',
+  'ab-steps-bar':         'modal-abonelik',
+  'transfer-steps-bar':   'modal-transfer',
+  'mev-steps-bar':        'modal-mevduat',
 };
 document.addEventListener('click', function(e) {
   const wrap = e.target.closest('.swiz-step-dot-wrap, .mev-step-dot-wrap');
   if (!wrap) return;
   const bar = wrap.closest('.swiz-steps-bar, .mev-steps-bar');
   if (!bar || !bar.id) return;
-  const fnName = WIZARD_STEP_GOTO_MAP[bar.id];
-  const fn = fnName && window[fnName];
-  if (typeof fn !== 'function') return;
+  const modalId = WIZARD_STEP_GOTO_MAP[bar.id];
+  if (!modalId) return;
   const step = Number(wrap.dataset.step);
   if (!step) return;
-  fn(step);
+  // Sadece geride kalmış (tamamlanmış, is-done) veya mevcut (is-active) adıma
+  // serbestçe atlanır — ileri, henüz doğrulanmamış adımlara atlamak veri
+  // bütünlüğünü bozabileceği için izin verilmez (Geri butonunun doğrulamasız
+  // davranışıyla tutarlı: sadece geriye serbest gezinme).
+  if (!wrap.classList.contains('is-done') && !wrap.classList.contains('is-active')) return;
+  call('wizardStepGoto:' + modalId, step);
 });
 
 // ── Mobil alt navigasyon ──────────────────────────────────────
