@@ -64,7 +64,6 @@ export function kartOdemeKalanTamaminiDoldur() {
   const pb = document.getElementById('kart-odeme-pb')?.value || 'TRY';
   setMoneyInput('kart-odeme-tutar', _kartOdemeKalanBorc);
   _updateKartOdemeTutarHint();
-  showToast(`${fmtCur(_kartOdemeKalanBorc, pb)} tutarı dolduruldu`, 'info');
 }
 
 export function kartOdemeTutarTumunuKullan() {
@@ -73,7 +72,6 @@ export function kartOdemeTutarTumunuKullan() {
   if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
   setMoneyInput('kart-odeme-tutar', kb.tutar);
   _updateKartOdemeTutarHint();
-  showToast(`${fmtCur(kb.tutar, kb.pb)} tutarı dolduruldu`, 'info');
 }
 
 export function kartOdemeStepGoto(step) {

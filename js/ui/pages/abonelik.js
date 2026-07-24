@@ -76,7 +76,6 @@ export function abTutarTumunuKullan() {
   if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
   setMoneyInput('ab-tutar', kb.tutar);
   _updateAbTutarHint();
-  showToast(`${fmtCur(kb.tutar, kb.pb)} tutarı dolduruldu`, 'info');
 }
 
 // Buton görünürlüğünü hesap seçimine göre günceller

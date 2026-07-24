@@ -340,7 +340,6 @@ export function transferTutarTumunuKullan() {
   if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
   setMoneyInput('transfer-tutar', kb.tutar);
   _updateTransferTutarHint();
-  showToast(`${fmtCur(kb.tutar, kb.pb)} tutarı dolduruldu`, 'info');
 }
 
 // Buton görünürlüğünü ve ipucunu kaynak seçimine göre günceller
@@ -743,8 +742,6 @@ export function tekrarlaTransfer(id) {
 
   if (!kOk || !hOk) {
     showToast('Kaynak/hedeften biri artık uygun değil (bakiye/durum) — lütfen yeniden seçin', 'error');
-  } else {
-    showToast('Önceki transfer forma dolduruldu — kontrol edip kaydedebilirsiniz', 'info');
   }
 }
 

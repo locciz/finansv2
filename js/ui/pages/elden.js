@@ -276,7 +276,6 @@ export function eldenTutarTumunuKullan() {
   if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
   setMoneyInput('elden-tutar', kb.tutar);
   _updateEldenTutarHint();
-  showToast(`${fmtCur(kb.tutar, kb.pb)} tutarı dolduruldu`, 'info');
 }
 
 export function _updateEldenTutarTumBtn() {

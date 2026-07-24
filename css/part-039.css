@@ -55,16 +55,37 @@
   }
 }
 @media (max-width:400px){
+  /* [BUG FIX] Eski "main amount" / "main act" 2-satırlı grid-template-areas,
+     .main (route + note) tek satırlık grid satırından daha uzun olduğunda
+     (örn. uzun hesap adı + IBAN son 4 hane) taşıyordu; grid-template-rows:
+     auto auto satır yüksekliklerini .main'in gerçek içeriğine göre değil,
+     amount/act butonlarının kısa yüksekliğine göre hesaplıyordu, bu da
+     .main'in bir sonraki .rf-transfer-row kartının üstüne binmesine yol
+     açıyordu (satırların iç içe/üst üste görünmesi). Artık her bölüm kendi
+     satırında, tam genişlikte, alt alta diziliyor — taşma riski kalmıyor. */
   #transfer-log-liste .rf-transfer-row{
-    grid-template-columns:minmax(0,1fr) auto!important;
-    grid-template-areas:"main amount" "main act"!important;
-    grid-template-rows:auto auto!important;
+    grid-template-columns:1fr!important;
+    grid-template-areas:"main" "amount" "act"!important;
+    grid-template-rows:auto!important;
     row-gap:4px!important;
     flex-shrink:0!important;
   }
-  #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;align-self:start!important;}
-  #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:end!important;align-self:start!important;}
-  #transfer-log-liste .rf-transfer-row .act{grid-area:act!important;justify-self:end!important;align-self:start!important;}
+  #transfer-log-liste .rf-transfer-row .main{grid-area:main!important;align-self:start!important;min-width:0!important;}
+  #transfer-log-liste .rf-transfer-row .amount{grid-area:amount!important;justify-self:start!important;text-align:left!important;align-self:start!important;}
+  #transfer-log-liste .rf-transfer-row .act{grid-area:act!important;justify-self:start!important;align-self:start!important;}
+  #transfer-log-liste .rf-transfer-row .route,
+  #transfer-log-liste .rf-transfer-row .note{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    overflow-wrap:anywhere!important;
+    word-break:break-word!important;
+  }
+  #transfer-log-liste .rf-transfer-row .route .seg{
+    overflow:visible!important;
+    text-overflow:clip!important;
+    white-space:normal!important;
+  }
 }
 
 #transfer-log-liste{

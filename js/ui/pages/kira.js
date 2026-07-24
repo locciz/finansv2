@@ -39,7 +39,6 @@ export function kiraDepozitoTutarTumunuKullan() {
   if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
   setMoneyInput('kira-depozito-tutar', kb.tutar);
   _updateKiraDepozitoTutarHint();
-  showToast(`${fmtCur(kb.tutar, kb.pb)} tutarı dolduruldu`, 'info');
 }
 
 export function openKiraModal(id=null) {
