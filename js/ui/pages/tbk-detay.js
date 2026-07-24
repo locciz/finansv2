@@ -986,22 +986,37 @@ export { normalizeAllDeposits };
     if(!list) return;
     qsa(list,':scope > div').forEach(function(row){
       if(!row.querySelector || !row.querySelector('button')) return;
+      // Eski (pre-compact) sistemin class'ını sil — aksi halde part-039.css'teki
+      // .rf-transfer-row !important grid kuralları, part-037.css'teki
+      // .rf-transfer-row-compact grid kurallarıyla aynı elemanda çakışıyor.
+      row.classList.remove('rf-transfer-row');
       row.classList.add('rf-transfer-row-compact');
       row.removeAttribute('style');
       const kids=Array.prototype.slice.call(row.children);
-      const main=kids[0], amount=kids[1];
+      const main=kids[0], amount=kids[1], act=kids[2];
       if(main){
+        main.classList.remove('main');
         main.classList.add('rf-transfer-compact-main');
         main.style.cssText='';
-        if(main.children[0]) { main.children[0].classList.add('rf-transfer-compact-route'); main.children[0].style.cssText=''; }
-        if(main.children[1]) { main.children[1].classList.add('rf-transfer-compact-note'); main.children[1].style.cssText=''; }
+        if(main.children[0]) { main.children[0].classList.remove('route'); main.children[0].classList.add('rf-transfer-compact-route'); main.children[0].style.cssText=''; }
+        if(main.children[1]) { main.children[1].classList.remove('note'); main.children[1].classList.add('rf-transfer-compact-note'); main.children[1].style.cssText=''; }
       }
-      if(amount){ amount.classList.add('rf-transfer-compact-amount'); amount.style.cssText=''; }
-      const buttons=kids.filter(function(x){ return x && x.tagName==='BUTTON'; });
-      if(buttons.length && !row.querySelector('.rf-transfer-compact-actions')){
-        const wrap=document.createElement('div'); wrap.className='rf-transfer-compact-actions';
-        buttons[0].parentNode.insertBefore(wrap, buttons[0]);
-        buttons.forEach(function(b){ b.style.cssText=''; wrap.appendChild(b); });
+      if(amount){ amount.classList.remove('amount'); amount.classList.add('rf-transfer-compact-amount'); amount.style.cssText=''; }
+      // Butonlar satırın doğrudan çocuğu değil, üçüncü çocuk olan .act DIV'inin
+      // içinde (torun). Eski filtre bunu hiç yakalamıyordu; artık .act div'inin
+      // kendisini rf-transfer-compact-actions'a çeviriyoruz ve stale class'ı siliyoruz.
+      if(act){
+        act.classList.remove('act');
+        act.classList.add('rf-transfer-compact-actions');
+        act.style.cssText='';
+        Array.prototype.slice.call(act.querySelectorAll('button')).forEach(function(b){ b.style.cssText=''; });
+      } else {
+        const buttons=kids.filter(function(x){ return x && x.tagName==='BUTTON'; });
+        if(buttons.length && !row.querySelector('.rf-transfer-compact-actions')){
+          const wrap=document.createElement('div'); wrap.className='rf-transfer-compact-actions';
+          buttons[0].parentNode.insertBefore(wrap, buttons[0]);
+          buttons.forEach(function(b){ b.style.cssText=''; wrap.appendChild(b); });
+        }
       }
     });
   }

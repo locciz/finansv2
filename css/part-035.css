@@ -23,8 +23,15 @@ button, .btn, .filter-chip, .sort-chip, .tab-btn, .nav-btn, .mob-nav-btn, .btn-a
 .card { overflow-wrap: anywhere; }
 .badge, .chip, .filter-chip, .sort-chip, .btn, .btn-sm { max-width: 100%; }
 .filter-chip span, .sort-chip span, .btn span { min-width: 0; }
-.modal-bg.open { align-items: center !important; justify-content: center !important; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important; }
-.modal-bg.open .modal { max-width: min(var(--modal-w, 720px), calc(100vw - 20px)) !important; max-height: calc(100dvh - 20px) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
+/* Bu kural masaüstü modallarını ortalamak içindi ama media-query'siz global
+   olduğu için part-001.css'teki mobil "tam ekran bottom-sheet" kuralını
+   (align-items:flex-end) eziyordu — modal ekranı tam kaplamıyor, üstte/altta
+   boşluk kalıyor ve o boşluktan arkadaki topbar/bottom-nav görünüyordu.
+   768px altında devre dışı bırakıldı, mobil bottom-sheet davranışı geri geldi. */
+@media (min-width: 769px) {
+  .modal-bg.open { align-items: center !important; justify-content: center !important; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important; }
+  .modal-bg.open .modal { max-width: min(var(--modal-w, 720px), calc(100vw - 20px)) !important; max-height: calc(100dvh - 20px) !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; }
+}
 .modal-header,
 .modal-footer { flex: 0 0 auto !important; }
 .modal-body { flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: clip !important; -webkit-overflow-scrolling: touch; }
