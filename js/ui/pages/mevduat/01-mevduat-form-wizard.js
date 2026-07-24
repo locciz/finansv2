@@ -3,7 +3,7 @@ import { fmtCur, fmtDate, localDateStr, uid } from '../../../core/format.js';
 import { ALL_CURRENCIES, DB, defaultCurrency } from '../../../core/state.js';
 import { buildCurrencyOptions } from '../../../domain/doviz.js';
 import { _tutarAsiyorMu, getStopajOrani } from '../../../domain/hesaplamalar.js';
-import { swizOzetSatirHtml } from '../../components/step-wizard.js';
+import { swizOzetSatirHtml, swizUpdateStepIndicator } from '../../components/step-wizard.js';
 import { hesaplaMevduatOnizleme } from '../../../domain/mevduat-hesaplama.js';
 import { _markFieldError, _sidebarDim, showToast } from '../../components/modal-genel.js';
 import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
@@ -30,21 +30,8 @@ export function mevStepGoto(step) {
   const modal = document.getElementById('modal-mevduat');
   if (!modal) return;
 
-  // Panelleri göster/gizle
-  modal.querySelectorAll('.mev-step-panel').forEach(p => {
-    p.classList.toggle('is-active', Number(p.dataset.stepPanel) === step);
-  });
-
-  // Adım göstergesini güncelle (dot + çizgi durumları)
-  modal.querySelectorAll('.mev-step-dot-wrap').forEach(w => {
-    const n = Number(w.dataset.step);
-    w.classList.toggle('is-active', n === step);
-    w.classList.toggle('is-done', n < step);
-  });
-  modal.querySelectorAll('.mev-step-line').forEach(l => {
-    const n = Number(l.dataset.line);
-    l.classList.toggle('is-done', n < step);
-  });
+  // ---- Saf DOM güncelleme: js/ui/components/step-wizard.js:swizUpdateStepIndicator ----
+  swizUpdateStepIndicator(modal, step);
 
   // Footer buton görünürlüğü
   const backBtn = document.getElementById('mev-step-back-btn');
@@ -64,6 +51,7 @@ export function mevStepGoto(step) {
   if (step === MEV_STEP_COUNT && typeof _mevOzetDoldur === 'function') _mevOzetDoldur();
 }
 register('wizardStepGoto:modal-mevduat', mevStepGoto);
+register('wizardCurrentStep:modal-mevduat', () => _mevCurrentStep);
 
 export function _mevValidateStep(step) {
   const otoToggle = document.getElementById('mev-oto-hesap');
@@ -133,6 +121,9 @@ export function mevStepNext() {
   mevStepGoto(_mevCurrentStep + 1);
   if (_mevCurrentStep === MEV_STEP_COUNT) _mevOzetDoldur();
 }
+
+register('wizardStepNext:modal-mevduat', mevStepNext);
+
 
 export function _mevOzetDoldur() {
   const cur = (document.getElementById('mev-para-birimi')||{}).value || 'TRY';

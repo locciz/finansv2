@@ -41,11 +41,15 @@ export function kartStepGoto(step) {
   if (step === KART_STEP_COUNT) _kartOzetDoldur();
 }
 register('wizardStepGoto:modal-kart', kartStepGoto);
+register('wizardCurrentStep:modal-kart', () => _kartCurrentStep);
 
 export function kartStepNext() {
   if (!_kartValidateStep(_kartCurrentStep)) return;
   kartStepGoto(_kartCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-kart', kartStepNext);
+
 
 export function kartStepBack() {
   kartStepGoto(_kartCurrentStep - 1);

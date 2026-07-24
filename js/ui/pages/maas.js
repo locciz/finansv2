@@ -127,11 +127,15 @@ export function maasStepGoto(step) {
   if (step === MAAS_STEP_COUNT) _maasOzetDoldur();
 }
 register('wizardStepGoto:modal-maas', maasStepGoto);
+register('wizardCurrentStep:modal-maas', () => _maasCurrentStep);
 
 export function maasStepNext() {
   if (!_maasValidateStep(_maasCurrentStep)) return;
   maasStepGoto(_maasCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-maas', maasStepNext);
+
 
 export function maasStepBack() {
   maasStepGoto(_maasCurrentStep - 1);

@@ -314,6 +314,7 @@ export function transferStepGoto(step) {
   if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); call('renderTransferLog'); }
 }
 register('wizardStepGoto:modal-transfer', transferStepGoto);
+register('wizardCurrentStep:modal-transfer', () => _transferCurrentStep);
 
 // ── Seçili kaynağın kullanılabilir bakiyesini döndürür (hesap: bakiye + KMH, nakit: nakit bakiyesi) ──
 export function _transferKaynakKullanilabilirBakiye() {
@@ -387,6 +388,9 @@ export function transferStepNext() {
   if (!_transferValidateStep(_transferCurrentStep)) return;
   transferStepGoto(_transferCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-transfer', transferStepNext);
+
 
 export function transferStepBack() {
   transferStepGoto(_transferCurrentStep - 1);

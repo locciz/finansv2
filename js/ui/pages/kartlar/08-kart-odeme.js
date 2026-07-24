@@ -95,11 +95,15 @@ export function kartOdemeStepGoto(step) {
   if (step === KART_ODEME_STEP_COUNT) _kartOdemeOzetDoldur();
 }
 register('wizardStepGoto:modal-kart-odeme', kartOdemeStepGoto);
+register('wizardCurrentStep:modal-kart-odeme', () => _kartOdemeCurrentStep);
 
 export function kartOdemeStepNext() {
   if (!_kartOdemeValidateStep(_kartOdemeCurrentStep)) return;
   kartOdemeStepGoto(_kartOdemeCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-kart-odeme', kartOdemeStepNext);
+
 
 export function kartOdemeStepBack() {
   kartOdemeStepGoto(_kartOdemeCurrentStep - 1);

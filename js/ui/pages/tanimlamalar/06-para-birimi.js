@@ -198,6 +198,7 @@ export function pbStepGoto(step) {
   if (body) body.scrollTop = 0;
 }
 register('wizardStepGoto:modal-para-birimi', pbStepGoto);
+register('wizardCurrentStep:modal-para-birimi', () => _pbCurrentStep);
 
 export function _pbValidateStep(step) {
   if (step === 1) {
@@ -215,6 +216,9 @@ export function pbStepNext() {
   if (!_pbValidateStep(_pbCurrentStep)) return;
   pbStepGoto(_pbCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-para-birimi', pbStepNext);
+
 
 export function pbStepBack() {
   pbStepGoto(_pbCurrentStep - 1);

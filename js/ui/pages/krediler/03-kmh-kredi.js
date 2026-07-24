@@ -147,6 +147,7 @@ export function kmhKrediStepGoto(step) {
   if (step === KMHKREDI_STEP_COUNT) calcKmhKredi(true);
 }
 register('wizardStepGoto:modal-kmhkredi', kmhKrediStepGoto);
+register('wizardCurrentStep:modal-kmhkredi', () => _kmhKrediCurrentStep);
 
 export function _kmhKrediValidateStep(step) {
   if (step === 1) {
@@ -220,6 +221,9 @@ export function kmhKrediStepNext() {
   if (!_kmhKrediValidateStep(_kmhKrediCurrentStep)) return;
   kmhKrediStepGoto(_kmhKrediCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-kmhkredi', kmhKrediStepNext);
+
 
 export function kmhKrediStepBack() {
   kmhKrediStepGoto(_kmhKrediCurrentStep - 1);

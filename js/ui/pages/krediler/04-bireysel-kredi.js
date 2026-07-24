@@ -145,6 +145,7 @@ export function krediStepGoto(step) {
   if (step === KREDI_STEP_COUNT) calcKredi(true);
 }
 register('wizardStepGoto:modal-kredi', krediStepGoto);
+register('wizardCurrentStep:modal-kredi', () => _krediCurrentStep);
 
 export function _krediValidateStep(step) {
   if (step === 1) {
@@ -170,6 +171,9 @@ export function krediStepNext() {
   if (!_krediValidateStep(_krediCurrentStep)) return;
   krediStepGoto(_krediCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-kredi', krediStepNext);
+
 
 export function krediStepBack() {
   krediStepGoto(_krediCurrentStep - 1);

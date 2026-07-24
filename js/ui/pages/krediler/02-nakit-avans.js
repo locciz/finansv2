@@ -401,6 +401,7 @@ export function naStepGoto(step) {
   if (step === NA_STEP_COUNT) calcNakitAvans();
 }
 register('wizardStepGoto:modal-nakit-avans', naStepGoto);
+register('wizardCurrentStep:modal-nakit-avans', () => _naCurrentStep);
 
 export function _naValidateStep(step) {
   if (step === 1) {
@@ -418,6 +419,9 @@ export function naStepNext() {
   if (!_naValidateStep(_naCurrentStep)) return;
   naStepGoto(_naCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-nakit-avans', naStepNext);
+
 
 export function naStepBack() {
   naStepGoto(_naCurrentStep - 1);

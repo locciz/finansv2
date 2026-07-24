@@ -197,6 +197,7 @@ export function kiraStepGoto(step) {
   if (step === KIRA_STEP_COUNT) _kiraOzetDoldur();
 }
 register('wizardStepGoto:modal-kira', kiraStepGoto);
+register('wizardCurrentStep:modal-kira', () => _kiraCurrentStep);
 
 export function _kiraValidateStep(step) {
   if (step === 1) {
@@ -241,6 +242,8 @@ export function kiraStepNext() {
   if (!_kiraValidateStep(_kiraCurrentStep)) return;
   kiraStepGoto(_kiraCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-kira', kiraStepNext);
 
 export function kiraStepBack() {
   kiraStepGoto(_kiraCurrentStep - 1);

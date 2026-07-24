@@ -146,6 +146,7 @@ export function hesapStepGoto(step) {
   if (step === HESAP_STEP_COUNT) _hesapOzetDoldur();
 }
 register('wizardStepGoto:modal-hesap', hesapStepGoto);
+register('wizardCurrentStep:modal-hesap', () => _hesapCurrentStep);
 
 export function _hesapValidateStep(step) {
   if (step === 1) {
@@ -173,6 +174,9 @@ export function hesapStepNext() {
   if (!_hesapValidateStep(_hesapCurrentStep)) return;
   hesapStepGoto(_hesapCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-hesap', hesapStepNext);
+
 
 export function hesapStepBack() {
   hesapStepGoto(_hesapCurrentStep - 1);

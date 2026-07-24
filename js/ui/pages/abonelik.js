@@ -161,6 +161,7 @@ export function abStepGoto(step) {
   if (step === AB_STEP_COUNT) _abOzetDoldur();
 }
 register('wizardStepGoto:modal-abonelik', abStepGoto);
+register('wizardCurrentStep:modal-abonelik', () => _abCurrentStep);
 
 export function _abValidateStep(step) {
   if (step === 1) {
@@ -186,6 +187,9 @@ export function abStepNext() {
   if (!_abValidateStep(_abCurrentStep)) return;
   abStepGoto(_abCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-abonelik', abStepNext);
+
 
 export function abStepBack() {
   abStepGoto(_abCurrentStep - 1);

@@ -88,6 +88,7 @@ export function eldenStepGoto(step) {
   if (step === 2) _updateEldenTutarTumBtn();
 }
 register('wizardStepGoto:modal-elden', eldenStepGoto);
+register('wizardCurrentStep:modal-elden', () => _eldenCurrentStep);
 
 export function _eldenValidateStep(step) {
   if (step === 1) {
@@ -105,6 +106,9 @@ export function eldenStepNext() {
   if (!_eldenValidateStep(_eldenCurrentStep)) return;
   eldenStepGoto(_eldenCurrentStep + 1);
 }
+
+register('wizardStepNext:modal-elden', eldenStepNext);
+
 
 export function eldenStepBack() {
   eldenStepGoto(_eldenCurrentStep - 1);

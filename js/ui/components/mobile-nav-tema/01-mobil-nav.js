@@ -1,6 +1,6 @@
 import { NAV_BTN_ID_BY_PAGE, saveData, getShowPage, setShowPage } from '../../../core/app-core-base.js';
 import { DB } from '../../../core/state.js';
-import { call } from '../../../core/wrap-registry.js';
+import { call, get } from '../../../core/wrap-registry.js';
 // ============================================================
 // js/ui/components/mobile-nav-tema/01-mobil-nav.js
 // Mobil alt navigasyon (sekme geçişleri, profil paneli, sidebar)
@@ -76,20 +76,33 @@ export const WIZARD_STEP_GOTO_MAP = {
   'mev-steps-bar':        'modal-mevduat',
 };
 document.addEventListener('click', function(e) {
-  const wrap = e.target.closest('.swiz-step-dot-wrap, .mev-step-dot-wrap');
+  const wrap = e.target.closest('.swiz-step-dot-wrap');
   if (!wrap) return;
-  const bar = wrap.closest('.swiz-steps-bar, .mev-steps-bar');
+  const bar = wrap.closest('.swiz-steps-bar');
   if (!bar || !bar.id) return;
   const modalId = WIZARD_STEP_GOTO_MAP[bar.id];
   if (!modalId) return;
   const step = Number(wrap.dataset.step);
   if (!step) return;
-  // Sadece geride kalmış (tamamlanmış, is-done) veya mevcut (is-active) adıma
-  // serbestçe atlanır — ileri, henüz doğrulanmamış adımlara atlamak veri
-  // bütünlüğünü bozabileceği için izin verilmez (Geri butonunun doğrulamasız
-  // davranışıyla tutarlı: sadece geriye serbest gezinme).
-  if (!wrap.classList.contains('is-done') && !wrap.classList.contains('is-active')) return;
-  call('wizardStepGoto:' + modalId, step);
+  // Geriye (is-done) veya mevcut adıma (is-active) doğrulamasız serbest
+  // gezinme. İleri (henüz tamamlanmamış) bir adıma tıklanırsa, "İleri"
+  // butonuna basılmış gibi davranılır: aradaki her adımın validasyonu
+  // sırayla geçilir; bir adımda validasyon başarısız olursa orada durulur
+  // ve o adımın kendi hata mesajı gösterilir.
+  if (wrap.classList.contains('is-done') || wrap.classList.contains('is-active')) {
+    call('wizardStepGoto:' + modalId, step);
+    return;
+  }
+  const getCurrent = get('wizardCurrentStep:' + modalId);
+  const stepNext = get('wizardStepNext:' + modalId);
+  if (typeof getCurrent !== 'function' || typeof stepNext !== 'function') return;
+  let guard = 0;
+  while (getCurrent() < step && guard < 50) {
+    const before = getCurrent();
+    stepNext();
+    if (getCurrent() === before) break; // validasyon başarısız oldu, dur
+    guard++;
+  }
 });
 
 // ── Mobil alt navigasyon ──────────────────────────────────────
@@ -321,3 +334,34 @@ document.addEventListener('DOMContentLoaded', function() {
 // closeMobMore, closeMobileSidebar, mobNavRenderDynSlots ve mobNavTrack zaten
 // yukarıda `export function` olarak tanımlı; ihtiyacı olan modüller doğrudan
 // import ediyor, ayrıca window.X atamasına gerek yok.
+
+// ── Native tarayıcı tooltip'lerini bastır ─────────────────────
+// Butonlarda erişilebilirlik (ekran okuyucu) için `title="Düzenle"`,
+// `title="Sil"` gibi attribute'lar bırakılmıştı, ama tarayıcı bunları
+// otomatik olarak hover tooltip'i olarak gösteriyor — istenmeyen davranış.
+// MutationObserver kullanmadan (bkz. part-035.css yorumu), tek bir delegated
+// 'pointerover' dinleyicisiyle: elemente ilk hover anında title'ı aria-label'a
+// taşıyıp title'ı DOM'dan kaldırıyoruz. Böylece:
+//  - Tarayıcı tooltip'i asla tetiklenmiyor (title anlık olarak var olsa da
+//    hover başlamadan önce kaldırıldığı için gösterilecek zaman bulamıyor).
+//  - Ekran okuyucular için erişilebilir isim aria-label üzerinden korunuyor.
+//  - Yeni render edilen butonlar da (event delegation sayesinde) otomatik kapsanıyor.
+document.addEventListener('pointerover', function(e) {
+  const el = e.target.closest('[title]');
+  if (!el) return;
+  const t = el.getAttribute('title');
+  if (!t) { el.removeAttribute('title'); return; }
+  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', t);
+  el.removeAttribute('title');
+}, true);
+// Dokunmatik cihazlarda pointerover tetiklenmeyebileceği için, tıklama anında
+// da aynı temizliği garanti altına alıyoruz (tooltip zaten dokunmatikte
+// genelde sorun değil, ama title kalırsa bazı tarayıcılar uzun-basmada
+// context menü/tooltip gösterebiliyor).
+document.addEventListener('touchstart', function(e) {
+  const el = e.target.closest('[title]');
+  if (!el) return;
+  const t = el.getAttribute('title');
+  if (t && !el.hasAttribute('aria-label')) el.setAttribute('aria-label', t);
+  el.removeAttribute('title');
+}, { capture: true, passive: true });
