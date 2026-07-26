@@ -7,15 +7,23 @@
    ============================================================ */
 
 /* ── Bölüm başlığı: "Son Transferler" satırı + durum filtresi + hesap/nakit filtresi ── */
-#transfer-log-msec > div:first-child {
-  gap: 6px;
+#transfer-log-msec .rf-transfer-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px 6px;
+}
+#transfer-log-msec .rf-transfer-header-row .msec-label {
+  flex-shrink: 0;
 }
 
 .rf-transfer-status-filter {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
+  flex-shrink: 0;
 }
 .rf-transfer-status-filter button {
   width: 30px;
@@ -43,6 +51,15 @@
   align-items: center;
   gap: 6px;
   color: var(--sky);
+  flex-shrink: 0;
+  max-width: 100%;
+  min-width: 0;
+}
+#transfer-log-filtre-btn #transfer-log-filtre-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 #transfer-log-filtre-btn .rf-transfer-filtre-ico {
@@ -105,18 +122,20 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 #transfer-log-liste .rf-transfer-route {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 2px;
   gap: 6px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text2, #cbd5e1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 #transfer-log-liste .rf-transfer-route .rf-transfer-seg {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   min-width: 0;
+  max-width: 100%;
 }
 #transfer-log-liste .rf-transfer-route .rf-transfer-arrow {
   flex-shrink: 0;
@@ -192,7 +211,7 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 }
 
 /* ── Responsive kırılımlar ── */
-@media (max-width: 520px) {
+@media (max-width: 600px) {
   #transfer-log-liste .rf-transfer-row {
     grid-template-columns: minmax(0, 1fr) max-content;
     grid-template-areas:
