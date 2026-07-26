@@ -35,15 +35,13 @@ import { call, get, has, register } from './wrap-registry.js';
     const fill=el('od-kalan-tamamini-btn');
     if(fill) fill.title='Kalanın Tamamı';
   }
-  function fixTransferFilterIcon(){
-    const btn=el('transfer-log-filtre-btn');
-    if(!btn) return;
-    if(btn.querySelector('.rf-bank-filter-ico')) return;
-    btn.innerHTML='<svg class="rf-bank-filter-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"/><path d="M5 10l7-5 7 5"/><path d="M5 10v8"/><path d="M9 10v8"/><path d="M15 10v8"/><path d="M19 10v8"/><path d="M4 18h16"/><path d="M7 21h10"/></svg><span id="transfer-log-filtre-label" class="sc-popup-placeholder" style="display:none">Tümü</span><svg class="sc-popup-trigger-chevron" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-    btn.title='Hesap/Nakit filtresi';
-    btn.setAttribute('aria-label','Hesap/Nakit filtresi');
-  }
-  function refresh(){fixPaymentButtons();fixTransferFilterIcon();}
+  // [KALDIRILDI] fixTransferFilterIcon() — css/transfer-log.css +
+  // js/ui/components/transfer-log.js artık "Son Transferler" filtre
+  // butonunun HTML'ini, ikonlarını ve etiketini tek elden üretiyor.
+  // Bu eski patch onu üzerine yazıp (display:none ile label/chevron'u
+  // gizleyerek ve currentColor stroke ile ikonu görünmez bırakarak)
+  // boş bir kutuya çeviriyordu.
+  function refresh(){fixPaymentButtons();}
   ['renderTransferLog','openTransferModal','_odModalSecDurum','_odModalKrediAlanlariAyarla','_kartOdemeHizliTransferGuncelle'].forEach(function(n){hook(n,refresh);});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh);else refresh();
 })();
