@@ -31,15 +31,8 @@ export function islemKesinlenmisMi(i, taksitOverride) {
   return taksitler.some(kontrolEt);
 }
 
-export function islemGunBasligi(tarihStr) {
-  const d = new Date(tarihStr+'T00:00:00');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const diff = Math.round((today - d) / 86400000);
-  if(diff === 0) return 'Bugün';
-  if(diff === 1) return 'Dün';
-  const yilStr = d.getFullYear() !== today.getFullYear() ? ' '+d.getFullYear() : '';
-  return `${d.getDate()} ${AY_UZUN_TR[d.getMonth()]} ${GUN_UZUN_TR[d.getDay()]}${yilStr}`;
-}
+// [KALDIRILDI] islemGunBasligi(tarihStr) — "Bugün/Dün/tarih" gün başlığı
+// üreten yardımcı, hiçbir yerden çağrılmıyordu (ölü kod taraması, 2026-07).
 
 export function renderIslemler() {
   // ── Kayıtlı filtre tercihlerini (Drive'dan gelen DB) ilk girişte select'lere uygula ──

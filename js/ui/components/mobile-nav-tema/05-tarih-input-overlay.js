@@ -381,4 +381,5 @@ export { applyToAll };
     });
   }
 
-export function parseDateInput(v) { return v; } // value zaten yyyy-MM-dd
+// [KALDIRILDI] parseDateInput(v) — no-op yardımcı ("value zaten yyyy-MM-dd"),
+// hiçbir yerden çağrılmıyordu (ölü kod taraması, 2026-07).

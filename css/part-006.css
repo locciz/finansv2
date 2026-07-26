@@ -27,8 +27,4 @@
   #od-pop-tutar-wrap #od-tumu-btn .mhtb-icon{display:flex!important;}
   #od-pop-tutar-wrap .mhtb-label{display:none!important;}
 }
-/* Son transfer banka filtresi: gerçek ikon görünür olsun */
-#transfer-log-filtre-btn::before{content:none!important;display:none!important;}
-#transfer-log-filtre-btn .rf-bank-filter-ico{width:16px!important;height:16px!important;display:block!important;stroke:currentColor!important;}
-#transfer-log-filtre-btn{color:var(--sky)!important;}
-html[data-theme="light"] #transfer-log-filtre-btn{color:#0284c7!important;}
+/* [KALDIRILDI] transfer-log-filtre-btn stilleri artik css/transfer-log.css icinde. */

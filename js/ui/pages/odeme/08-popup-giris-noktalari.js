@@ -1,5 +1,6 @@
 import { fmt, fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
 import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../../core/state.js';
+import { ODEME_DURUM, HESAP_TUR, DURUM } from '../../../core/constants.js';
 import { setDateInputValue, setMoneyInput } from '../../components/money-input.js';
 import { _hesapBankayaAitMi } from '../hesaplar/01-genel-yardimcilar.js';
 
@@ -43,18 +44,18 @@ export function odAcPopupKart(kartId, pb, donemKey, toplamBorc, kalanBorc, odeme
   document.getElementById('od-mi-tutar').textContent    = toplam > 0 ? fmtCur(toplam, pb) : (kalan > 0 ? fmtCur(kalan, pb) : '—');
 
   const mevcutOv = odKartDonemOverride(kart, donemKey);
-  const ertelendiMi = !!(mevcutOv && mevcutOv.durum === 'ertelendi');
+  const ertelendiMi = !!(mevcutOv && mevcutOv.durum === ODEME_DURUM.ERTELENDI);
   document.getElementById('od-mi-durum').innerHTML = ertelendiMi
-    ? odBadgeHtml('ertelendi')
-    : (kalan <= 0.01 ? odBadgeHtml('odendi') : (kalan < toplam - 0.01 ? odBadgeHtml('kismi') : odBadgeHtml('bekliyor')));
+    ? odBadgeHtml(ODEME_DURUM.ERTELENDI)
+    : (kalan <= 0.01 ? odBadgeHtml(ODEME_DURUM.ODENDI) : (kalan < toplam - 0.01 ? odBadgeHtml(ODEME_DURUM.KISMI) : odBadgeHtml(ODEME_DURUM.BEKLIYOR)));
 
   document.getElementById('od-modal-sifirla-btn').style.display = ertelendiMi ? '' : 'none';
 
   const secenekler = [
-    { durum:'odendi', icon:'✓', lbl: kalan>0.01?'Kalanın Tamamı':'Ödeme Yap', sub: kalan>0.01?fmtCur(kalan,pb)+' öde':'Peşin / erken ödeme' },
-    { durum:'kismi',  icon:'⊟', lbl:'Kısmi Ödeme', sub:'Özel bir tutar gir' },
-    { durum:'ertelendi', icon:'↷', lbl:'Ertelendi', sub:'Son ödeme tarihini ertele' },
-    { durum:'bekliyor', icon:'◉', lbl:'Bekliyor', sub:'Ödeme/erteleme geri al' },
+    { durum:ODEME_DURUM.ODENDI, icon:'✓', lbl: kalan>0.01?'Kalanın Tamamı':'Ödeme Yap', sub: kalan>0.01?fmtCur(kalan,pb)+' öde':'Peşin / erken ödeme' },
+    { durum:ODEME_DURUM.KISMI,  icon:'⊟', lbl:'Kısmi Ödeme', sub:'Özel bir tutar gir' },
+    { durum:ODEME_DURUM.ERTELENDI, icon:'↷', lbl:'Ertelendi', sub:'Son ödeme tarihini ertele' },
+    { durum:ODEME_DURUM.BEKLIYOR, icon:'◉', lbl:'Bekliyor', sub:'Ödeme/erteleme geri al' },
   ];
   document.getElementById('od-status-grid').innerHTML = secenekler.map(s=>`
     <div class="od-status-card" data-dur="${s.durum}">

@@ -19,15 +19,15 @@ export var KART_STEP_COUNT = 5;
 // ── Ortak Limit Grubu yönetim modalı ──────────────────────────────
 export var _editGrupId = null;
 export var _kdActiveTab = 'islem';
-export var _kdAcikExtreDonem = null;export var _kdIslemArama = '';export var _kdIslemKatFiltre = null;export var _kdAcikIslemAy = null;export var _kdExtreKatFiltre = null;export var _kd2ExtreKatFiltre = null;// kdRenderKatBar/kdKatFiltreToggle ortak bileşeni hangi bağlamda render edildiğini bilmeli ki
+export var _kdAcikExtreDonem = null;export var _kdIslemArama = '';export var _kdIslemKatFiltre = null;export var _kdExtreKatFiltre = null;export var _kd2ExtreKatFiltre = null;// kdRenderKatBar/kdKatFiltreToggle ortak bileşeni hangi bağlamda render edildiğini bilmeli ki
 // tıklama doğru state'i güncelleyip doğru (görünür) listeyi yeniden çizsin.
 // Olası değerler: 'kd-islem' (modal işlem), 'kd2-islem' (tam sayfa işlem), 'kd-extre' (modal ekstre), 'kd2-extre' (tam sayfa ekstre)
 export var _kdKatBarCtx = 'kd-islem';
 export var KD_KAT_PALET = ['var(--gold)', 'var(--teal)', 'var(--violet)', 'var(--sky)', 'var(--rose)', '#34d399', '#f472b6', '#facc15'];
-export var _kdKatAraState = {};export var _kd2ActiveTab = 'islem';
+// [KALDIRILDI] _kdKatAraState — ölü kategori arama widget'ının state'iydi (ölü kod taraması, 2026-07).
+export var _kd2ActiveTab = 'islem';
 export var _kd2IslemArama = '';
 export var _kd2IslemKatFiltre = null;
-export var _kd2AcikIslemAy = null;
 export var _kd2AcikExtreDonem = null;
 // ========== KART BORÇ ÖDEME ==========
 export var _kartOdemeKalanBorc = 0;
@@ -46,10 +46,8 @@ export function set_kdExtreKatFiltre(v) { _kdExtreKatFiltre = v; }
 export function set_kd2ExtreKatFiltre(v) { _kd2ExtreKatFiltre = v; }
 export function set_kdIslemKatFiltre(v) { _kdIslemKatFiltre = v; }
 export function set_kd2IslemArama(v) { _kd2IslemArama = v; }
-export function set_kd2AcikIslemAy(v) { _kd2AcikIslemAy = v; }
 export function set_kd2AcikExtreDonem(v) { _kd2AcikExtreDonem = v; }
 export function set_kdIslemArama(v) { _kdIslemArama = v; }
-export function set_kdAcikIslemAy(v) { _kdAcikIslemAy = v; }
 export function set_kdActiveTab(v) { _kdActiveTab = v; }
 export function set_kdKatBarCtx(v) { _kdKatBarCtx = v; }
 export function set_kdAcikExtreDonem(v) { _kdAcikExtreDonem = v; }

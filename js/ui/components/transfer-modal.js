@@ -576,141 +576,19 @@ function saveTransfer() {
   try { if (typeof renderOzet === 'function') renderOzet(); } catch(e) {}
   try { _updateTopbarBakiye(); } catch(e) {}
 }
-export { saveTransfer as saveTransfer__transfer_modal };
+// [KALDIRILDI] "export { saveTransfer as saveTransfer__transfer_modal }" hiçbir
+// dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07). Fonksiyonun
+// kendisi ve register('saveTransfer', ...) çağrısı hâlâ kullanımda.
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
 register('saveTransfer', saveTransfer);
 
 // ── Transfer Logu ────────────────────────────────────────────
-// Transfer log filtre butonunun üzerindeki etiketi (seçili hesap/nakit adı ya da
-// "N seçili" / "Tümü") günceller. Popup içeriği kendini _renderMfPopupList ile
-// güncelliyor, ama tetikleyici butonun kendisi ayrıca güncellenmeli.
-export function _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler) {
-  const btn = document.getElementById('transfer-log-filtre-btn');
-  const label = document.getElementById('transfer-log-filtre-label');
-  if (!btn || !label) return;
-
-  if (!seciliFiltreler || !seciliFiltreler.length) {
-    label.textContent = 'Tümü';
-    label.className = 'sc-popup-placeholder';
-    btn.classList.add('sc-is-empty');
-    btn.classList.remove('sc-has-value');
-    return;
-  }
-
-  btn.classList.remove('sc-is-empty');
-  btn.classList.add('sc-has-value');
-  label.className = '';
-
-  if (seciliFiltreler.length === 1) {
-    const f = seciliFiltreler[0];
-    if (f.startsWith('h:')) {
-      label.textContent = hesapMap[f.slice(2)] || 'Hesap';
-    } else {
-      label.textContent = 'Nakit (' + f.slice(2) + ')';
-    }
-  } else {
-    label.textContent = seciliFiltreler.length + ' seçili';
-  }
-}
-
-function renderTransferLog() {
-  if (!DB.transferler) DB.transferler = [];
-  const liste = document.getElementById('transfer-log-liste');
-  const msec = document.getElementById('transfer-log-msec');
-  if (!liste) return;
-
-  // Hiç transfer geçmişi yoksa bölümü tamamen gizle (ilk kullanımda gereksiz boşluk olmasın)
-  if (msec) msec.style.display = DB.transferler.length ? '' : 'none';
-  if (!DB.transferler.length) return;
-
-  // Filtre seçenekleri: sadece transferlerde gerçekten kullanılan hesap/nakit — gruplu ve ikonlu
-  const hesapMap = {};
-  (DB.hesaplar || []).forEach(h => { hesapMap[h.id] = h.ad; });
-  const usedHesapIds = new Set();
-  const nakitPbSet = new Set();
-  if (!DB.transferler) DB.transferler = [];
-  DB.transferler.forEach(t => {
-    if (t.hTip === 'hesap' && t.hedefId) usedHesapIds.add(t.hedefId);
-    if (t.kTip === 'nakit') nakitPbSet.add(t.kaynakPb);
-    if (t.hTip === 'nakit') nakitPbSet.add(t.hedefPb);
-  });
-  const seciliFiltreler = tblFiltreOkuMulti('transferLog', 'filtre');
-  _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler);
-
-  let kayitlar = [...DB.transferler].reverse();
-  if (seciliFiltreler.length) {
-    kayitlar = kayitlar.filter(t => seciliFiltreler.some(filtre => {
-      if (filtre.startsWith('h:')) {
-        const hId = filtre.slice(2);
-        return t.kaynakId === hId || t.hedefId === hId;
-      }
-      const pb = filtre.slice(2);
-      return (t.kTip === 'nakit' && t.kaynakPb === pb) || (t.hTip === 'nakit' && t.hedefPb === pb);
-    }));
-  }
-
-  if (!kayitlar.length) {
-    liste.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 4px">Kayıt yok</div>';
-    return;
-  }
-
-  liste.innerHTML = kayitlar.map(t => {
-    const kaynakLabel = t.kTip === 'nakit' ? `💵 Nakit (${t.kaynakPb})` : `🏛️ ${hesapMap[t.kaynakId] || '?'}`;
-    const hedefLabel  = t.hTip === 'nakit' ? `💵 Nakit (${t.hedefPb})`  : `🏛️ ${hesapMap[t.hedefId]  || '?'}`;
-    const pb = t.kaynakPb || 'TRY';
-    // [CSS düzeltmesi] Bu satırlar eskiden inline-style flexbox div'ler
-    // olarak üretiliyordu; ancak css/part-037.css (ve onunla çelişen
-    // part-036/part-038) `.rf-transfer-row-compact` + `.rf-transfer-compact-*`
-    // semantic class'larına göre grid layout kuralları bekliyordu. Class'lar
-    // hiç üretilmediği için o kurallar hiç eşleşmiyor, üstüne birden fazla
-    // rakip CSS dosyası aynı öğeleri farklı (çelişen) şekilde zorlamaya
-    // çalışıyordu — ekranda satırların üst üste binmesi/tutarların kesilmesi
-    // buradan kaynaklanıyordu. Artık part-037.css'in beklediği class'lar
-    // üretiliyor.
-    return `<div class="rf-transfer-row-compact">
-      <div class="rf-transfer-compact-main">
-        <div class="rf-transfer-compact-route">${kaynakLabel} <span style="color:var(--text3)">→</span> ${hedefLabel}</div>
-        ${t.aciklama ? `<div class="rf-transfer-compact-note">${t.aciklama}</div>` : ''}
-      </div>
-      <div class="rf-transfer-compact-amount">
-        <div class="mono" style="font-weight:700;color:var(--teal)">${fmtCur(t.tutar, pb)}</div>
-        <div style="color:var(--text3);font-size:10px">${fmtDate(t.tarih)}</div>
-      </div>
-      <div class="rf-transfer-compact-actions">
-        <button class="transfer-log-tekrar-btn" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--accent2);font-size:13px;line-height:1;border-radius:4px" title="Bu transferi tekrarla">🔁</button>
-        <button class="transfer-log-sil-btn" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;line-height:1;border-radius:4px" title="Sil">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-  // [ES module] onclick="tekrarlaTransfer(...)" ve onclick="deleteTransfer(...)" kaldırıldı.
-  liste.querySelectorAll('.transfer-log-tekrar-btn').forEach(btn => {
-    btn.addEventListener('click', () => tekrarlaTransfer(btn.getAttribute('data-id')));
-  });
-  liste.querySelectorAll('.transfer-log-sil-btn').forEach(btn => {
-    btn.addEventListener('click', () => deleteTransfer(btn.getAttribute('data-id')));
-  });
-}
-export { renderTransferLog as renderTransferLog__transfer_modal };
-// Taban tanımları registry'ye kaydet — app-core.js / tbk-detay.js bunları
-// zincirleme wrap edebilsin diye (bkz. core/wrap-registry.js).
-register('openTransferModal', openTransferModal);
-// [BUG FIX] register('renderTransferLog', renderTransferLog) BİLEREK
-// KALDIRILDI. index.html'de bu dosya js/ui/pages/odeme/patches/
-// 01-transfer-log-senkron.js'DEN SONRA yükleniyor; o dosya zaten
-// register('renderTransferLog', ...) ile hem hesap/nakit filtresini HEM
-// yeşil/kırmızı/tire durum filtresini (possible()/st()/renderStatus())
-// uygulayan TAM versiyonu kaydediyor. Buradaki renderTransferLog() durum
-// filtresi mantığını hiç içermiyor (sadece hesap/nakit filtreliyor); script
-// sırası yüzünden bu eksik versiyon en son register edilip registry'yi
-// eziyordu — sonuç: yeşil/kırmızı/tire butonlarına tıklamak state'i
-// güncelliyordu ama render hiç bu state'i okumadığı için liste asla
-// değişmiyordu ("filtreler çalışmıyor" şikayetinin kök nedeni budur).
-// Aşağıdaki fonksiyon artık sadece _transferLogFiltreLabelGuncelle ve
-// tekrarlaTransfer/deleteTransfer'ın diğer modüllerce kullanılabilmesi için
-// burada tutuluyor; registry'ye KAYDEDİLMİYOR.
-// (renderTransferLog fonksiyonunun kendisi yukarıda renderTransferLog__transfer_modal
-// olarak export ediliyor; başka bir yerden ihtiyaç olursa import edilebilir.)
+// [KALDIRILDI] Bu bölümde eskiden _transferLogFiltreLabelGuncelle() ve
+// ölü renderTransferLog() taban tanımı vardı (registry'de hiç kayıtlı
+// olmadığı için hiçbir zaman çalışmıyordu). "Son Transferler" render
+// mantığının tamamı artık tek parça halinde
+// js/ui/components/transfer-log.js içinde.
 
 // ── Bir önceki transferi tekrarla: kaynak/hedef/tutar/açıklamayı forma doldurur ──
 export function tekrarlaTransfer(id) {

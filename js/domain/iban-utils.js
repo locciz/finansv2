@@ -40,11 +40,9 @@ export function formatIbanView(el) {
   }
 }
 
-export function unformatIbanView(el) {
-  const raw = (el.dataset.rawIban || el.value.replace(/\s+/g,'')).toUpperCase();
-  el.dataset.rawIban = '';
-  el.value = raw;
-}
+// [KALDIRILDI] unformatIbanView(el) — hiçbir yerden çağrılmıyordu (ölü kod
+// taraması, 2026-07). formatIbanView'in "tersi" olarak tasarlanmış ama focus/blur
+// event'lerine hiç bağlanmamış, kullanılmayan bir yardımcıydı.
 
 
 

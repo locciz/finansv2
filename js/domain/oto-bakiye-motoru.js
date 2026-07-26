@@ -84,7 +84,9 @@ function _otoBakiyeGuncelle(tip, id, key, durum, newTutar) {
     }
   }
 }
-export { _otoBakiyeGuncelle as _otoBakiyeGuncelle__oto_bakiye_motoru };
+// [KALDIRILDI] "export { _otoBakiyeGuncelle as _otoBakiyeGuncelle__oto_bakiye_motoru }"
+// hiçbir dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07).
+// Fonksiyonun kendisi ve register() çağrısı hâlâ kullanımda.
 // [ES module] eskiden window._otoBakiyeGuncelle = ... ile atanıyordu; artık
 // register ile wrap-registry'ye kaydediliyor. hesap-entegrasyon-motoru.js
 // (script sırasına göre sonra yüklenir) bunu register(...) ile EZER — bu,

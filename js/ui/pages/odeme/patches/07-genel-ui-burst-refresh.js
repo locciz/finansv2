@@ -269,25 +269,11 @@ export const FinansUiCoreRefresh = {};
     });
   }
 
-  function normalizeTransferRows(){
-    const list = document.getElementById('transfer-log-liste');
-    if(!list) return;
-
-    qsa('.rf-transfer-row', list).forEach(function(row){
-      row.style.display = 'flex';
-      row.style.flexWrap = 'wrap';
-      row.style.gridTemplateColumns = 'none';
-      row.style.gridTemplateAreas = 'none';
-      row.style.overflow = 'visible';
-    });
-
-    qsa('.route,.note,.desc,.description,.subtitle,.meta,.title,.name', list).forEach(function(el){
-      el.style.whiteSpace = 'normal';
-      el.style.overflowWrap = 'anywhere';
-      el.style.wordBreak = 'break-word';
-      el.style.textOverflow = 'clip';
-    });
-  }
+  // [KALDIRILDI] normalizeTransferRows() — "Son Transferler" satırlarının
+  // grid layout'unu inline style ile flex'e çevirip eziyordu; bu da
+  // css/transfer-log.css'in tek, tutarlı grid tanımıyla çakışıyordu.
+  // Liste artık tek bir render fonksiyonundan (js/ui/components/transfer-log.js)
+  // ve tek bir CSS dosyasından geldiği için bu runtime düzeltmesine gerek yok.
 
   function normalizePlanTables(){
     qsa('#page-kmhkredi table,#page-kredi table,#modal-kmh table,#modal-kredi table,.kmh-modal table,.kredi-modal table').forEach(function(table){
@@ -447,7 +433,6 @@ export const FinansUiCoreRefresh = {};
     normalizeStickyTables();
     normalizeCardHeaders();
     removeTransferAsterisks();
-    normalizeTransferRows();
     normalizePlanTables();
     markGosterimSelected();
     normalizeBottomNavbar();

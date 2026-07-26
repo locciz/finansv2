@@ -134,61 +134,10 @@ export function deleteKartOdeme(odemeId, opts) {
   showToast('Ödeme silindi', 'info');
 }
 
-export function openKartOdemeModal(kartId, pb, donemKey, toplamBorc, borcSifirIzin) {
-  const kart = DB.kartlar.find(k=>k.id===kartId);
-  if(!kart) return;
-
-  // Mevcut ödemeler toplamı
-  const odenenTop = (DB.kartOdemeleri||[])
-    .filter(o=>o.kartId===kartId && o.paraBirimi===pb && o.donemKey===donemKey)
-    .reduce((s,o)=>s+o.tutar, 0);
-  const kalan = Math.max(0, toplamBorc - odenenTop);
-  set_kartOdemeKalanBorc(kalan);
-  const kalanBtn = document.getElementById('kart-odeme-kalan-tamamini-btn');
-  if (kalanBtn) {
-    kalanBtn.style.display = kalan > 0.01 ? 'flex' : 'none';
-    kalanBtn.title = kalan > 0.01 ? `Kalan Borcun Tamamı: ${fmtCur(kalan, pb)}` : 'Kalan Borcun Tamamı';
-  }
-
-  document.getElementById('kart-odeme-kart-id').value = kartId;
-  document.getElementById('kart-odeme-pb').value = pb;
-  document.getElementById('kart-odeme-donem-key').value = donemKey;
-  // Borç varsa kalana doldur; peşin ödeme ise 0 bırak
-  if (kalan > 0) { setMoneyInput('kart-odeme-tutar', kalan); }
-  else if (borcSifirIzin) { setMoneyInput('kart-odeme-tutar', 0); }
-  else { setMoneyInput('kart-odeme-tutar', toplamBorc); }
-  setDateInputValue('kart-odeme-tarih', localDateStr(new Date()));
-
-
-  // Hesap listesi — kartın bankasına ait hesaplar en üstte; varsayılan yoksa aynı bankadan hesap seçili gelir
-  const hesapSel = document.getElementById('kart-odeme-hesap');
-  const uygunHesaplar = (DB.hesaplar||[]).filter(h => h.durum !== 'kapali' && h.tur !== 'vadeli');
-  const secim = _odHesapSecimListesiHazirla('kart', kart, uygunHesaplar, kart.hesapId || '', pb);
-  hesapSel.innerHTML = _hesapOptgroupHtml(secim.hesaplar, secim.bankaId);
-  phSet(hesapSel, 'Hesap seçiniz…', secim.hesapId || '', '— Hesap bulunamadı —');
-  onKartOdemeHesapChange();
-  _updateKartOdemeTutarTumBtn();
-
-  // Bilgi kutusu
-  const tatilSet = getTatilSet();
-  const [dy, dm] = donemKey.split('-').map(Number);
-  const extreDt = calcExtreTarihiOdemeModuyla(kart, dy, dm-1, tatilSet);
-  const odemeDt = extreDt ? calcOdemeTarihi(extreDt, kart.odemeSure, kart.odemeGunTip, tatilSet) : null;
-  const donemLabel = new Date(dy, dm-1, 1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
-  document.getElementById('kart-odeme-sub').textContent = `${kart.ad} · ${donemLabel}`;
-  document.getElementById('kart-odeme-info').innerHTML =
-    (toplamBorc > 0
-      ? `<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text3)">Dönem Borcu</span><span class="mono" style="font-weight:700">${fmtCur(toplamBorc, pb)}</span></div>`
-      : `<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text3)">Mevcut Borç</span><span class="mono" style="color:var(--teal)">Yok — Peşin / Erken Ödeme</span></div>`
-    )
-    + (odenenTop > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text3)">Bu Dönem Ödenen</span><span class="mono" style="color:var(--teal)">${fmtCur(odenenTop, pb)}</span></div>` : '')
-    + (kalan > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text3)">Kalan</span><span class="mono" style="font-weight:700;color:var(--warn)">${fmtCur(kalan, pb)}</span></div>` : '')
-    + (odemeDt ? `<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text3)">Son Ödeme Tarihi</span><span class="mono">${fmtDate(localDateStr(odemeDt))}</span></div>` : '')
-    + (toplamBorc <= 0 ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">ℹ️ Borç yoksa ödeme tutarı gelecek ekstre borcundan mahsup edilir</div>` : '');
-
-  kartOdemeStepGoto(1);
-  openModal('modal-kart-odeme');
-}
+// [KALDIRILDI] openKartOdemeModal(kartId, pb, donemKey, toplamBorc, borcSifirIzin)
+// — kart ödeme modalını doğrudan parametrelerle açan eski giriş noktası,
+// hiçbir yerden çağrılmıyordu. Yerini register('kartOdemeHizliTransferAc', ...)
+// ile kaydedilen kartOdemeHizliTransferAc akışı almış (ölü kod taraması, 2026-07).
 
 export function _kartOdemeQuickTransferContext(kind) {
   const isOd = kind === 'od-modal';

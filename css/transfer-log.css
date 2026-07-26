@@ -1,0 +1,218 @@
+/* ============================================================
+   css/transfer-log.css — "Son Transferler" (Para Transferi modalı)
+   Bu dosya, daha önce part-005/036/037/038/039 arasına dağılmış ve
+   birbiriyle çakışan tüm ".rf-transfer-row*" kurallarının yerini
+   TEK PARÇA halinde alır. Başka hiçbir CSS dosyasında bu seçicilere
+   dokunulmamalı.
+   ============================================================ */
+
+/* ── Bölüm başlığı: "Son Transferler" satırı + durum filtresi + hesap/nakit filtresi ── */
+#transfer-log-msec > div:first-child {
+  gap: 6px;
+}
+
+.rf-transfer-status-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.rf-transfer-status-filter button {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+.rf-transfer-status-filter button:hover { background: var(--surface3); color: var(--text); }
+.rf-transfer-status-filter button.active { background: rgba(56,189,248,.11); border-color: rgba(56,189,248,.32); color: var(--sky); }
+.rf-transfer-status-filter svg { width: 15px; height: 15px; display: block; }
+.rf-transfer-status-filter .dot { width: 10px; height: 10px; border-radius: 99px; display: block; }
+.rf-transfer-status-filter .dot.ok { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.13), 0 0 12px rgba(34,197,94,.38); }
+.rf-transfer-status-filter .dot.no { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.13), 0 0 12px rgba(239,68,68,.38); }
+
+#transfer-log-filtre-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  color: var(--sky);
+}
+html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
+#transfer-log-filtre-btn .rf-transfer-filtre-ico {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: block;
+  stroke: currentColor;
+}
+
+/* ── Liste konteyneri ── */
+#transfer-log-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* ── Tek bir transfer kartı ── */
+#transfer-log-liste .rf-transfer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content max-content;
+  grid-template-areas: "main amount actions";
+  align-items: center;
+  gap: 8px 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-left: 3px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+  font-size: 11.5px;
+  transition: border-color .15s ease, background .15s ease;
+}
+#transfer-log-liste .rf-transfer-row:hover {
+  border-color: rgba(255, 255, 255, .18);
+  background: color-mix(in srgb, var(--surface2) 92%, white 8%);
+}
+[data-theme="light"] #transfer-log-liste .rf-transfer-row,
+.light #transfer-log-liste .rf-transfer-row {
+  border-color: rgba(0, 0, 0, .09);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+#transfer-log-liste .rf-transfer-row.state-ok { border-left-color: #22c55e; }
+#transfer-log-liste .rf-transfer-row.state-no { border-left-color: #ef4444; }
+
+/* Rota + not (açıklama/tarih) */
+#transfer-log-liste .rf-transfer-main {
+  grid-area: main;
+  min-width: 0;
+  max-width: 100%;
+}
+#transfer-log-liste .rf-transfer-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text2, #cbd5e1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#transfer-log-liste .rf-transfer-route .rf-transfer-seg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+#transfer-log-liste .rf-transfer-route .rf-transfer-arrow {
+  flex-shrink: 0;
+  opacity: .55;
+  font-weight: 700;
+}
+#transfer-log-liste .rf-transfer-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tutar bloğu */
+#transfer-log-liste .rf-transfer-amount {
+  grid-area: amount;
+  min-width: max-content;
+  text-align: right;
+}
+#transfer-log-liste .rf-transfer-amount .mono {
+  /* [BUG FIX] Global .mono kuralı (part-001.css) tabular-nums açıyor; bazı
+     font/tarayıcı kombinasyonlarında "." ve "," karakterleri neredeyse
+     görünmez genişliğe düşüyordu. Bu tek satırlık alanda tablo hizalaması
+     gerekmediği için burada kapatılıyor. */
+  font-variant-numeric: normal;
+  font-feature-settings: normal;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: var(--teal);
+}
+#transfer-log-liste .rf-transfer-amount .rf-transfer-date {
+  font-size: 10.5px;
+  margin-top: 2px;
+  opacity: .75;
+  color: var(--text3);
+}
+
+/* Aksiyon butonları (tekrarla / sil) */
+#transfer-log-liste .rf-transfer-actions {
+  grid-area: actions;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-self: end;
+  min-width: max-content;
+}
+#transfer-log-liste .rf-transfer-actions button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--text3);
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  line-height: 1;
+  padding: 0;
+  transition: background .15s ease, color .15s ease;
+}
+#transfer-log-liste .rf-transfer-actions button svg { width: 14px; height: 14px; display: block; }
+#transfer-log-liste .rf-transfer-actions button:hover { background: rgba(255, 255, 255, .08); color: var(--text); }
+#transfer-log-liste .rf-transfer-actions button.danger:hover { background: rgba(239, 68, 68, .1); color: #ef4444; }
+[data-theme="light"] #transfer-log-liste .rf-transfer-actions button:hover,
+.light #transfer-log-liste .rf-transfer-actions button:hover {
+  background: rgba(0, 0, 0, .06);
+}
+
+/* ── Responsive kırılımlar ── */
+@media (max-width: 520px) {
+  #transfer-log-liste .rf-transfer-row {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+      "main main"
+      "amount actions";
+    gap: 6px 8px;
+  }
+  #transfer-log-liste .rf-transfer-amount { justify-self: start; text-align: left; }
+}
+@media (max-width: 340px) {
+  #transfer-log-liste .rf-transfer-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "main" "amount" "actions";
+  }
+  #transfer-log-liste .rf-transfer-actions { justify-self: start; }
+}
+
+/* Boş / kayıt yok durumu */
+#transfer-log-liste .rf-transfer-empty {
+  color: var(--text3);
+  font-size: 12px;
+  padding: 8px 4px;
+}

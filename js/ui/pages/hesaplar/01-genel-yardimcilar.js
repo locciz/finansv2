@@ -97,10 +97,9 @@ export function hesapOptionMetin(h) {
   return parcalar.join(' - ');
 }
 
-export function getAktifHesapOptions() {
-  const aktifler = (DB.hesaplar||[]).filter(h=>h.durum==='aktif' && h.tur !== 'vadeli');
-  return aktifler.map(h => `<option value="${h.id}" data-pb="${h.paraBirimi||'TRY'}">${hesapOptionMetin(h)}</option>`).join('');
-}
+// [KALDIRILDI] getAktifHesapOptions() — parametresiz eski sürüm, hiçbir yerden
+// çağrılmıyordu (ölü kod taraması, 2026-07). Yerini para-birimi filtreli
+// getAktifHesapOptionsByPb() almış.
 
 export function getAktifHesapOptionsByPb(pb) {
   const aktifler = (DB.hesaplar||[]).filter(h=>h.durum==='aktif' && h.tur !== 'vadeli' && (!pb || (h.paraBirimi||'TRY') === pb));

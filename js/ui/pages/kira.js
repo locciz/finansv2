@@ -3,6 +3,7 @@ import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti 
 import { isIsBgunu } from '../../core/date-utils.js';
 import { fmtCur, fmtDate, localDateStr, uid } from '../../core/format.js';
 import { DB, defaultCurrency } from '../../core/state.js';
+import { ISLEM_TUR, ODEME_YONTEM, ODEME_DURUM } from '../../core/constants.js';
 import { _fillPbManualSelect } from '../../domain/doviz.js';
 import { hesapKullanilabilirBakiye } from '../../domain/hesaplamalar.js';
 import { formatIbanView } from '../../domain/iban-utils.js';
@@ -27,8 +28,8 @@ export var editKiraId = null;
 export var _kiraCurrentStep = 1;
 export var KIRA_STEP_COUNT = 4;
 export function _kiraDepozitoHesapKullanilabilirBakiye() {
-  const yontem = (document.getElementById('kira-yontem')||{}).value || 'nakit';
-  if (yontem !== 'havale') return null;
+  const yontem = (document.getElementById('kira-yontem')||{}).value || ODEME_YONTEM.NAKIT;
+  if (yontem !== ODEME_YONTEM.HAVALE) return null;
   const hesapId = (document.getElementById('kira-hesap')||{}).value || '';
   return hesapKullanilabilirBakiye(hesapId);
 }
@@ -51,7 +52,7 @@ export function openKiraModal(id=null) {
     if(k) {
       setDateInputValue('kira-baslangic', k.baslangic);
       setDateInputValue('kira-bitis', k.bitis);
-      document.getElementById('kira-tur').value = k.tutar >= 0 ? 'gelir' : 'gider';
+      document.getElementById('kira-tur').value = k.tutar >= 0 ? ISLEM_TUR.GELIR : ISLEM_TUR.GIDER;
       setMoneyInput('kira-tutar', Math.abs(k.tutar));
       document.getElementById('kira-gun').value = k.gun;
       document.getElementById('kira-aciklama').value = k.aciklama||'';
@@ -62,7 +63,7 @@ export function openKiraModal(id=null) {
       // Banka hesabı seçimi ve para birimi
       _populateKiraHesapSel(k.hesapId||'', k.paraBirimi||defaultCurrency||'TRY');
       // Ödeme yöntemi geri yükle
-      const kiraEditYontem = k.odemeYontem || (k.hesapId ? 'havale' : 'nakit');
+      const kiraEditYontem = k.odemeYontem || (k.hesapId ? ODEME_YONTEM.HAVALE : ODEME_YONTEM.NAKIT);
       const kiraYontemEl = document.getElementById('kira-yontem');
       if(kiraYontemEl) kiraYontemEl.value = kiraEditYontem;
       // Kişi seçimi doldur
@@ -78,7 +79,7 @@ export function openKiraModal(id=null) {
           renderIbanPicker(k.kisiId, 'kira-iban-picker', 'kira-iban-chips', 'kira-karsi-iban');
         }
       }
-      if(kiraEditYontem === 'havale') {
+      if(kiraEditYontem === ODEME_YONTEM.HAVALE) {
         const kiraHW = document.getElementById('kira-hesap-wrap');
         const kiraKW = document.getElementById('kira-karsi-wrap');
         if(kiraHW) kiraHW.style.display = '';
@@ -132,7 +133,7 @@ export function openKiraModal(id=null) {
   } else {
     document.getElementById('kira-baslangic').value='';
     document.getElementById('kira-bitis').value='';
-    document.getElementById('kira-tur').value='gelir';
+    document.getElementById('kira-tur').value=ISLEM_TUR.GELIR;
     setMoneyInput('kira-tutar', '');
     document.getElementById('kira-gun').value='';
     document.getElementById('kira-aciklama').value='';
@@ -143,7 +144,7 @@ export function openKiraModal(id=null) {
     _populateKiraHesapSel('', defaultCurrency||'TRY');
     // Ödeme yöntemi sıfırla
     const kiraNewYontemEl = document.getElementById('kira-yontem');
-    if(kiraNewYontemEl) kiraNewYontemEl.value = 'nakit';
+    if(kiraNewYontemEl) kiraNewYontemEl.value = ODEME_YONTEM.NAKIT;
     const kiraNewHesapWrap = document.getElementById('kira-hesap-wrap');
     const kiraNewKarsiWrap = document.getElementById('kira-karsi-wrap');
     const kiraNewIbanWrap = document.getElementById('kira-hesap-iban-wrap');
@@ -212,7 +213,7 @@ export function _kiraValidateStep(step) {
   // edilmiyordu — boş bırakılıp bir sonraki adıma geçilebiliyordu.
   if (step === 2) {
     const yontem = (document.getElementById('kira-yontem')||{}).value || '';
-    if (yontem === 'havale') {
+    if (yontem === ODEME_YONTEM.HAVALE) {
       const ktBlock = document.getElementById('kira-kt-block');
       if (ktBlock && ktBlock.dataset.mode === 'manuel') {
         if (!validateRequiredFields([{id:'kira-karsi-ad', msg:'Karşı taraf adı zorunlu'}])) return false;
@@ -249,13 +250,13 @@ export function kiraStepBack() {
 }
 
 export function _kiraOzetDoldur() {
-  const tur = (document.getElementById('kira-tur')||{}).value || 'gelir';
+  const tur = (document.getElementById('kira-tur')||{}).value || ISLEM_TUR.GELIR;
   const tutar = getMoneyInput('kira-tutar') || 0;
   const pb = (document.getElementById('kira-para-birimi-manual')||{}).value || 'TRY';
   const bas = (document.getElementById('kira-baslangic')||{}).value || '—';
   const bit = (document.getElementById('kira-bitis')||{}).value || '—';
   const gun = (document.getElementById('kira-gun')||{}).value || '—';
-  const yontem = (document.getElementById('kira-yontem')||{}).value || 'nakit';
+  const yontem = (document.getElementById('kira-yontem')||{}).value || ODEME_YONTEM.NAKIT;
   const depVar = document.getElementById('kira-depozito-var')?.checked;
   const depTutar = depVar ? (getMoneyInput('kira-depozito-tutar')||0) : 0;
   const depPb = (document.getElementById('kira-depozito-pb')||{}).value || pb;
@@ -265,11 +266,11 @@ export function _kiraOzetDoldur() {
   const el = document.getElementById('kira-ozet-icerik');
   if (!el) return;
   el.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px">
-    ${satir('Tür', tur === 'gelir' ? '📈 Gelir' : '📉 Gider')}
+    ${satir('Tür', tur === ISLEM_TUR.GELIR ? '📈 Gelir' : '📉 Gider')}
     ${satir('Aylık Tutar', fmtCur(tutar, pb))}
     ${satir('Dönem', `<span style="font-family:inherit">${fmtDate?fmtDate(bas):bas} → ${fmtDate?fmtDate(bit):bit}</span>`)}
     ${gun !== '—' ? satir('Ödeme Günü', `Her ayın ${gun}. günü`) : ''}
-    ${satir('Ödeme Yöntemi', yontem === 'havale' ? '🏦 Havale/EFT' : '💵 Nakit')}
+    ${satir('Ödeme Yöntemi', yontem === ODEME_YONTEM.HAVALE ? '🏦 Havale/EFT' : '💵 Nakit')}
     ${depVar ? satir('Depozito', fmtCur(depTutar, depPb)) : ''}
   </div>`;
 }
@@ -278,8 +279,8 @@ export function saveKira() {
   // Tüm validasyonlar burada — checkManuelKarsiTarafAndSave öncesinde
   const _kira_tut0 = getMoneyInput('kira-tutar')||0;
   if(!validateRequiredFields([{id:'kira-tutar',msg:'Tutar zorunlu'},{id:'kira-baslangic',msg:'Başlangıç tarihi zorunlu'},{id:'kira-bitis',msg:'Bitiş tarihi zorunlu'}])) return;
-  const _kira_yon0 = (document.getElementById('kira-yontem')||{}).value || 'nakit';
-  if(_kira_yon0 === 'havale') {
+  const _kira_yon0 = (document.getElementById('kira-yontem')||{}).value || ODEME_YONTEM.NAKIT;
+  if(_kira_yon0 === ODEME_YONTEM.HAVALE) {
     checkManuelKarsiTarafAndSave('kira', _doSaveKira); return;
   }
   _doSaveKira();
@@ -288,7 +289,7 @@ export function saveKira() {
 export function _doSaveKira() {
   const tur = document.getElementById('kira-tur').value;
   const absTutar = getMoneyInput('kira-tutar')||0;
-  const tutar = tur==='gider' ? -Math.abs(absTutar) : Math.abs(absTutar);
+  const tutar = tur===ISLEM_TUR.GIDER ? -Math.abs(absTutar) : Math.abs(absTutar);
   const paraBirimi = getKiraPb();
   const hesapId = (document.getElementById('kira-hesap')||{}).value || null;
 
@@ -306,10 +307,10 @@ export function _doSaveKira() {
     };
   }
 
-  const kiraOdemeYontem = (document.getElementById('kira-yontem')||{}).value || 'nakit';
-  const kiraKarsiAd = kiraOdemeYontem === 'havale' ? ((document.getElementById('kira-karsi-ad')||{}).value || '') : '';
-  const kiraKarsiIban = kiraOdemeYontem === 'havale' ? ((document.getElementById('kira-karsi-iban')||{}).value.replace(/\s+/g,'').toUpperCase() || '') : '';
-  const kiraKisiId = kiraOdemeYontem === 'havale' ? ((document.getElementById('kira-kisi')||{}).value || null) : null;
+  const kiraOdemeYontem = (document.getElementById('kira-yontem')||{}).value || ODEME_YONTEM.NAKIT;
+  const kiraKarsiAd = kiraOdemeYontem === ODEME_YONTEM.HAVALE ? ((document.getElementById('kira-karsi-ad')||{}).value || '') : '';
+  const kiraKarsiIban = kiraOdemeYontem === ODEME_YONTEM.HAVALE ? ((document.getElementById('kira-karsi-iban')||{}).value.replace(/\s+/g,'').toUpperCase() || '') : '';
+  const kiraKisiId = kiraOdemeYontem === ODEME_YONTEM.HAVALE ? ((document.getElementById('kira-kisi')||{}).value || null) : null;
 
   // Düzenleme sırasında mevcut kayda ait ödeme durumu override'ları ve hesap
   // seçimleri kaybolmasın diye (kira.odemeOverrides, kira.taksitOverrides —
@@ -323,7 +324,7 @@ export function _doSaveKira() {
     bitis: document.getElementById('kira-bitis').value,
     tutar,
     paraBirimi,
-    hesapId: kiraOdemeYontem === 'havale' ? (hesapId || null) : null,
+    hesapId: kiraOdemeYontem === ODEME_YONTEM.HAVALE ? (hesapId || null) : null,
     odemeYontem: kiraOdemeYontem,
     karsiAd: kiraKarsiAd,
     karsiIban: kiraKarsiIban,
@@ -411,7 +412,7 @@ export function populateKiraKisiSelects() {
 
 export function onKiraYontemChange() {
   const yontem = document.getElementById('kira-yontem').value;
-  const havale = yontem === 'havale';
+  const havale = yontem === ODEME_YONTEM.HAVALE;
   const hesapWrap = document.getElementById('kira-hesap-wrap');
   const karsiWrap = document.getElementById('kira-karsi-wrap');
   if(hesapWrap) hesapWrap.style.display = havale ? '' : 'none';
@@ -594,8 +595,8 @@ export function renderKira() {
     if(!k.depozito || !k.depozito.tutar) return;
     const odemeDurum = odGetDurum(k, 'odeme')?.durum;
     const iadeDurum  = odGetDurum(k, 'iade')?.durum;
-    const verildi = odemeDurum === 'odendi' || odemeDurum === 'kismi';
-    const iadeBekliyor = !(iadeDurum === 'odendi' || iadeDurum === 'iptal');
+    const verildi = odemeDurum === ODEME_DURUM.ODENDI || odemeDurum === ODEME_DURUM.KISMI;
+    const iadeBekliyor = !(iadeDurum === ODEME_DURUM.ODENDI || iadeDurum === ODEME_DURUM.IPTAL);
     if(verildi && iadeBekliyor) {
       const cur = k.depozito.paraBirimi || k.paraBirimi || defaultCurrency || 'TRY';
       depozitoMap[cur] = (depozitoMap[cur]||0) + Math.abs(k.depozito.tutar || 0);
@@ -626,8 +627,8 @@ export function renderKira() {
   if(kiraFiltreBarEl) {
     kiraFiltreBarEl.innerHTML = tblFiltreChipsHtml('TÜR', [
       {value:'', label:'◆ Tümü'},
-      {value:'gelir', label:'↑ Gelir'},
-      {value:'gider', label:'↓ Gider'}
+      {value:ISLEM_TUR.GELIR, label:'↑ Gelir'},
+      {value:ISLEM_TUR.GIDER, label:'↓ Gider'}
     ], _kiraTurFiltre, 'setKiraTurFiltre') + tblFiltreClearHtml(_kiraTurFiltre, 'setKiraTurFiltre')
     + tblFiltreChipsMultiHtml('ÖDEME DURUMU', ODEME_DURUM_FILTRE_OPTS, _kiraDurumFiltre, 'setKiraDurumFiltre') + tblFiltreClearMultiHtml(_kiraDurumFiltre, 'setKiraDurumFiltre');
     // [ES module] onclick="setKiraTurFiltre(...)"/"setKiraDurumFiltre(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
@@ -659,7 +660,7 @@ export function renderKira() {
     bitis: (a,b)=>String(a.bitis||'').localeCompare(String(b.bitis||''))
   });
   const kiralarFiltreli = kiraSirali
-    .filter(k => !_kiraTurFiltre || (k.tutar>=0?'gelir':'gider') === _kiraTurFiltre)
+    .filter(k => !_kiraTurFiltre || (k.tutar>=0?ISLEM_TUR.GELIR:ISLEM_TUR.GIDER) === _kiraTurFiltre)
     .filter(k => !_kiraDurumFiltre.length || _kiraDurumFiltre.includes(_kiraGuncelDurum(k)));
 
   document.getElementById('kira-tbody').innerHTML = kiralarFiltreli.map(k=>{

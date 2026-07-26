@@ -7,10 +7,10 @@ import { _restoreKdIslemSiralamaFromDB } from '../../components/tablo-filtre-sir
 import { kesinlesmeyiBekleyenDonemler, kesinlestirEkstre, kesinlestirTumBekleyenler, kesinlestirmeyiKaldir } from '../ekstreler/01-ekstre-kesinlestirme.js';
 import { _ekstreBekleyenKartHtml } from '../ekstreler/02-ekstre-render.js';
 import { bindIslemRowEvents, islemRowHtml } from '../islemler/03-islem-liste-render.js';
-import { _kdAcikExtreDonem, _kdAcikIslemAy, _kdActiveTab, _kdIslemArama, _kdIslemKatFiltre, _kdKatBarCtx, set_kdAcikExtreDonem, set_kdAcikIslemAy, set_kdActiveTab, set_kdIslemArama, set_kdKatBarCtx } from './00-state.js';
+import { _kdAcikExtreDonem, _kdActiveTab, _kdIslemArama, _kdIslemKatFiltre, _kdKatBarCtx, set_kdAcikExtreDonem, set_kdActiveTab, set_kdIslemArama, set_kdKatBarCtx } from './00-state.js';
 import { getKartCurrencies, getKartCurrency, getKartStatementAmount, kartOdemeTarihiEfektif } from './01-kart-data.js';
 import { _kdKatBarAktifFiltre, kdRenderKatBar } from './02-kategori-arama-widget.js';
-import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle, _kdCoreToggleIslemAy } from './03-kart-detay-ortak.js';
+import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle } from './03-kart-detay-ortak.js';
 import { _kd2IslemSiralama, _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2IslemSiralama, set_kdIslemSiralama } from './09-kart-altyapi.js';
 import { getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
 import { openModal } from '../../components/modal-genel.js';
@@ -116,9 +116,10 @@ export function kdRenderIslemler() {
   bindIslemRowEvents(list);
 }
 
-export function kdToggleIslemAy(key) {
-  set_kdAcikIslemAy(_kdCoreToggleIslemAy('kd', key, () => _kdAcikIslemAy));
-}
+// [KALDIRILDI] kdToggleIslemAy(key) — "aya göre grupla, aç/kapa" toggle'ı
+// hiçbir yerden çağrılmıyordu; render tarafı da _kdAcikIslemAy state'ini hiç
+// okumadığı için özellik zaten baştan sona bağlanmamıştı (ölü kod taraması,
+// 2026-07).
 
 export function kdIslemAramaDegisti(val) {
   set_kdIslemArama(val || '');

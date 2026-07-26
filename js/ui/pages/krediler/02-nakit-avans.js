@@ -330,14 +330,9 @@ export function saveNakitAvans() {
   showToast('Nakit avans kaydedildi','ok');
 }
 
-export function saveNakitAvansCur() {
-  // Artık gerekli değil (otomatik kaydediliyor) ama uyumluluk için bırakıldı
-  const selected = [...document.querySelectorAll('#nakit-avans-cur-grid .cur-chip.selected')].map(el=>el.dataset.cur);
-  DB.nakitAvansCurlar = selected;
-  saveData();
-  const st = document.getElementById('nakit-avans-cur-status');
-  if(st) { st.textContent = '✓ Kaydedildi'; setTimeout(()=>st.textContent='',2000); }
-}
+// [KALDIRILDI] saveNakitAvansCur() — geliştirici notunda zaten "artık gerekli
+// değil, uyumluluk için bırakıldı" diye işaretlenmişti; hiçbir yerden
+// çağrılmadığı doğrulandı (ölü kod taraması, 2026-07).
 
 export function saveNakitAvansLimitKural(silent) {
   const tip = document.getElementById('nakit-avans-limit-tip').value;

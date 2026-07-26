@@ -11,6 +11,7 @@ import { renderHesaplar } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
 import { editIslemId } from '../ui/pages/islemler/03-islem-liste-render.js';
 import { showPage } from '../core/app-core-base.js';
 import { call, get, register } from '../core/wrap-registry.js';
+import { BEKLEMEDE_SAYILAN_DURUMLAR, ODENMIS_SAYILAN_DURUMLAR } from '../core/constants.js';
 // ============================================================
 // js/domain/hesap-entegrasyon-motoru.js
 // İş mantığı: kira/maaş/elden/mevduat/KMH/kredi ödemelerinin hesap bakiyesine otomatik yansıtılması.
@@ -64,9 +65,12 @@ function _lDel(k)      { return call('_lDel', k); }
 export {
   _lKey as _lKey__hesap_entegrasyon_motoru,
   _lGet as _lGet__hesap_entegrasyon_motoru,
-  _lSet as _lSet__hesap_entegrasyon_motoru,
-  _lDel as _lDel__hesap_entegrasyon_motoru
+  _lSet as _lSet__hesap_entegrasyon_motoru
 };
+// [KALDIRILDI] "_lDel as _lDel__hesap_entegrasyon_motoru" export alias'ı hiçbir
+// dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07). _lDel
+// fonksiyonunun kendisi ve register('_lDel', ...) çağrısı hâlâ kullanımda,
+// sadece bu isimlendirilmiş export gereksizdi.
 // Taban implementasyonlar (abonelik.js henüz yüklenmediyse / override
 // edilmeden önce call('_lGet', ...) gibi çağrıların çalışabilmesi için)
 // registry'ye ayrı isimlerle kaydediliyor ve yukarıdaki fonksiyonlar ilk
@@ -194,11 +198,11 @@ export function entKmhYansit(krediId, taksitNo, durum, tutar) {
   const lk = _lKey('kmh', krediId, taksitNo);
   const eski = _lGet(lk) || 0;
 
-  if (!durum || ['bekliyor','iptal','ertelendi','gecikti'].includes(durum)) {
+  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
     if (eski !== 0) { _bakiyeDelta(hesapId, eski); _lDel(lk); _sync(); } // geri ver
     return;
   }
-  if (['odendi','kismi'].includes(durum)) {
+  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
     const yeni = tutar || kr.aylikTaksit || 0;
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;
@@ -223,11 +227,11 @@ export function entDepozitoYansit(kiraId, key, durum, tutar) {
   const eski = _lGet(lk) || 0;
   const uygula = (delta) => isNakit ? _nakitBakiyeDelta(pb, delta) : _bakiyeDelta(hesapId, delta);
 
-  if (!durum || ['bekliyor','iptal','ertelendi','gecikti'].includes(durum)) {
+  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
     if (eski !== 0) { uygula(-eski * yon); _lDel(lk); _sync(); }
     return;
   }
-  if (['odendi','kismi'].includes(durum)) {
+  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
     const yeni = (tutar !== undefined && tutar !== null) ? tutar : ((kira.depozito && kira.depozito.tutar) || 0);
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;
@@ -247,11 +251,11 @@ export function entKrediYansit(krediId, taksitNo, durum, tutar) {
   const eski = _lGet(lk) || 0;
   const uygula = (delta) => isNakit ? _nakitBakiyeDelta(pb, delta) : _bakiyeDelta(kr.hesapId, delta);
 
-  if (!durum || ['bekliyor','iptal','ertelendi','gecikti'].includes(durum)) {
+  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
     if (eski !== 0) { uygula(eski); _lDel(lk); _sync(); }
     return;
   }
-  if (['odendi','kismi'].includes(durum)) {
+  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
     const yeni = tutar || kr.aylikTaksit || 0;
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;

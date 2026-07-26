@@ -12,12 +12,12 @@ import { temaSistemeDondur, toggleTheme, updateMobThemeBtn } from '../ui/compone
 import { snavMobileBack, snavMobileOpen } from '../ui/components/mobile-side-nav.js';
 import { setMoneyFormat } from '../ui/components/money-input.js';
 import { openTransferModal, swapTransferHesaplar, transferStepBack, transferStepNext, transferTutarTumunuKullan } from '../ui/components/transfer-modal.js';
-import { abStepBack, abStepNext, openAbonelikModal, saveAbonelik } from '../ui/pages/abonelik.js';
+import { abStepBack, abStepNext, abTutarTumunuKullan, openAbonelikModal, saveAbonelik } from '../ui/pages/abonelik.js';
 import { asgariKuralEkle, asgariKurallariTemizle } from '../ui/pages/asgari-odeme.js';
 import { clearOzelExtre, openOzelExtreModal, saveOzelExtre } from '../ui/pages/ekstreler/01-ekstre-kesinlestirme.js';
 import { openExtreDurumModal, openExtreKartModal, openExtreKategoriModal } from '../ui/pages/ekstreler/02-ekstre-render.js';
 import { eeConfirmManualKart, eeShowKartPicker } from '../ui/pages/ekstreler/03-ekstre-eslestirme-pdf-import.js';
-import { copyEldenHesapIban, copyEldenKarsiIban, eldenStepBack, eldenStepNext, openEldenModal, saveElden } from '../ui/pages/elden.js';
+import { copyEldenHesapIban, copyEldenKarsiIban, eldenStepBack, eldenStepNext, eldenTutarTumunuKullan, openEldenModal, saveElden } from '../ui/pages/elden.js';
 import { openHesapTurModal, saveHesapTur } from '../ui/pages/hesaplar/02-hesap-turu-tanimlama.js';
 import { hesapStepBack, hesapStepNext, openHesapModal, saveHesap } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
 import { _hesapLogDuzeltAc, saveBakiyeDuzelt } from '../ui/pages/hesaplar/05-bakiye-duzelt.js';
@@ -34,7 +34,7 @@ import { kartStepBack, kartStepNext, saveKart } from '../ui/pages/kartlar/06-kar
 import { openOrtakGrupModal, saveOrtakGrupModal } from '../ui/pages/kartlar/07-ortak-limit-grubu.js';
 import { kartOdemeKalanTamaminiDoldur, kartOdemeStepBack, kartOdemeStepNext, kartOdemeTutarTumunuKullan, saveKartOdeme } from '../ui/pages/kartlar/08-kart-odeme.js';
 import { _kd2KartId, openKartAltyapiModal, saveKartAltyapi, setEditKartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
-import { copyKiraHesapIban, kiraStepBack, kiraStepNext, openKiraModal, saveKira } from '../ui/pages/kira.js';
+import { copyKiraHesapIban, kiraDepozitoTutarTumunuKullan, kiraStepBack, kiraStepNext, openKiraModal, saveKira } from '../ui/pages/kira.js';
 import { resetKmhTaksitler, resetKrediTaksitler } from '../ui/pages/krediler/01-genel-yardimcilar.js';
 import { naStepBack, naStepNext, openNakitAvansModal, saveNakitAvans } from '../ui/pages/krediler/02-nakit-avans.js';
 import { kmhKrediStepBack, kmhKrediStepNext, openKmhKrediModal, saveKmhKredi } from '../ui/pages/krediler/03-kmh-kredi.js';
@@ -2187,6 +2187,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!el) return;
     el.addEventListener('click', function(event) {
       kartOdemeTutarTumunuKullan();
+    });
+  })();
+  (function(){
+    var el = document.getElementById("ab-tutar-tum-btn");
+    if (!el) return;
+    el.addEventListener('click', function(event) {
+      abTutarTumunuKullan();
+    });
+  })();
+  (function(){
+    var el = document.getElementById("elden-tutar-tum-btn");
+    if (!el) return;
+    el.addEventListener('click', function(event) {
+      eldenTutarTumunuKullan();
+    });
+  })();
+  (function(){
+    var el = document.getElementById("kira-depozito-tutar-tum-btn");
+    if (!el) return;
+    el.addEventListener('click', function(event) {
+      kiraDepozitoTutarTumunuKullan();
     });
   })();
   (function(){

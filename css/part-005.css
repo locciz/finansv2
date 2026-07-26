@@ -38,33 +38,9 @@ html[data-theme="light"] .tbl-wrap table.tbl-sticky-actions tbody tr:hover td{ba
 }
 
 /* Son transfer yapılabilirlik filtresi: sadece ikon */
-#transfer-log-msec>div:first-child{gap:6px;}
-.rf-transfer-status-filter{display:flex;align-items:center;gap:4px;margin-left:auto;}
-.rf-transfer-status-filter button{width:30px;height:30px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .15s,border-color .15s,color .15s,transform .1s;}
-.rf-transfer-status-filter button:hover{background:var(--surface3);color:var(--text);}
-.rf-transfer-status-filter button.active{background:rgba(56,189,248,.11);border-color:rgba(56,189,248,.32);color:var(--sky);}
-.rf-transfer-status-filter svg{width:15px;height:15px;display:block;}
-.rf-transfer-status-filter .dot{width:10px;height:10px;border-radius:99px;display:block;}
-.rf-transfer-status-filter .dot.ok{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.13),0 0 12px rgba(34,197,94,.38);}
-.rf-transfer-status-filter .dot.no{background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.13),0 0 12px rgba(239,68,68,.38);}
-#transfer-log-filtre-btn{width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;border-radius:10px!important;justify-content:center!important;}
-#transfer-log-filtre-label{display:none!important;}
-#transfer-log-filtre-btn .sc-popup-trigger-chevron{display:none!important;}
-#transfer-log-filtre-btn::before{content:'⌕';font-size:17px;font-weight:900;color:currentColor;}
-.rf-transfer-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:9px;font-size:11.5px;transition:border-color .15s;}
-.rf-transfer-row.state-ok{border-left-color:#22c55e;}
-.rf-transfer-row.state-no{border-left-color:#ef4444;}
-.rf-transfer-row .main{flex:1;min-width:0;}
-.rf-transfer-row .route{color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;}
-.rf-transfer-row .route svg{flex:0 0 auto;opacity:.55;}
-.rf-transfer-row .route .seg{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
-.rf-transfer-row .note{color:var(--text3);font-size:10.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rf-transfer-row .amount{text-align:right;flex-shrink:0;}
-.rf-transfer-row .act{display:flex;gap:2px;flex-shrink:0;}
-.rf-transfer-row .ib{background:transparent;border:0;cursor:pointer;color:var(--text3);width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;line-height:1;transition:background .15s,color .15s;}
-.rf-transfer-row .ib:hover{background:var(--surface3);color:var(--text);}
-.rf-transfer-row .ib.danger:hover{color:#ef4444;background:rgba(239,68,68,.1);}
-.rf-transfer-row .ib svg{width:14px;height:14px;display:block;}
+/* [KALDIRILDI] "Son Transferler" stilleri artık tek parça halinde
+   css/transfer-log.css içinde. Bu dosyadaki eski kopyalar (ve
+   part-006/036/037/038/039'daki çakışan tekrarları) kaldırıldı. */
 
 /* TBK ay detay: sade, senkron, seçili ayla sınırlı */
 #modal-tbk-ay-detay .tbk-list-note{padding:14px;text-align:center;color:var(--text3);font-size:12px;}

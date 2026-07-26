@@ -41,16 +41,10 @@ export function _pickBankaLogo(idx) {
   _selectBankaLogo(logo ? logo.svg : '');
 }
 
-export function editBanka(id) {
-  setEditBankaId(id);
-  const b = DB.bankalar.find(x=>x.id===id);
-  if(!b) return;
-  document.getElementById('banka-modal-title').textContent = 'Banka Düzenle';
-  document.getElementById('banka-tam').value = b.tam;
-  document.getElementById('banka-kisa').value = b.kisa;
-  document.getElementById('banka-iban-kod').value = b.ibanKod||'';
-  document.getElementById('modal-banka').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
-}
+// [KALDIRILDI] editBanka(id) — hiçbir yerden çağrılmıyordu; işlevi zaten
+// openBankaModal(id) tarafından üstlenilmiş (o fonksiyon id parametresi
+// verildiğinde düzenleme moduna geçiyor). Bu eski kopya modalı doğrudan
+// açıp modal-genel açma çağrısını da tekrarlıyordu (ölü kod taraması, 2026-07).
 
 export function saveBanka() {
   const tam     = document.getElementById('banka-tam').value.trim();

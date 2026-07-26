@@ -1695,7 +1695,9 @@ function tahminGelecekBakiyeHesapla(gunSayisi=365, gecmisGunSayisi=0) {
     pb: gosterimPb
   };
 }
-export { tahminGelecekBakiyeHesapla as tahminGelecekBakiyeHesapla__ozet };
+// [KALDIRILDI] "export { tahminGelecekBakiyeHesapla as tahminGelecekBakiyeHesapla__ozet }"
+// hiçbir dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07).
+// Fonksiyonun kendisi ve register() çağrısı hâlâ kullanımda.
 // [ES module] eskiden 09-kart-altyapi.js window.tahminGelecekBakiyeHesapla
 // üzerinden bu fonksiyonu okuyup zenginleştirilmiş (enrichTbk eklenmiş) bir
 // sürümle window.tahminGelecekBakiyeHesapla'yı yeniden atıyordu; artık taban

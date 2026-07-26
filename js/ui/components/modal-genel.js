@@ -367,33 +367,9 @@ export function showToast(msg, type='success') {
   }, 2800);
 }
 
-// ── Genel amaçlı modal + Manuel karşı taraf kaydetme akışı ───
-export function openGenericModal(title, bodyHtml) {
-  let modal = document.getElementById('modal-generic');
-  if(!modal) {
-    modal = document.createElement('div');
-    modal.id = 'modal-generic';
-    modal.className = 'modal-bg';
-    modal.innerHTML = `<div class="modal" style="max-width:440px">
-      <div class="modal-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="modal-header-icon" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)">💵</div>
-          <div class="modal-header-text"><div class="modal-title" id="modal-generic-title"></div></div>
-        </div>
-        <button class="close-btn" id="modal-generic-close-btn">✕</button>
-      </div>
-      <div class="modal-body" id="modal-generic-body"></div>
-    </div>`;
-    document.body.appendChild(modal);
-    // [ES module] onclick="closeModal('modal-generic')" kaldırıldı - gerçek addEventListener bağlanıyor.
-    document.getElementById('modal-generic-close-btn').addEventListener('click', () => closeModal('modal-generic'));
-  }
-  document.getElementById('modal-generic-title').textContent = title;
-  document.getElementById('modal-generic-body').innerHTML = bodyHtml;
-  modal.classList.add('open');
-  document.body.classList.add('modal-open');
-  _sidebarDim(true);
-}
+// [KALDIRILDI] openGenericModal(title, bodyHtml) — genel amaçlı, dinamik
+// oluşturulan modal yardımcısı; hiçbir yerden çağrılmıyordu (ölü kod
+// taraması, 2026-07).
 
 export function initManuelKarsiObservers() {
   ['elden', 'kira', 'maas'].forEach(prefix => {

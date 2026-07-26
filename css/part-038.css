@@ -448,19 +448,7 @@ body > #tbk-sort-popup .tbk-sort-popup-panel {
   text-align: right;
 }
 
-#transfer-log-liste,
-#transfer-log-liste * {
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-}
-
-#transfer-log-liste :is(.desc,.description,.subtitle,.meta,.title,.name) {
-  white-space: normal !important;
-  overflow-wrap: anywhere !important;
-  word-break: break-word !important;
-  text-overflow: clip !important;
-  overflow: visible !important;
-}
+/* [KALDIRILDI] Son Transferler stilleri artık tek parça halinde css/transfer-log.css içinde. */
 
 /* Transfer hidden asterisk */
 .transfer-hidden-account-label { display: none !important; }

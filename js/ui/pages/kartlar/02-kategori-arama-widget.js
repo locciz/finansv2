@@ -1,5 +1,5 @@
 import { DB } from '../../../core/state.js';
-import { KD_KAT_PALET, _kd2ExtreKatFiltre, _kd2IslemKatFiltre, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatAraState, _kdKatBarCtx, set_kd2ExtreKatFiltre, set_kd2IslemKatFiltre, set_kdExtreKatFiltre, set_kdIslemKatFiltre } from './00-state.js';
+import { KD_KAT_PALET, _kd2ExtreKatFiltre, _kd2IslemKatFiltre, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatBarCtx, set_kd2ExtreKatFiltre, set_kd2IslemKatFiltre, set_kdExtreKatFiltre, set_kdIslemKatFiltre } from './00-state.js';
 import { kdRenderIslemler, kdRenderExtreler } from './04-kart-detay-v1.js';
 import { kd2RenderExtreler, kd2RenderIslemler } from './05-kart-detay-v2.js';
 // ============================================================
@@ -11,121 +11,15 @@ import { kd2RenderExtreler, kd2RenderIslemler } from './05-kart-detay-v2.js';
 // kümelerine göre bölünmüş bir parçasıdır. Kod SATIR SATIR
 // AYNI kaldı — sadece dosya sınırı ve gruplama değişti.
 // ============================================================
-export function kdKatAraHtml(wrapId) {
-  const ctx = _kdKatAraCtxFromWrapId(wrapId);
-  const aktif = _kdKatAraAktifFiltre(ctx);
-  const aktifKat = aktif ? (DB.kategoriler || []).find(k => k.id === aktif) : null;
-  const st = _kdKatAraState[wrapId] || { q: '', hl: -1 };
-  const placeholder = aktifKat ? `${aktifKat.ikon || '🏷️'} ${aktifKat.ad}` : 'Kategori ara...';
-  return `<div class="kd-kat-ara-wrap" data-wrap="${wrapId}">
-    <div class="kd-kat-ara-box">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="kd-kat-ara-input-${wrapId}" value="${st.q}" placeholder="${placeholder}"
-        oninput="kdKatAraInput('${wrapId}', this.value)"
-        onkeydown="kdKatAraKeydown(event, '${wrapId}')"
-        onfocus="kdKatAraInput('${wrapId}', this.value)"
-        onblur="kdKatAraBlur('${wrapId}')">
-      ${(st.q || aktif) ? `<button type="button" class="kd-kat-ara-clear" data-wrap="${wrapId}">✕</button>` : ''}
-    </div>
-    <div id="kd-kat-ara-dropdown-${wrapId}"></div>
-  </div>`;
-}
-
-export function kdKatAraBind(wrapId) {
-  // Şu an sadece dropdown açıkken dışarı tıklanınca kapatmak için global bir listener yeterli;
-  // input/keydown zaten inline onxxx ile bağlı. Burada ek bir şey gerekmiyor, fonksiyon
-  // ileride genişletilebilir diye ayrı tutuluyor.
-
-  // [ES module] onclick="kdKatAraTemizle(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
-  const wrapEl = document.querySelector(`.kd-kat-ara-wrap[data-wrap="${wrapId}"]`);
-  if (wrapEl) {
-    const clearBtn = wrapEl.querySelector('.kd-kat-ara-clear');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => kdKatAraTemizle(clearBtn.getAttribute('data-wrap')));
-    }
-  }
-}
-
-export function kdKatAraInput(wrapId, val) {
-  _kdKatAraState[wrapId] = { q: val, hl: -1 };
-  kdKatAraRenderDropdown(wrapId);
-}
-
-export function kdKatAraRenderDropdown(wrapId) {
-  const dd = document.getElementById('kd-kat-ara-dropdown-' + wrapId);
-  if (!dd) return;
-  const st = _kdKatAraState[wrapId] || { q: '', hl: -1 };
-  const q = (st.q || '').trim().toLowerCase();
-  if (!q) { dd.innerHTML = ''; dd.classList.remove('kd-kat-ara-dropdown'); return; }
-  const ctx = _kdKatAraCtxFromWrapId(wrapId);
-  const aktif = _kdKatAraAktifFiltre(ctx);
-  const eslesen = (DB.kategoriler || []).filter(k => (k.ad || '').toLowerCase().includes(q));
-  dd.classList.add('kd-kat-ara-dropdown');
-  if (!eslesen.length) {
-    dd.innerHTML = `<div class="kd-kat-ara-empty">Eşleşen kategori yok</div>`;
-    return;
-  }
-  dd.innerHTML = eslesen.map((k, idx) => {
-    const hl = idx === st.hl ? ' kd-kat-ara-hl' : '';
-    const check = aktif === k.id ? '<span class="kd-kat-ara-check">✓</span>' : '';
-    return `<div class="kd-kat-ara-item${hl}" data-idx="${idx}" data-kat="${k.id}" onmousedown="event.preventDefault();kdKatAraSec('${wrapId}','${k.id}')">
-      <span class="kd-kat-ara-ikon">${k.ikon || '🏷️'}</span>
-      <span class="kd-kat-ara-ad">${k.ad}</span>
-      ${check}
-    </div>`;
-  }).join('');
-}
-
-export function kdKatAraKeydown(ev, wrapId) {
-  const dd = document.getElementById('kd-kat-ara-dropdown-' + wrapId);
-  if (!dd) return;
-  const items = dd.querySelectorAll('.kd-kat-ara-item');
-  if (!items.length) {
-    if (ev.key === 'Escape') { ev.target.blur(); kdKatAraTemizle(wrapId); }
-    return;
-  }
-  const st = _kdKatAraState[wrapId] || { q: '', hl: -1 };
-  if (ev.key === 'ArrowDown') {
-    ev.preventDefault();
-    st.hl = (st.hl + 1) % items.length;
-    _kdKatAraState[wrapId] = st;
-    kdKatAraRenderDropdown(wrapId);
-  } else if (ev.key === 'ArrowUp') {
-    ev.preventDefault();
-    st.hl = (st.hl - 1 + items.length) % items.length;
-    _kdKatAraState[wrapId] = st;
-    kdKatAraRenderDropdown(wrapId);
-  } else if (ev.key === 'Enter') {
-    ev.preventDefault();
-    const idx = st.hl >= 0 ? st.hl : 0;
-    const katId = items[idx] && items[idx].dataset.kat;
-    if (katId) kdKatAraSec(wrapId, katId);
-  } else if (ev.key === 'Escape') {
-    ev.target.blur();
-    _kdKatAraState[wrapId] = { q: '', hl: -1 };
-    kdKatAraRenderDropdown(wrapId);
-  }
-}
-
-export function kdKatAraSec(wrapId, katId) {
-  const ctx = _kdKatAraCtxFromWrapId(wrapId);
-  const aktif = _kdKatAraAktifFiltre(ctx);
-  _kdKatAraState[wrapId] = { q: '', hl: -1 };
-  _kdKatAraUygula(ctx, aktif === katId ? null : katId); // aynı kategoriye tekrar seçim = filtreyi kaldır
-}
-
-export function kdKatAraTemizle(wrapId) {
-  const ctx = _kdKatAraCtxFromWrapId(wrapId);
-  _kdKatAraState[wrapId] = { q: '', hl: -1 };
-  _kdKatAraUygula(ctx, null);
-}
-
-export function kdKatAraBlur(wrapId) {
-  const dd = document.getElementById('kd-kat-ara-dropdown-' + wrapId);
-  if (dd) { dd.innerHTML = ''; dd.classList.remove('kd-kat-ara-dropdown'); }
-}
-
-export function kdRenderKatBar(wrap, islemler) {
+// [KALDIRILDI] Eskiden burada kategori bar'ının kendi mini "arama kutusu"
+// vardı: kdKatAraHtml (HTML üretici), kdKatAraBind, kdKatAraInput,
+// kdKatAraRenderDropdown, kdKatAraKeydown, kdKatAraSec, kdKatAraTemizle,
+// kdKatAraBlur. kdRenderKatBar içinde "aramaHtml = ''" yapılarak bu kutu
+// zaten devre dışı bırakılmıştı (bkz. aşağıdaki yorum) — dolayısıyla bu 8
+// fonksiyon hiçbir zaman render edilen bir DOM elemanına bağlanamıyor,
+// pratikte tamamen ölü kalıyordu (ölü kod taraması, 2026-07).
+// _kdKatAraCtxFromWrapId ve _kdKatAraAktifFiltre hâlâ kdKatFiltreToggle'ın
+// kardeşi olarak kullanımda oldukları için korundu (bkz. aşağıda).
   // Not: kategori bar'ının kendi mini arama kutusu kaldırıldı — alttaki genel arama kutusu
   // (kd-islem-arama) zaten açıklama + kategori adına göre arıyor, iki ayrı "kategori ara"
   // kutusu göstermek kafa karıştırıyordu. Bar/lejant tıklanabilir filtre olarak kalıyor.
@@ -140,7 +34,7 @@ export function kdRenderKatBar(wrap, islemler) {
     genelToplam += tutar;
   });
 
-  if (!islemler.length || genelToplam <= 0) { wrap.innerHTML = aramaHtml; kdKatAraBind(wrap.id); return; }
+  if (!islemler.length || genelToplam <= 0) { wrap.innerHTML = aramaHtml; return; }
 
   let sirali = Array.from(katToplam.entries()).sort((a, b) => b[1] - a[1]);
 
@@ -188,7 +82,6 @@ export function kdRenderKatBar(wrap, islemler) {
   wrap.innerHTML = aramaHtml + `
     <div class="kd-kat-bar-track">${trackHtml}</div>
     <div class="kd-kat-bar-legend">${legendHtml}${temizleHtml}</div>`;
-  kdKatAraBind(wrap.id);
 
   // [ES module] onclick="kdKatFiltreToggle(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
   wrap.querySelectorAll('.kd-kat-bar-seg-clickable').forEach(seg => {
@@ -254,12 +147,10 @@ export function _kdKatAraAktifFiltre(ctx) {
 // Bağlama göre filtreyi set edip ilgili (görünür) listeyi yeniden çizer — kdKatFiltreToggle
 // ile aynı state/render eşlemesini kullanır, sadece toggle değil doğrudan set eder.
 
-export function _kdKatAraUygula(ctx, katId) {
-  if (ctx === 'kd2-islem') { set_kd2IslemKatFiltre(katId); kd2RenderIslemler(); }
-  else if (ctx === 'kd-extre') { set_kdExtreKatFiltre(katId); kdRenderExtreler(); }
-  else if (ctx === 'kd2-extre') { set_kd2ExtreKatFiltre(katId); kd2RenderExtreler(); }
-  else { set_kdIslemKatFiltre(katId); kdRenderIslemler(); }
-}
+// [KALDIRILDI] _kdKatAraUygula(ctx, katId) — sadece silinen kdKatAraSec/
+// kdKatAraTemizle tarafından çağrılıyordu (bkz. üstteki ölü kategori arama
+// widget'ı temizliği); onlarla birlikte yetim kaldığı için o da kaldırıldı
+// (ölü kod taraması, 2026-07).
 
 // ── Belirli bir ekstre dönemine ait ekstrenin fiilen hangi para birim(ler)inde kesildiğini
 // döndürür. kd2BorcOdeAc bu fonksiyon tanımlı değilken kartın varsayılan para birimine

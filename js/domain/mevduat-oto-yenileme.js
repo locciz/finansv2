@@ -36,7 +36,9 @@ function mevduatOtoStratejiUygula(mevId) {
   }
   return false;
 }
-export { mevduatOtoStratejiUygula as mevduatOtoStratejiUygula__mevduat_oto_yenileme };
+// [KALDIRILDI] "export { mevduatOtoStratejiUygula as mevduatOtoStratejiUygula__mevduat_oto_yenileme }"
+// hiçbir dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07).
+// Fonksiyonun kendisi ve register() çağrısı hâlâ kullanımda.
 // [ES module] eskiden bu fonksiyonun window.mevduatOtoStratejiUygula
 // ataması mobile-nav-tema.js'de yapılıyordu; artık taban burada register
 // edilir. abonelik.js (DOMContentLoaded'da) bunun üzerine kendi wrap'ini

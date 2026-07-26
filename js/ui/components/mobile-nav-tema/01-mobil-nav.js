@@ -297,7 +297,9 @@ function mobNavGo(pageId, btn, icon, label) {
   mobNavTrack(pageId);
   mobNavSyncActive(pageId);
 }
-export { mobNavGo as mobNavGo__01_mobil_nav };
+// [KALDIRILDI] "export { mobNavGo as mobNavGo__01_mobil_nav }" hiçbir dosya
+// tarafından import edilmiyordu (ölü kod taraması, 2026-07). Fonksiyonun
+// kendisi hâlâ kullanımda.
 
 // Sidebar nav tıklamalarını alt nav ile senkronla.
 // [ES module] Eskiden window.showPage'i okuyup üstüne window.showPage = wrapped

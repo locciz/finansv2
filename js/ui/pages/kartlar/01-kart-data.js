@@ -115,10 +115,8 @@ export function kartlarSirala(key, yon) {
   renderKartlar();
 }
 
-export function kartDonemErtelendiMi(kart, donemKey) {
-  const ov = odKartDonemOverride(kart, donemKey);
-  return !!(ov && ov.durum === 'ertelendi');
-}
+// [KALDIRILDI] kartDonemErtelendiMi(kart, donemKey) — hiçbir yerden
+// çağrılmıyordu (ölü kod taraması, 2026-07).
 
 export function kartOdemeTarihiEfektif(kart, donemKey, defaultTarih) {
   const ov = odKartDonemOverride(kart, donemKey);

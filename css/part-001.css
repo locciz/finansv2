@@ -4657,21 +4657,9 @@ td:first-child { color: rgba(240,244,255,.84); font-weight: 500; }
 .kd-kat-leg-clear:hover { background: var(--gold-glow); }
 
 /* Kategori ara-filtre (kat bar üstünde, yazdıkça eşleşen kategorileri listeler) */
-.kd-kat-ara-wrap { position: relative; margin-bottom: 10px; }
-.kd-kat-ara-box { display: flex; align-items: center; gap: 7px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 7px 9px; transition: var(--transition); }
-.kd-kat-ara-box:focus-within { border-color: var(--border-active); background: var(--surface3); box-shadow: 0 0 0 3px var(--gold-glow2); }
-.kd-kat-ara-box svg { flex-shrink: 0; color: var(--text3); }
-.kd-kat-ara-box input { flex: 1; min-width: 0; background: none; border: none; outline: none; font-family: var(--sans); font-size: 12.5px; color: var(--text); }
-.kd-kat-ara-box input::placeholder { color: var(--text3); }
-.kd-kat-ara-clear { flex-shrink: 0; border: none; background: var(--surface3); color: var(--text2); width: 16px; height: 16px; border-radius: 50%; font-size: 9.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
-.kd-kat-ara-clear:hover { background: var(--surface4); color: var(--text); }
-.kd-kat-ara-dropdown { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; background: var(--surface2); border: 1px solid var(--border-active); border-radius: var(--radius-xs); box-shadow: 0 10px 28px rgba(0,0,0,.28); max-height: 220px; overflow-y: auto; padding: 5px; }
-.kd-kat-ara-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 7px; cursor: pointer; font-size: 12.5px; color: var(--text2); transition: var(--transition); }
-.kd-kat-ara-item:hover, .kd-kat-ara-item.kd-kat-ara-hl { background: var(--surface3); color: var(--text); }
-.kd-kat-ara-item .kd-kat-ara-ikon { flex-shrink: 0; font-size: 13px; }
-.kd-kat-ara-item .kd-kat-ara-ad { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.kd-kat-ara-item .kd-kat-ara-check { flex-shrink: 0; color: var(--gold); font-weight: 900; font-size: 11px; }
-.kd-kat-ara-empty { padding: 10px 9px; font-size: 11.5px; color: var(--text3); text-align: center; }
+/* [KALDIRILDI] .kd-kat-ara-* — ölü kategori arama widget'ının stilleriydi;
+   ilgili JS (kdKatAraHtml vb.) hiçbir yerden çağrılmadığı için bu class'lar
+   hiçbir zaman DOM'a render edilmiyordu (ölü kod taraması, 2026-07). */
 
 /* Toolbar */
 .kd-islem-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }

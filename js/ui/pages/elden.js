@@ -2,6 +2,7 @@ import { saveData } from '../../core/app-core-base.js';
 import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '../../core/app-core.js';
 import { fmt, fmtCur, fmtDate, localDateStr, uid } from '../../core/format.js';
 import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '../../core/state.js';
+import { ISLEM_TUR, ODEME_YONTEM, ODEME_DURUM } from '../../core/constants.js';
 import { buildCurrencyOptions } from '../../domain/doviz.js';
 import { hesapKullanilabilirBakiye } from '../../domain/hesaplamalar.js';
 import { formatIbanView } from '../../domain/iban-utils.js';
@@ -33,14 +34,14 @@ export function openEldenModal() {
   eldenStepGoto(1);
   document.getElementById('elden-modal-title').textContent = 'Elden Ödeme Ekle';
   setDateInputValue('elden-tarih', localDateStr(new Date()));
-  document.getElementById('elden-tur').value = 'gider';
+  document.getElementById('elden-tur').value = ISLEM_TUR.GIDER;
   const eldenDirektOdendiEl = document.getElementById('elden-direkt-odendi-toggle');
   if(eldenDirektOdendiEl) eldenDirektOdendiEl.checked = true;
   document.getElementById('elden-aciklama').value = '';
   populateKategoriSelects();
   document.getElementById('elden-kategori').value = '';
   setMoneyInput('elden-tutar', '');
-  document.getElementById('elden-yontem').value = 'nakit';
+  document.getElementById('elden-yontem').value = ODEME_YONTEM.NAKIT;
   document.getElementById('elden-hesap-wrap').style.display = 'none';
   document.getElementById('elden-karsi-iban-wrap').style.display = 'none';
   document.getElementById('elden-hesap-bilgi-wrap').style.display = 'none';
@@ -121,7 +122,7 @@ export function saveElden() {
   if(!validateRequiredFields([{id:'elden-tutar',msg:'Tutar giriniz'},{id:'elden-tarih',msg:'Tarih giriniz'}])) return;
   const _elden_tarih0 = document.getElementById('elden-tarih').value;
   const _elden_yon0 = document.getElementById('elden-yontem').value;
-  if(_elden_yon0 === 'havale') {
+  if(_elden_yon0 === ODEME_YONTEM.HAVALE) {
     // "Havale" + manuel giriş modundayken "Ad / Şirket" alanı ekranda * ile
     // zorunlu gösteriliyor ama adım-3 son adım olduğu için (İleri butonu yok,
     // sadece Kaydet) _eldenValidateStep hiç çalışmıyordu — bu yüzden burada,
@@ -138,14 +139,14 @@ export function saveElden() {
 export function _doSaveElden() {
   const tur = document.getElementById('elden-tur').value;
   let tutar = getMoneyInput('elden-tutar')||0;
-  if(tur==='gider') tutar = -Math.abs(tutar);
+  if(tur===ISLEM_TUR.GIDER) tutar = -Math.abs(tutar);
   else tutar = Math.abs(tutar);
 
   const yontem = document.getElementById('elden-yontem').value;
-  const hesapId = yontem==='havale' ? (document.getElementById('elden-hesap').value||null) : null;
-  const karsiIban = yontem==='havale' ? (document.getElementById('elden-karsi-iban').value.replace(/\s+/g,'').toUpperCase()||null) : null;
-  const karsiAd = yontem==='havale' ? (document.getElementById('elden-karsi-ad').value.trim()||null) : null;
-  const karsiKisiId = yontem==='havale' ? (document.getElementById('elden-kisi').value||null) : null;
+  const hesapId = yontem===ODEME_YONTEM.HAVALE ? (document.getElementById('elden-hesap').value||null) : null;
+  const karsiIban = yontem===ODEME_YONTEM.HAVALE ? (document.getElementById('elden-karsi-iban').value.replace(/\s+/g,'').toUpperCase()||null) : null;
+  const karsiAd = yontem===ODEME_YONTEM.HAVALE ? (document.getElementById('elden-karsi-ad').value.trim()||null) : null;
+  const karsiKisiId = yontem===ODEME_YONTEM.HAVALE ? (document.getElementById('elden-kisi').value||null) : null;
   const _eldenEskiKayit = editEldenId ? (DB.eldenler||[]).find(x=>x.id===editEldenId) : null;
   const _eldenEskiDurum = _eldenEskiKayit ? _eldenEskiKayit.odDurum : null;
   const _eldenDirektOdendi = !!document.getElementById('elden-direkt-odendi-toggle')?.checked;
@@ -159,7 +160,7 @@ export function _doSaveElden() {
     tutar,
     paraBirimi: (()=>{
       // Havale + hesap seçiliyse hesabın para birimini al
-      if(yontem==='havale' && hesapId) {
+      if(yontem===ODEME_YONTEM.HAVALE && hesapId) {
         const h = (DB.hesaplar||[]).find(x=>x.id===hesapId);
         if(h && h.paraBirimi) return h.paraBirimi;
       }
@@ -188,13 +189,13 @@ export function _doSaveElden() {
   // şimdi kapatıldıysa: "Bekliyor"a döndür ve yansıtılan bakiyeyi geri al.
   const _eldenYeniTutarAbs = Math.abs(elden.tutar);
   if (_eldenDirektOdendi) {
-    odSetDurum(elden, undefined, { durum: 'odendi', tarih: elden.tarih, tutar: _eldenYeniTutarAbs, not: '' });
-    odLogEkle('elden', elden.id, undefined, 'odendi', _eldenYeniTutarAbs, '');
-    call('_otoBakiyeGuncelle', 'elden', elden.id, undefined, 'odendi', _eldenYeniTutarAbs);
+    odSetDurum(elden, undefined, { durum: ODEME_DURUM.ODENDI, tarih: elden.tarih, tutar: _eldenYeniTutarAbs, not: '' });
+    odLogEkle('elden', elden.id, undefined, ODEME_DURUM.ODENDI, _eldenYeniTutarAbs, '');
+    call('_otoBakiyeGuncelle', 'elden', elden.id, undefined, ODEME_DURUM.ODENDI, _eldenYeniTutarAbs);
   } else if (odOdendiMi(_eldenEskiDurum)) {
     odSetDurum(elden, undefined, null);
-    odLogEkle('elden', elden.id, undefined, 'bekliyor', 0, '');
-    call('_otoBakiyeGuncelle', 'elden', elden.id, undefined, 'bekliyor', 0);
+    odLogEkle('elden', elden.id, undefined, ODEME_DURUM.BEKLIYOR, 0, '');
+    call('_otoBakiyeGuncelle', 'elden', elden.id, undefined, ODEME_DURUM.BEKLIYOR, 0);
   }
 
   saveData();
@@ -207,10 +208,10 @@ export function deleteElden(id) {
     const e = DB.eldenler.find(x=>x.id===id);
     if(e) {
       // Bakiyeyi geri al
-      if(e.yontem === 'havale' && e.hesapId) {
+      if(e.yontem === ODEME_YONTEM.HAVALE && e.hesapId) {
         const hesap = (DB.hesaplar||[]).find(h=>h.id===e.hesapId);
         if(hesap) hesap.bakiye = (hesap.bakiye||0) - e.tutar;
-      } else if(e.yontem === 'nakit') {
+      } else if(e.yontem === ODEME_YONTEM.NAKIT) {
         const pb = e.paraBirimi || defaultCurrency || 'TRY';
         if(!DB._nakitBakiye) DB._nakitBakiye = {};
         DB._nakitBakiye[pb] = (DB._nakitBakiye[pb]||0) - e.tutar;
@@ -256,16 +257,16 @@ export function onEldenKisiChange() {
 }
 
 export function onEldenTurChange() {
-  const tur = (document.getElementById('elden-tur')||{}).value || 'gider';
+  const tur = (document.getElementById('elden-tur')||{}).value || ISLEM_TUR.GIDER;
   const katEl = document.getElementById('elden-kategori');
   if(katEl) { katEl.innerHTML = getKategoriOpts(tur); phSet(katEl, 'Kategori seçin…', katEl.value||'', '— Kategori bulunamadı —'); }
   _updateEldenTutarTumBtn();
 }
 
 export function _eldenHesapKullanilabilirBakiye() {
-  const tur = (document.getElementById('elden-tur')||{}).value || 'gider';
-  const yontem = (document.getElementById('elden-yontem')||{}).value || 'nakit';
-  if (tur !== 'gider' || yontem !== 'havale') return null;
+  const tur = (document.getElementById('elden-tur')||{}).value || ISLEM_TUR.GIDER;
+  const yontem = (document.getElementById('elden-yontem')||{}).value || ODEME_YONTEM.NAKIT;
+  if (tur !== ISLEM_TUR.GIDER || yontem !== ODEME_YONTEM.HAVALE) return null;
   const hesapId = (document.getElementById('elden-hesap')||{}).value || '';
   return hesapKullanilabilirBakiye(hesapId);
 }
@@ -317,7 +318,7 @@ export function onEldenHesapChangePb() {
 
 export function onEldenYontemChange() {
   const yontem = document.getElementById('elden-yontem').value;
-  const havale = yontem === 'havale';
+  const havale = yontem === ODEME_YONTEM.HAVALE;
   document.getElementById('elden-hesap-wrap').style.display = havale ? '' : 'none';
   document.getElementById('elden-karsi-iban-wrap').style.display = havale ? '' : 'none';
   if(!havale) {
@@ -452,12 +453,12 @@ export function editElden(id) {
     pbSel.value = e.paraBirimi || defaultCurrency || 'TRY';
   }
   // Yöntem
-  const yontem = e.yontem||'nakit';
+  const yontem = e.yontem||ODEME_YONTEM.NAKIT;
   document.getElementById('elden-yontem').value = yontem;
   populateEldenHesapSelect();
   populateEldenKisiSelect();
-  document.getElementById('elden-hesap-wrap').style.display = yontem==='havale' ? '' : 'none';
-  document.getElementById('elden-karsi-iban-wrap').style.display = yontem==='havale' ? '' : 'none';
+  document.getElementById('elden-hesap-wrap').style.display = yontem===ODEME_YONTEM.HAVALE ? '' : 'none';
+  document.getElementById('elden-karsi-iban-wrap').style.display = yontem===ODEME_YONTEM.HAVALE ? '' : 'none';
   document.getElementById('elden-hesap').value = e.hesapId||'';
   document.getElementById('elden-karsi-iban').value = e.karsiIban||'';
   if(e.karsiIban) formatIbanView(document.getElementById('elden-karsi-iban'));
@@ -465,11 +466,11 @@ export function editElden(id) {
   // Para birimi badge'ını güncelle
   onEldenHesapChangePb();
   // Hesap bilgilerini otomatik doldur
-  if(yontem==='havale' && e.hesapId) onEldenHesapChange();
+  if(yontem===ODEME_YONTEM.HAVALE && e.hesapId) onEldenHesapChange();
   else document.getElementById('elden-hesap-bilgi-wrap').style.display = 'none';
   _updateEldenTutarTumBtn();
   // KT block modu: kisiId varsa kayıtlı, karsiAd varsa manuel
-  if (yontem === 'havale') {
+  if (yontem === ODEME_YONTEM.HAVALE) {
     const eldenKtBlockEdit = document.getElementById('elden-kt-block');
     const eldenKtToggleEdit = document.getElementById('elden-kt-toggle');
     if (eldenKtBlockEdit) {
@@ -528,8 +529,8 @@ export function renderElden() {
   if(eldenFiltreBarEl) {
     eldenFiltreBarEl.innerHTML = tblFiltreChipsHtml('TÜR', [
       {value:'', label:'◆ Tümü'},
-      {value:'gelir', label:'↑ Gelir'},
-      {value:'gider', label:'↓ Gider'}
+      {value:ISLEM_TUR.GELIR, label:'↑ Gelir'},
+      {value:ISLEM_TUR.GIDER, label:'↓ Gider'}
     ], _eldenTurFiltre, 'setEldenTurFiltre') + tblFiltreClearHtml(_eldenTurFiltre, 'setEldenTurFiltre')
     + tblFiltreChipsMultiHtml('ÖDEME DURUMU', ODEME_DURUM_FILTRE_OPTS, _eldenDurumFiltre, 'setEldenDurumFiltre') + tblFiltreClearMultiHtml(_eldenDurumFiltre, 'setEldenDurumFiltre');
     // [ES module] onclick="setEldenTurFiltre(...)"/"setEldenDurumFiltre(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
@@ -555,20 +556,20 @@ export function renderElden() {
       return String(ka?ka.ad:a.kategori||'').localeCompare(String(kb?kb.ad:b.kategori||''),'tr');
     }
   })
-    .filter(e => !_eldenTurFiltre || (e.tur==='gelir'?'gelir':'gider') === _eldenTurFiltre)
+    .filter(e => !_eldenTurFiltre || (e.tur===ISLEM_TUR.GELIR?ISLEM_TUR.GELIR:ISLEM_TUR.GIDER) === _eldenTurFiltre)
     .filter(e => !_eldenDurumFiltre.length || _eldenDurumFiltre.includes(odEfektifDurum(odGetDurum(e, undefined), e.tarih)));
   document.getElementById('elden-tbody').innerHTML = sorted.map(e=>{
     const katFind = (DB.kategoriler||[]).find(x=>x.id===e.kategori);
     const katLabel = katFind ? katFind.ikon+' '+katFind.ad : (e.kategori||'-');
     let yontemLabel = '💵 Nakit';
-    if(e.yontem==='havale') {
+    if(e.yontem===ODEME_YONTEM.HAVALE) {
       const hesap = (DB.hesaplar||[]).find(h=>h.id===e.hesapId);
       const bankaAd = hesap ? getBanka(hesap.banka) : '';
       const hesapAd = hesap ? (bankaAd && bankaAd!=='-' ? bankaAd+' · '+hesap.ad : hesap.ad) : '';
       const karsiInfo = [e.karsiAd, e.karsiIban ? '···'+e.karsiIban.slice(-4) : ''].filter(Boolean).join(' / ');
       // Gelir: para karşı taraftan hesaba giriyor → "Karşı → Hesap"
       // Gider: para hesaptan karşı tarafa çıkıyor → "Hesap → Karşı"
-      const yon = e.tur==='gelir'
+      const yon = e.tur===ISLEM_TUR.GELIR
         ? (karsiInfo ? karsiInfo+' → '+(hesapAd||'?') : '')
         : (karsiInfo ? (hesapAd||'?')+' → '+karsiInfo : '');
       yontemLabel = `🏦 Havale${hesapAd && !karsiInfo ? '<div style="font-size:10px;color:var(--text3)">'+hesapAd+'</div>' : ''}${yon?'<div style="font-size:10px;color:var(--text3)">'+yon+'</div>':''}`;
@@ -576,7 +577,7 @@ export function renderElden() {
     return `<tr>
       <td class="mono">${fmtDate(e.tarih)}</td>
       <td>${e.aciklama||'-'}</td>
-      <td><span class="badge ${e.tur==='gelir'?'badge-green':'badge-red'}">${e.tur==='gelir'?'Gelir':'Gider'}</span></td>
+      <td><span class="badge ${e.tur===ISLEM_TUR.GELIR?'badge-green':'badge-red'}">${e.tur===ISLEM_TUR.GELIR?'Gelir':'Gider'}</span></td>
       <td class="mono ${e.tutar>=0?'green':'red'}">${fmtCur(Math.abs(e.tutar), e.paraBirimi||'TRY')}</td>
       <td><span class="badge badge-blue" style="font-family:var(--mono);letter-spacing:.03em">${e.paraBirimi||'TRY'}</span></td>
       <td>${katLabel}</td>

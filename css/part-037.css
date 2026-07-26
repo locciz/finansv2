@@ -13,28 +13,7 @@
 #modal-transfer .transfer-hidden-account-label{display:none!important;}
 #modal-transfer label.rf-required-star-only{display:none!important;}
 
-/* Son transferler — asıl üretilen inline-flex satırları semantic class ile grid'e çekiliyor. */
-#transfer-log-liste{max-width:100%!important;min-width:0!important;overflow-x:hidden!important;}
-#transfer-log-liste .rf-transfer-row-compact{
-  width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
-  display:grid!important;grid-template-columns:minmax(0,1fr) max-content max-content!important;
-  grid-template-areas:"main amount actions"!important;gap:8px!important;align-items:start!important;
-  padding:8px 10px!important;background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:10px!important;font-size:11.5px!important;overflow:hidden!important;
-}
-#transfer-log-liste .rf-transfer-compact-main{grid-area:main!important;min-width:0!important;max-width:100%!important;}
-#transfer-log-liste .rf-transfer-compact-route,
-#transfer-log-liste .rf-transfer-compact-note{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.28!important;min-width:0!important;max-width:100%!important;}
-#transfer-log-liste .rf-transfer-compact-amount{grid-area:amount!important;min-width:max-content!important;text-align:right!important;justify-self:end!important;}
-#transfer-log-liste .rf-transfer-compact-actions{grid-area:actions!important;display:inline-flex!important;gap:4px!important;justify-self:end!important;align-items:center!important;min-width:max-content!important;}
-#transfer-log-liste .rf-transfer-compact-actions button{min-width:32px!important;min-height:32px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0!important;border-radius:9px!important;}
-@media (max-width:520px){
-  #transfer-log-liste .rf-transfer-row-compact{grid-template-columns:minmax(0,1fr) max-content!important;grid-template-areas:"main main" "amount actions"!important;gap:6px 8px!important;}
-  #transfer-log-liste .rf-transfer-compact-amount{justify-self:start!important;text-align:left!important;}
-}
-@media (max-width:340px){
-  #transfer-log-liste .rf-transfer-row-compact{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"main" "amount" "actions"!important;}
-  #transfer-log-liste .rf-transfer-compact-actions{justify-self:start!important;}
-}
+/* [KALDIRILDI] Son Transferler stilleri artık tek parça halinde css/transfer-log.css içinde. */
 
 /* Aylık gelir/gider/bakiye modalı: uzun açıklama tabloyu/modali genişletmesin.
    NOT: #modal-tbk-ay-detay (backdrop) kasıtlı olarak listede yok — aynı pozisyon

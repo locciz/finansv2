@@ -10,10 +10,10 @@ import { _restoreKdIslemSiralamaFromDB } from '../../components/tablo-filtre-sir
 import { calcAsgariOdeme } from '../asgari-odeme.js';
 import { EE_STATE } from '../ekstreler/02-ekstre-render.js';
 import { bindIslemRowEvents, islemRowHtml } from '../islemler/03-islem-liste-render.js';
-import { _kd2AcikExtreDonem, _kd2AcikIslemAy, _kd2ActiveTab, _kd2ExtreKatFiltre, _kd2IslemArama, _kd2IslemKatFiltre, _kdAcikExtreDonem, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatBarCtx, set_kd2AcikIslemAy, set_kd2ActiveTab, set_kd2IslemArama, set_kdAcikExtreDonem, set_kdExtreKatFiltre, set_kdIslemKatFiltre, set_kdKatBarCtx } from './00-state.js';
+import { _kd2AcikExtreDonem, _kd2ActiveTab, _kd2ExtreKatFiltre, _kd2IslemArama, _kd2IslemKatFiltre, _kdAcikExtreDonem, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatBarCtx, set_kd2ActiveTab, set_kd2IslemArama, set_kdAcikExtreDonem, set_kdExtreKatFiltre, set_kdIslemKatFiltre, set_kdKatBarCtx } from './00-state.js';
 import { editKart, getKart, getKartCurrency, getKartDonemBorcu, getKartDonemParaBirimleri, getKartKullanilabilirLimit, getKartKullanim, getKartToplamLimit, kartAktifDonemBul, kartOdemeTarihiEfektif } from './01-kart-data.js';
 import { kdRenderKatBar } from './02-kategori-arama-widget.js';
-import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle, _kdCoreToggleIslemAy, kartDetayGeriDon } from './03-kart-detay-ortak.js';
+import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle, kartDetayGeriDon } from './03-kart-detay-ortak.js';
 import { getOrtakGrupKullanim, openOrtakGrupModal } from './07-ortak-limit-grubu.js';
 import { _kd2IslemSiralama, _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2IslemSiralama, set_kdIslemSiralama, set_kdKartId } from './09-kart-altyapi.js';
 import { renderKartlar } from './10-kart-liste.js';
@@ -617,9 +617,8 @@ export function kd2RenderIslemler() {
   bindIslemRowEvents(list);
 }
 
-export function kd2ToggleIslemAy(key) {
-  set_kd2AcikIslemAy(_kdCoreToggleIslemAy('kd2', key, () => _kd2AcikIslemAy));
-}
+// [KALDIRILDI] kd2ToggleIslemAy(key) — kdToggleIslemAy'in v2 karşılığı, aynı
+// sebeple ölü (ölü kod taraması, 2026-07).
 
 export function kd2IslemAramaDegisti(val) {
   set_kd2IslemArama(val);

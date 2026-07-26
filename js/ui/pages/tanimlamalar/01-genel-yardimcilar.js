@@ -57,10 +57,8 @@ export function bankaOptionMetin(b) {
   return `${ikon.emoji} ${b.kisa}`;
 }
 
-export function bankaKisaById(id) {
-  const b = (DB.bankalar||[]).find(x=>x.id===id);
-  return b ? bankaOptionMetin(b) : (id || '-');
-}
+// [KALDIRILDI] bankaKisaById(id) — hiçbir yerden çağrılmıyordu (ölü kod
+// taraması, 2026-07).
 
 export function getHesapTurLabel(kod) {
   const t = (DB.hesapTurleri||[]).find(x=>x.kod===kod);

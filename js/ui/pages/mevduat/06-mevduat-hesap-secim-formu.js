@@ -152,55 +152,15 @@ export function onMevOtoHesapToggle() {
 
 // Kaynak hesap seçilince banka otomatik algıla
 
-export function onMevKaynakHesapChange() {
-  const sel = document.getElementById('mev-kaynak-hesap-id');
-  const hesapId = sel ? sel.value : '';
-  const displayWrap = document.getElementById('mev-banka-display');
-  const displayText = document.getElementById('mev-banka-ad-text');
-  const hiddenInp = document.getElementById('mev-banka-hidden');
-  if(!hesapId) {
-    if(displayWrap) displayWrap.style.display='none';
-    if(hiddenInp) hiddenInp.value='';
-    _updateMevTutarBakiyeHint();
-    return;
-  }
-  const hesap = (DB.hesaplar||[]).find(h=>h.id===hesapId);
-  if(!hesap) return;
-  // Para birimi otomatik doldur
-  const curSel = document.getElementById('mev-para-birimi');
-  if(curSel && hesap.paraBirimi) curSel.value = hesap.paraBirimi;
-  // Banka tespiti
-  if(hesap.banka) {
-    const bankaObj = (DB.bankalar||[]).find(b=>b.id===hesap.banka);
-    if(bankaObj) {
-      if(displayText) displayText.textContent = bankaObj.kisa;
-      if(displayWrap) displayWrap.style.display='flex';
-      if(hiddenInp) hiddenInp.value = hesap.banka;
-      // Vadesiz hesap listesini aynı bankadan filtrele
-      _fillMevVadesizSel('', hesap.banka);
-      _updateMevTutarBakiyeHint();
-      return;
-    }
-  }
-  // Banka bilgisi yoksa pill gizle
-  if(displayWrap) displayWrap.style.display='none';
-  if(hiddenInp) hiddenInp.value='';
-  _updateMevTutarBakiyeHint();
-}
+// [KALDIRILDI] onMevKaynakHesapChange() — "mev-kaynak-hesap-id" id'li element
+// index.html'de hiç yok, hiçbir yerden çağrılmıyordu; eski bir mevduat formu
+// tasarımından kalma (ölü kod taraması, 2026-07).
 
 // Paranın alınacağı kaynak hesap listesi — tüm aktif vadesiz hesaplar
 
-export function _fillMevKaynakSel(bankaId) {
-  const sel = document.getElementById('mev-kaynak-hesap-id');
-  if(!sel) return;
-  const secilenPb = (document.getElementById('mev-para-birimi')||{}).value || '';
-  let hesaplar = (DB.hesaplar||[]).filter(h => h.durum==='aktif' && h.tur !== 'vadeli');
-  if(secilenPb) hesaplar = hesaplar.filter(h=>(h.paraBirimi||'TRY') === secilenPb);
-  sel.innerHTML = hesaplar.map(h => `<option value="${h.id}">${hesapOptionMetin(h)}</option>`).join('');
-  const bosMsg = secilenPb ? `— ${secilenPb} cinsinden vadesiz hesap bulunamadı —` : '— Vadesiz hesap bulunamadı —';
-  phSet(sel, 'Seçin (isteğe bağlı)…', '', bosMsg);
-  _updateMevTutarBakiyeHint();
-}
+// [KALDIRILDI] _fillMevKaynakSel(bankaId) — "mev-kaynak-hesap-id" id'li element
+// index.html'de hiç yok, hiçbir yerden çağrılmıyordu; onMevKaynakHesapChange
+// ile aynı eski tasarımın parçasıydı (ölü kod taraması, 2026-07).
 
 // ── Kaynak hesap bakiyesi ile girilen tutarı karşılaştırır ──────────────
 // Sadece "Yeni Vadeli Hesap Kaydı Oluştur" (oto hesap) modunda, kaynak hesap

@@ -478,50 +478,9 @@ export function renderOzetBakiyeUyarilar() {
 
 export let _provizyonGizliIslemler = new Set(); // "Sonra" denilip gizlenen işlemler (bu oturum için)
 
-export function renderBakiyeIslemGecmisi(hesapId) {
-  const gecmis = [];
-  const todayStr = localDateStr(new Date());
-
-  // Kira ödemeleri
-  (DB.kiralar||[]).filter(k=>k.hesapId===hesapId).forEach(k=>{
-    const aylar = kontratAylariHesapla(k, new Date().getFullYear());
-    aylar.forEach(a=>{
-      const ov = odKiraMaasOverride(k, a.ay);
-      const durum = ov?.durum;
-      if(durum === 'odendi' || durum === 'kismi') {
-        const tutar = ov?.tutar !== undefined ? Math.abs(ov.tutar) : Math.abs(a.tutar);
-        const yon = k.tutar >= 0 ? 1 : -1;
-        gecmis.push({tarih: ov?.tarih||a.tarih, aciklama: '🏠 Kira: '+(k.aciklama||''), tutar: tutar*yon, durum, pb: k.paraBirimi});
-      }
-    });
-  });
-
-  // Maaş ödemeleri (her ay için odemeOverrides[ay] — kontratAylariHesapla maaş için de çalışır)
-  (DB.maaslar||[]).filter(m=>m.hesapId===hesapId).forEach(m=>{
-    const aylar = (typeof kontratAylariHesapla === 'function') ? kontratAylariHesapla(m, new Date().getFullYear()) : [];
-    aylar.forEach(a=>{
-      const ov = odKiraMaasOverride(m, a.ay);
-      const durum = ov?.durum;
-      if(durum === 'odendi' || durum === 'kismi') {
-        const tutar = ov?.tutar !== undefined ? Math.abs(ov.tutar) : Math.abs(m.tutar);
-        gecmis.push({tarih: ov?.tarih||a.tarih, aciklama: '💼 Maaş: '+(m.aciklama||''), tutar, durum, pb: m.paraBirimi});
-      }
-    });
-  });
-
-  // Elden ödemeler
-  (DB.eldenler||[]).filter(e=>e.hesapId===hesapId).forEach(e=>{
-    const ov = e.odDurum;
-    const durum = ov?.durum;
-    if(durum === 'odendi' || durum === 'kismi') {
-      const tutar = ov?.tutar !== undefined ? Math.abs(ov.tutar) : Math.abs(e.tutar);
-      gecmis.push({tarih: ov?.tarih||e.tarih, aciklama: (e.tur==='gelir'?'📈':'📉')+' Elden: '+(e.aciklama||''), tutar, durum, pb: e.paraBirimi});
-    }
-  });
-
-  gecmis.sort((a,b)=>b.tarih.localeCompare(a.tarih));
-  return gecmis;
-}
+// [KALDIRILDI] renderBakiyeIslemGecmisi(hesapId) — kira/maaş/elden ödeme
+// geçmişini birleştirip döndüren yardımcı, hiçbir yerden çağrılmıyordu
+// (ölü kod taraması, 2026-07).
 
 /* rf-v86: global tablo etiketleyici observer kaldırıldı; prosedürel labelizer ekleniyor. */
 /* ═══════════════════════════════════════════════════════════════════════════

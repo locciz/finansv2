@@ -44,17 +44,8 @@
   display: none !important;
 }
 
-/* 3) Son Transferler: sığmayan satırlar alta kırılsın; yatay taşma üretmesin.
-   [KONSOLİDASYON] .rf-transfer-row'un layout kuralları buradan kaldırıldı —
-   part-036/037/038/039 arasında aynı seçiciye dört farklı katman (grid→flex→grid,
-   çelişen white-space/overflow, media query'lerde eski .state grid-area'sı vb.)
-   satırların üst üste binmesine yol açıyordu. Artık TEK layout tanımı
-   part-039.css'te (son yüklenen dosya) toplu. */
-#transfer-log-liste {
-  max-width: 100% !important;
-  min-width: 0 !important;
-  overflow-x: hidden !important;
-}
+/* 3) [KALDIRILDI] Son Transferler stilleri artık tek parça halinde
+   css/transfer-log.css içinde. */
 
 /* 4) Aylık gelir/gider/bakiye ay modalı: uzun açıklama satırı modalı genişletmesin.
    NOT: #modal-tbk-ay-detay burada KASITLI OLARAK yok — bu id, modalın tam ekran

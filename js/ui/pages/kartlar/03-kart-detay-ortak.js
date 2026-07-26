@@ -2,7 +2,7 @@ import { saveData } from '../../../core/app-core-base.js';
 import { _pushHashState } from '../../../core/init.js';
 import { DB } from '../../../core/state.js';
 import { _restoreKdIslemSiralamaFromDB } from '../../components/tablo-filtre-sirala.js';
-import { _kd2AcikExtreDonem, _kd2AcikIslemAy, _kd2IslemArama, _kd2IslemKatFiltre, _kdAcikIslemAy, _kdIslemArama, _kdIslemKatFiltre, set_kd2AcikExtreDonem, set_kd2AcikIslemAy, set_kd2IslemArama, set_kd2IslemKatFiltre, set_kdAcikIslemAy, set_kdIslemArama, set_kdIslemKatFiltre } from './00-state.js';
+import { _kd2AcikExtreDonem, _kd2IslemArama, _kd2IslemKatFiltre, _kdIslemArama, _kdIslemKatFiltre, set_kd2AcikExtreDonem, set_kd2IslemArama, set_kd2IslemKatFiltre, set_kdIslemArama, set_kdIslemKatFiltre } from './00-state.js';
 import { editKart, getKart, getKartRenk } from './01-kart-data.js';
 import { kdSwitchTab } from './04-kart-detay-v1.js';
 import { kd2RenderOzetBanner, kd2SwitchTab } from './05-kart-detay-v2.js';
@@ -22,9 +22,9 @@ export function gotoKartIslemleri(kartId) {
   acKartDetaySayfa(kartId, 'islem');
 }
 
-export function gotoKartEkstre(kartId) {
-  acKartDetaySayfa(kartId, 'extre');
-}
+// [KALDIRILDI] gotoKartEkstre(kartId) — hiçbir yerden çağrılmıyordu (ölü kod
+// taraması, 2026-07). Kart detayına ekstre sekmesiyle gitme özelliği yok,
+// sadece işlemler sekmesiyle gidilen gotoKartIslemleri kullanılıyor.
 
 export function acKartDetaySayfa(kartId, tab) {
   const k = getKart(kartId);
@@ -33,7 +33,6 @@ export function acKartDetaySayfa(kartId, tab) {
     _restoreKdIslemSiralamaFromDB();
     set_kd2IslemArama('');
     set_kd2IslemKatFiltre(null);
-    set_kd2AcikIslemAy(null);
     set_kd2AcikExtreDonem(null);
   }
   set_kd2KartId(kartId);
@@ -72,22 +71,10 @@ export function _kdCoreSwitchTabToggle(prefix, tab) {
   return activeEl;
 }
 
-export function _kdCoreToggleIslemAy(prefix, key, getAcik) {
-  const card = document.getElementById(prefix + '-islem-month-card-' + key);
-  const body = document.getElementById(prefix + '-islem-month-body-' + key);
-  if (!card || !body) return getAcik();
-  const acik = getAcik();
-  const willOpen = acik !== key;
-  if (acik && acik !== key) {
-    const prevCard = document.getElementById(prefix + '-islem-month-card-' + acik);
-    const prevBody = document.getElementById(prefix + '-islem-month-body-' + acik);
-    if (prevCard) prevCard.classList.remove('open');
-    if (prevBody) prevBody.style.maxHeight = '0px';
-  }
-  card.classList.toggle('open', willOpen);
-  body.style.maxHeight = willOpen ? body.scrollHeight + 'px' : '0px';
-  return willOpen ? key : null;
-}
+// [KALDIRILDI] _kdCoreToggleIslemAy(prefix, key, getAcik) — "aya göre grupla"
+// kart/body DOM elementlerini (`${prefix}-islem-month-card-*` vb.) ararken,
+// bu id desenleri render kodunun hiçbir yerinde üretilmiyordu; özellik hiç
+// tamamlanmamış, tamamen ölü kod (ölü kod taraması, 2026-07).
 
 export function _kdCoreAramaSync(prefix, value, renderFn) {
   const btn = document.getElementById(prefix + '-islem-arama-temizle');
@@ -118,7 +105,6 @@ export function openKartDetayModal(kartId, tab) {
     _restoreKdIslemSiralamaFromDB();
     set_kdIslemArama('');
     set_kdIslemKatFiltre(null);
-    set_kdAcikIslemAy(null);
   }
   set_kdKartId(kartId);
   const banka = getBanka(k.banka);
