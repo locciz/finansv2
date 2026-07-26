@@ -11,10 +11,12 @@
 // arasında gezinsin.
 //
 // Tasarım kararı — mevcut 13 dosyaya TEK SATIR bile dokunmadan:
-//   1) Her modalin "wizardStepGoto:<modalId>" kaydı zaten registry'de var
-//      (bkz. js/ui/components/mobile-nav-tema/01-mobil-nav.js:WIZARD_STEP_GOTO_MAP).
-//      register()'ı BİR KEZ burada sarmalayarak, bu isimlerden biri her
-//      register/çağrıldığında hash'i güncel step ile senkron tutuyoruz.
+//   1) Adım değişimini YAKALAMAK için register() sarmalamayı DENEDİK ama
+//      bu çalışmadı — "İleri/Geri" butonları stepNext/stepGoto'yu registry
+//      üzerinden değil doğrudan çağırıyor (bkz. aşağıdaki uzun not).
+//      Onun yerine her modalin `.swiz-step-panel.is-active` DOM class'ını
+//      MutationObserver ile izliyoruz; bu class hangi kod yolundan
+//      tetiklenirse tetiklensin her zaman güncelleniyor.
 //   2) Modal restore edilirken (sayfa yenileme/deep-link) hangi "open"
 //      fonksiyonunun çağrılacağını burada bir eşleme tablosunda tutuyoruz.
 //      Sadece id GEREKTİRMEYEN (yeni kayıt) açılışlar restore edilir —
@@ -33,7 +35,7 @@ import { openNakitAvansModal } from '../ui/pages/krediler/02-nakit-avans.js';
 import { openParaBirimiModal } from '../ui/pages/tanimlamalar/06-para-birimi.js';
 import { openHesapModal } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
 import { openModal } from '../ui/components/modal-genel.js';
-import { register, get } from './wrap-registry.js';
+import { get } from './wrap-registry.js';
 import { getMoneyInput, setMoneyInput, setDateInputValue } from '../ui/components/money-input.js';
 // NOT: _currentHashPage/_currentHashParams/_pushHashState burada import
 // EDİLMİYOR — init.js zaten wizard-routing.js'i import ediyor; ters yönde
@@ -189,60 +191,69 @@ export const WIZARD_RESTORE_OPENERS = {
 // eklenecek isim listesi — orada da bu diziye referans veriliyor).
 export const WIZARD_RESTORABLE_MODAL_IDS = Object.keys(WIZARD_RESTORE_OPENERS);
 
-// ── 1) Her wizardStepGoto:<modalId> / wizardStepNext:<modalId> çağrıldığında
-//        hash'i güncel adımla senkron tut ─────────────────────────────────
-// register()'ı bir kez sarmalıyoruz: registry'ye bu isimlerden biri her
-// (yeniden) kaydedildiğinde, onu hash-güncelleme davranışı ekleyen bir
-// katmanla sarıp tekrar kaydediyoruz. Böylece 13 dosyanın hiçbiri
-// değişmeden, hem "İleri/Geri" butonları hem de restore sırasındaki
-// validasyonlu stepNext() zinciri hash'i doğru adımda tutar — validasyon
-// bir adımda durursa (örn. zorunlu alan boş) hash de GERÇEKTE durulan
-// adımı yansıtır, hedeflenen adımı değil.
-function _wrapStepFnForHash(modalId, fn) {
-  if (fn._hashRoutedWrap) return fn; // zaten sarmalanmış, tekrar sarma
-  const wrapped = function(...args) {
-    const r = fn(...args);
-    // Modal gerçekten açık değilse (ör. programatik ön-hesaplama) hash'e yazma.
-    const modalEl = document.getElementById(modalId);
-    if (modalEl && modalEl.classList.contains('open')) {
-      const curPage = _wrCurrentHashPage() || 'ozet';
-      const curParams = _wrCurrentHashParams();
-      if (curParams.modal === modalId) {
-        const getCurrent = get('wizardCurrentStep:' + modalId);
-        if (typeof getCurrent === 'function') {
-          curParams.step = String(getCurrent());
-          _wrPushHashState(curPage, curParams);
-        }
-      }
-    }
-    return r;
-  };
-  wrapped._hashRoutedWrap = true;
-  return wrapped;
+// ── 1) Aktif adımı hash ile senkron tut — MutationObserver tabanlı ──────
+// İLK TASARIM (artık terk edildi): registry'deki wizardStepGoto:X /
+// wizardStepNext:X kayıtlarını sarmalayıp üzerine hash-yazma davranışı
+// eklemek. BU YAKLAŞIM ÇALIŞMADI çünkü modallerin "İleri/Geri" butonları
+// (bkz. js/core/onclick-bootstrap.js, örn. transfer-step-next-btn) bu
+// fonksiyonları registry'nin call() fonksiyonu ÜZERİNDEN değil, import
+// edilen fonksiyon referansını DOĞRUDAN çağırıyor. register() sadece
+// registry'deki referansı değiştirir — modülün kendi local fonksiyon
+// referansına ya da onu doğrudan tutan başka bir dosyaya dokunamaz. Yani
+// sarmalama hiç tetiklenmiyordu.
+//
+// GERÇEK ÇÖZÜM: step-wizard.js:swizUpdateStepIndicator(modal, step), hangi
+// fonksiyon (call() ile mi, doğrudan mı) tetiklerse tetiklesin HER ZAMAN
+// modal içindeki `.swiz-step-panel[data-step-panel]` elemanlarına
+// `is-active` class'ını ekleyip çıkarıyor. Bu, "şu an hangi adımdayız"
+// sorusuna DOM üzerinden %100 güvenilir cevap veren tek sinyal. Bu yüzden
+// fonksiyon çağrılarını sarmalamak yerine, her restorabilir modal için bu
+// class değişimini MutationObserver ile izliyoruz — hangi kod yolu adımı
+// değiştirirse değiştirsin yakalanır.
+const _wrStepObservers = new Map();
+
+function _wrGetActiveStepFromDom(modalEl) {
+  const activePanel = modalEl.querySelector('.swiz-step-panel.is-active[data-step-panel]');
+  return activePanel ? Number(activePanel.dataset.stepPanel) : 1;
 }
 
-// register'ı GERÇEKTEN ezmiyoruz (immutable export sorunu yaşamamak için) —
-// bunun yerine WIZARD_RESTORE_OPENERS'daki her modalId için, uygulama
-// yüklendikten hemen sonra registry'deki mevcut wizardStepGoto:X ve
-// wizardStepNext:X kayıtlarını okuyup üstüne hash-routed bir katman daha
-// register ediyoruz. Bu, register/get/call zincirleme-wrap deseninin ta
-// kendisi (bkz. wrap-registry.js açıklaması).
-function installHashRoutingForAllWizards() {
-  WIZARD_RESTORABLE_MODAL_IDS.forEach(modalId => {
-    ['wizardStepGoto:', 'wizardStepNext:'].forEach(prefix => {
-      const key = prefix + modalId;
-      const base = get(key);
-      if (typeof base !== 'function') return; // o modal henüz register etmemiş olabilir
-      register(key, _wrapStepFnForHash(modalId, base));
-    });
+function _wrSyncStepToHash(modalId, modalEl) {
+  if (!modalEl.classList.contains('open')) return;
+  const curParams = _wrCurrentHashParams();
+  if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
+  const step = _wrGetActiveStepFromDom(modalEl);
+  if (curParams.step === String(step)) return; // değişiklik yok, gereksiz history girişi açma
+  curParams.step = String(step);
+  _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
+}
+
+function _wrObserveStepsForModal(modalId) {
+  if (_wrStepObservers.has(modalId)) return; // zaten izleniyor
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+  const obs = new MutationObserver(muts => {
+    // Sadece .swiz-step-panel üzerindeki class değişimleriyle ilgileniyoruz
+    const relevant = muts.some(m => m.target.classList && m.target.classList.contains('swiz-step-panel'));
+    if (relevant) _wrSyncStepToHash(modalId, modalEl);
   });
+  obs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: true });
+  _wrStepObservers.set(modalId, obs);
 }
 
-// Modüller kendi register('wizardStepGoto:...', ...) çağrılarını KENDİ
-// dosyalarının en altında, modül yüklenirken senkron yapıyor. Bu dosya
-// index.html'de o 13 dosyadan SONRA yüklendiği sürece installHashRoutingForAllWizards()
-// hemen çalıştırılabilir; DOMContentLoaded'ı beklemeye gerek yok.
-installHashRoutingForAllWizards();
+function installHashRoutingForAllWizards() {
+  WIZARD_RESTORABLE_MODAL_IDS.forEach(modalId => _wrObserveStepsForModal(modalId));
+}
+
+// DOM parse sırasına göre modal elemanları script çalıştığında zaten
+// mevcut olmalı (modal HTML'leri index.html'de bu script tag'inden önce
+// duruyor) ama DOMContentLoaded'ı beklemek ekstra güvenlik sağlıyor —
+// document.readyState kontrolü, bu modül zaten geç yüklendiyse (DOM
+// hazırsa) event'i asla ateşlemeyen bir bekleyişe düşmemek için.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', installHashRoutingForAllWizards, { once: true });
+} else {
+  installHashRoutingForAllWizards();
+}
 
 // ── 2) Modal + step restore ───────────────────────────────────────────
 // init.js:navigateToHash() tarafından çağrılır. params.modal bu dosyadaki
