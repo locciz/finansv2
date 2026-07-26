@@ -19,6 +19,7 @@ import { renderOzet } from '../ui/pages/ozet.js';
 import { openModal } from '../ui/components/modal-genel.js';
 import { showPage } from './app-core-base.js';
 import { register, call } from './wrap-registry.js';
+import { restoreWizardModalFromHash, WIZARD_RESTORABLE_MODAL_IDS } from './wizard-routing.js';
 // ============================================================
 // js/core/init.js — Uygulama başlangıç/init akışı
 // ============================================================
@@ -137,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal geri yükle — sadece belirli "form dışı" / "okuma" modalleri restore et
     // (Yeni kayıt formları restore edilmez — kullanıcı formu yarıda bırakmış sayılır)
     const RESTORABLE_MODALS = [
-      'modal-kart-odeme',
       'modal-hesap-log',
       'modal-iban-popup',
       'modal-kategori-oneri',
@@ -148,11 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
       'modal-extre-durum',
       'modal-extre-kategori',
       'modal-ozel-extre',
+      ...WIZARD_RESTORABLE_MODAL_IDS, // modal-transfer, modal-kira, modal-maas, modal-elden, modal-abonelik, modal-kmhkredi, modal-kredi, modal-nakit-avans, modal-para-birimi, modal-hesap, modal-mevduat, modal-kart-odeme
     ];
     if(params.modal && RESTORABLE_MODALS.includes(params.modal)) {
       setTimeout(() => {
         const modalEl = document.getElementById(params.modal);
         if(!modalEl) return;
+        // Wizard modalleri (transfer, kira, maaş, elden, abonelik, kmh/kredi,
+        // nakit avans, para birimi, hesap, mevduat) — kendi "open" fonksiyonlarını
+        // çağırıp gerekiyorsa doğru adıma (params.step) gider. bkz. wizard-routing.js
+        if(WIZARD_RESTORABLE_MODAL_IDS.includes(params.modal) && params.modal !== 'modal-kart-odeme') {
+          if(restoreWizardModalFromHash(params)) return;
+        }
         switch(params.modal) {
           case 'modal-kategori-oneri':
             openKategoriOneriModal();
