@@ -218,29 +218,37 @@ function _wrGetActiveStepFromDom(modalEl) {
 }
 
 function _wrSyncStepToHash(modalId, modalEl) {
+  console.log('[wizard-routing DEBUG] _wrSyncStepToHash çağrıldı', modalId, 'open?', modalEl.classList.contains('open'));
   if (!modalEl.classList.contains('open')) return;
   const curParams = _wrCurrentHashParams();
+  console.log('[wizard-routing DEBUG] curParams.modal:', curParams.modal, 'beklenen:', modalId);
   if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
   const step = _wrGetActiveStepFromDom(modalEl);
+  console.log('[wizard-routing DEBUG] tespit edilen step:', step);
   if (curParams.step === String(step)) return; // değişiklik yok, gereksiz history girişi açma
   curParams.step = String(step);
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
+  console.log('[wizard-routing DEBUG] hash güncellendi, yeni hash:', location.hash);
 }
 
 function _wrObserveStepsForModal(modalId) {
   if (_wrStepObservers.has(modalId)) return; // zaten izleniyor
   const modalEl = document.getElementById(modalId);
-  if (!modalEl) return;
+  if (!modalEl) { console.warn('[wizard-routing DEBUG] modal bulunamadı:', modalId); return; }
   const obs = new MutationObserver(muts => {
+    console.log('[wizard-routing DEBUG] mutation tetiklendi', modalId, muts.map(m => m.target.className));
     // Sadece .swiz-step-panel üzerindeki class değişimleriyle ilgileniyoruz
     const relevant = muts.some(m => m.target.classList && m.target.classList.contains('swiz-step-panel'));
+    console.log('[wizard-routing DEBUG] relevant?', relevant);
     if (relevant) _wrSyncStepToHash(modalId, modalEl);
   });
   obs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: true });
   _wrStepObservers.set(modalId, obs);
+  console.log('[wizard-routing DEBUG] observer kuruldu:', modalId);
 }
 
 function installHashRoutingForAllWizards() {
+  console.log('[wizard-routing DEBUG] installHashRoutingForAllWizards çalıştı, modaller:', WIZARD_RESTORABLE_MODAL_IDS);
   WIZARD_RESTORABLE_MODAL_IDS.forEach(modalId => _wrObserveStepsForModal(modalId));
 }
 
