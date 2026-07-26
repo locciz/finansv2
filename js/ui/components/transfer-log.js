@@ -151,8 +151,6 @@ export function _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler) {
 const ARROW_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M3 8h9"/><path d="M9 4.5 12.5 8 9 11.5"/></svg>';
 const REPEAT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
 const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-const OK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-const NO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>';
 const EMPTY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
 
 // t.tarih bir "YYYY-MM-DD" string ise gün grubu etiketi üretir.
@@ -221,18 +219,14 @@ function renderTransferLog() {
     const pb = t.kaynakPb || t.hedefPb || 'TRY';
     const noteHtml = t.aciklama ? esc(t.aciklama) : fmtDate(t.tarih);
     html.push(`<div class="rf-transfer-row ${ok ? 'state-ok' : 'state-no'}" title="${ok ? 'Şu an tekrar yapılabilir' : 'Şu an tekrar yapılamaz'}">
-      <div class="rf-transfer-icon">${ok ? OK_SVG : NO_SVG}</div>
-      <div class="rf-transfer-main">
-        <div class="rf-transfer-route"><span class="rf-transfer-seg">${esc(side(t, 'k'))}</span><span class="rf-transfer-arrow">${ARROW_SVG}</span><span class="rf-transfer-seg">${esc(side(t, 'h'))}</span></div>
+      <div class="rf-transfer-route"><span class="rf-transfer-seg">${esc(side(t, 'k'))}</span><span class="rf-transfer-arrow">${ARROW_SVG}</span><span class="rf-transfer-seg">${esc(side(t, 'h'))}</span></div>
+      <div class="rf-transfer-bottom">
         <div class="rf-transfer-note">${noteHtml}</div>
-      </div>
-      <div class="rf-transfer-amount">
-        <div class="mono">${fmtCur(t.tutar, pb)}</div>
-        ${t.aciklama ? `<div class="rf-transfer-date">${fmtDate(t.tarih)}</div>` : ''}
-      </div>
-      <div class="rf-transfer-actions">
-        <button class="rf-transfer-tekrar-btn" data-id="${t.id}" title="Bu transferi tekrarla" aria-label="Bu transferi tekrarla">${REPEAT_SVG}</button>
-        <button class="rf-transfer-sil-btn danger" data-id="${t.id}" title="Sil" aria-label="Sil">${TRASH_SVG}</button>
+        <div class="rf-transfer-amount"><span class="mono">${fmtCur(t.tutar, pb)}</span></div>
+        <div class="rf-transfer-actions">
+          <button class="rf-transfer-tekrar-btn" data-id="${t.id}" title="Bu transferi tekrarla" aria-label="Bu transferi tekrarla">${REPEAT_SVG}</button>
+          <button class="rf-transfer-sil-btn danger" data-id="${t.id}" title="Sil" aria-label="Sil">${TRASH_SVG}</button>
+        </div>
       </div>
     </div>`);
   });
