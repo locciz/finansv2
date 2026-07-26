@@ -130,16 +130,20 @@ export function _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler) {
   const btn = el('transfer-log-filtre-btn');
   const label = el('transfer-log-filtre-label');
   if (!btn || !label) return;
+  const ico = btn.querySelector('.rf-transfer-filtre-ico');
+  const chev = btn.querySelector('.rf-transfer-filtre-chevron');
   if (!seciliFiltreler || !seciliFiltreler.length) {
     label.textContent = 'Tümü';
     label.className = 'sc-popup-placeholder';
-    btn.classList.add('sc-is-empty');
     btn.classList.remove('sc-has-value');
+    if (ico) ico.setAttribute('stroke', '#94a3b8');
+    if (chev) chev.setAttribute('stroke', '#94a3b8');
     return;
   }
-  btn.classList.remove('sc-is-empty');
   btn.classList.add('sc-has-value');
   label.className = '';
+  if (ico) ico.setAttribute('stroke', '#38bdf8');
+  if (chev) chev.setAttribute('stroke', '#38bdf8');
   if (seciliFiltreler.length === 1) {
     const f = seciliFiltreler[0];
     label.textContent = f.startsWith('h:') ? (hesapMap[f.slice(2)] || 'Hesap') : ('Nakit (' + f.slice(2) + ')');
