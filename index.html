@@ -4899,15 +4899,21 @@
       <div class="swiz-step-panel is-active" data-step-panel="1">
         <div class="msec" id="transfer-log-msec" style="margin-bottom:14px">
           <div class="rf-transfer-header-row">
-            <div class="msec-label" style="margin-bottom:0">📋 Son Transferler</div>
-            <div id="rf-transfer-status-filter" class="rf-transfer-status-filter" aria-label="Transfer yapılabilirlik filtresi"></div>
-            <button type="button" id="transfer-log-filtre-btn" class="sc-popup-trigger-btn transfer-log-filter-trigger sc-is-empty" aria-label="Son transferleri hesap/nakite göre filtrele">
-              <svg class="rf-transfer-filtre-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-              <span id="transfer-log-filtre-label" class="sc-popup-placeholder">Tümü</span>
-              <svg class="sc-popup-trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
+            <div class="rf-transfer-title">
+              <span class="rf-transfer-title-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+              <span>Son Transferler</span>
+              <span id="transfer-log-count" class="rf-transfer-count"></span>
+            </div>
+            <div class="rf-transfer-header-controls">
+              <div id="rf-transfer-status-filter" class="rf-transfer-status-filter" aria-label="Transfer yapılabilirlik filtresi"></div>
+              <button type="button" id="transfer-log-filtre-btn" class="sc-popup-trigger-btn transfer-log-filter-trigger sc-is-empty" aria-label="Son transferleri hesap/nakite göre filtrele">
+                <svg class="rf-transfer-filtre-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <span id="transfer-log-filtre-label" class="sc-popup-placeholder">Tümü</span>
+                <svg class="sc-popup-trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
           </div>
-          <div id="transfer-log-liste" style="max-height:160px;overflow-y:auto">
+          <div id="transfer-log-liste" style="max-height:220px;overflow-y:auto">
             <div class="rf-transfer-empty">Henüz transfer yok</div>
           </div>
         </div>

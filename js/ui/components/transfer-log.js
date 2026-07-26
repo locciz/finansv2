@@ -2,20 +2,19 @@
 // js/ui/components/transfer-log.js — "Son Transferler" listesi
 // (Para Transferi modalının 1. adımındaki geçmiş bölümü)
 //
-// Bu dosya, daha önce üç ayrı katmana dağılmış olan render mantığının
-// yerini alır:
-//   1) transfer-modal.js:renderTransferLog()          → taban tanım, ölü kod
-//   2) 01-transfer-log-senkron.js:register(...)        → hesap/nakit + durum filtresi
-//   3) tbk-detay.js:normalizeTransferLogRows()          → DOM'u runtime'da
-//      yeniden yazan "düzeltme" katmanı
-//   4) 07-genel-ui-burst-refresh.js:normalizeTransferRows() → inline style
-//      ile CSS grid'ini ezen ikinci bir "düzeltme" katmanı
-// Dört katman aynı listeyi farklı class isimleri ve çelişen CSS
-// kurallarıyla (bkz. eski part-036/037/038/039.css) üretmeye
-// çalıştığı için satırlar üst üste biniyor, tutarlar kesiliyordu.
-// Artık TEK render fonksiyonu var, TEK class seti üretiyor
-// (bkz. css/transfer-log.css) ve başka hiçbir modül bu listeye
+// Sıfırdan yeniden yazıldı (2026-07). Eski dört katmanlı render
+// mantığı (transfer-modal.js taban tanım + 01-transfer-log-senkron.js
+// + tbk-detay.js DOM normalizasyonu + 07-genel-ui-burst-refresh.js
+// inline-style ezmesi) kaldırılmıştı; bu dosya artık TEK render
+// fonksiyonu, TEK HTML şablonu ve TEK class seti üretir
+// (bkz. css/transfer-log.css). Başka hiçbir modül bu listeye
 // runtime'da müdahale etmiyor.
+//
+// Yeni görünüm eklentileri:
+//   - Başlıkta canlı kayıt sayacı ("12 kayıt")
+//   - Gün bazlı gruplama ("Bugün" / "Dün" / tarih)
+//   - Rota satırının solunda yapılabilirlik rozeti (yeşil/kırmızı ikon)
+//   - Boş durum için ikonlu, bağlama duyarlı mesaj (filtre/arama farkı)
 // ============================================================
 import { saveData } from '../../core/app-core-base.js';
 import { tblFiltreOkuMulti } from '../../core/app-core.js';
@@ -152,18 +151,35 @@ export function _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler) {
 const ARROW_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M3 8h9"/><path d="M9 4.5 12.5 8 9 11.5"/></svg>';
 const REPEAT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
 const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+const OK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const NO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>';
+const EMPTY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+
+// t.tarih bir "YYYY-MM-DD" string ise gün grubu etiketi üretir.
+function dayGroupLabel(tarih) {
+  if (!tarih || typeof tarih !== 'string') return '';
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+  const toKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const key = tarih.slice(0, 10);
+  if (key === toKey(today)) return 'Bugün';
+  if (key === toKey(yest)) return 'Dün';
+  return fmtDate(tarih);
+}
 
 function renderTransferLog() {
   ensurePrefs();
   DB.transferler = DB.transferler || [];
   const liste = el('transfer-log-liste');
   const sec = el('transfer-log-msec');
+  const countBadge = el('transfer-log-count');
   if (!liste) return;
 
   if (sec) sec.style.display = DB.transferler.length ? '' : 'none';
   renderStatusFilterBar();
   if (!DB.transferler.length) {
-    liste.innerHTML = '<div class="rf-transfer-empty">Henüz transfer yok</div>';
+    liste.innerHTML = `<div class="rf-transfer-empty">${EMPTY_SVG}<div>Henüz transfer yok</div></div>`;
+    if (countBadge) countBadge.textContent = '';
     return;
   }
 
@@ -186,16 +202,26 @@ function renderTransferLog() {
   const filter = currentStatus();
   if (filter) rows = rows.filter(t => possible(t) === (filter === 'ok'));
 
+  if (countBadge) countBadge.textContent = rows.length ? (rows.length + (rows.length === 1 ? ' kayıt' : ' kayıt')) : '';
+
   if (!rows.length) {
-    liste.innerHTML = '<div class="rf-transfer-empty">Kayıt yok</div>';
+    liste.innerHTML = `<div class="rf-transfer-empty">${EMPTY_SVG}<div>Bu filtreye uyan kayıt yok</div></div>`;
     return;
   }
 
-  liste.innerHTML = rows.map(t => {
+  let lastGroup = null;
+  const html = [];
+  rows.forEach(t => {
+    const grp = dayGroupLabel(t.tarih);
+    if (grp && grp !== lastGroup) {
+      html.push(`<div class="rf-transfer-daygroup">${esc(grp)}</div>`);
+      lastGroup = grp;
+    }
     const ok = possible(t);
     const pb = t.kaynakPb || t.hedefPb || 'TRY';
     const noteHtml = t.aciklama ? esc(t.aciklama) : fmtDate(t.tarih);
-    return `<div class="rf-transfer-row ${ok ? 'state-ok' : 'state-no'}" title="${ok ? 'Şu an tekrar yapılabilir' : 'Şu an tekrar yapılamaz'}">
+    html.push(`<div class="rf-transfer-row ${ok ? 'state-ok' : 'state-no'}" title="${ok ? 'Şu an tekrar yapılabilir' : 'Şu an tekrar yapılamaz'}">
+      <div class="rf-transfer-icon">${ok ? OK_SVG : NO_SVG}</div>
       <div class="rf-transfer-main">
         <div class="rf-transfer-route"><span class="rf-transfer-seg">${esc(side(t, 'k'))}</span><span class="rf-transfer-arrow">${ARROW_SVG}</span><span class="rf-transfer-seg">${esc(side(t, 'h'))}</span></div>
         <div class="rf-transfer-note">${noteHtml}</div>
@@ -208,8 +234,9 @@ function renderTransferLog() {
         <button class="rf-transfer-tekrar-btn" data-id="${t.id}" title="Bu transferi tekrarla" aria-label="Bu transferi tekrarla">${REPEAT_SVG}</button>
         <button class="rf-transfer-sil-btn danger" data-id="${t.id}" title="Sil" aria-label="Sil">${TRASH_SVG}</button>
       </div>
-    </div>`;
-  }).join('');
+    </div>`);
+  });
+  liste.innerHTML = html.join('');
 
   liste.querySelectorAll('.rf-transfer-tekrar-btn').forEach(btn => {
     btn.addEventListener('click', () => tekrarlaTransfer(btn.getAttribute('data-id')));

@@ -1,117 +1,205 @@
 /* ============================================================
    css/transfer-log.css — "Son Transferler" (Para Transferi modalı)
-   Bu dosya, daha önce part-005/036/037/038/039 arasına dağılmış ve
-   birbiriyle çakışan tüm ".rf-transfer-row*" kurallarının yerini
-   TEK PARÇA halinde alır. Başka hiçbir CSS dosyasında bu seçicilere
-   dokunulmamalı.
+   Sıfırdan yeniden tasarlandı — tek parça, çakışmasız.
    ============================================================ */
 
-/* ── Bölüm başlığı: "Son Transferler" satırı + durum filtresi + hesap/nakit filtresi ── */
+#transfer-log-msec {
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--surface2), var(--surface1, var(--surface2)));
+  border: 1px solid rgba(255, 255, 255, .08);
+  padding: 12px 12px 10px;
+  overflow: hidden;
+}
+[data-theme="light"] #transfer-log-msec,
+.light #transfer-log-msec {
+  border-color: rgba(0, 0, 0, .08);
+}
+
+/* ── Başlık satırı ── */
 #transfer-log-msec .rf-transfer-header-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
   gap: 8px 6px;
+  margin-bottom: 10px;
 }
-#transfer-log-msec .rf-transfer-header-row .msec-label {
+#transfer-log-msec .rf-transfer-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text2, #cbd5e1);
+  flex-shrink: 0;
+}
+#transfer-log-msec .rf-transfer-title .rf-transfer-title-ico {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: rgba(56, 189, 248, .14);
+  color: var(--sky);
+  flex-shrink: 0;
+}
+#transfer-log-msec .rf-transfer-title .rf-transfer-title-ico svg { width: 11px; height: 11px; }
+#transfer-log-msec .rf-transfer-title .rf-transfer-count {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text3);
+  background: var(--surface3, rgba(255,255,255,.06));
+  border-radius: 99px;
+  padding: 1px 7px;
+}
+
+#transfer-log-msec .rf-transfer-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .rf-transfer-status-filter {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--surface3, rgba(255,255,255,.05));
   flex-shrink: 0;
 }
 .rf-transfer-status-filter button {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  border: 1px solid var(--border2);
-  background: var(--surface2);
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
   color: var(--text3);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  transition: background .15s, border-color .15s, color .15s, transform .1s;
+  transition: background .15s ease, color .15s ease, transform .1s ease;
 }
-.rf-transfer-status-filter button:hover { background: var(--surface3); color: var(--text); }
-.rf-transfer-status-filter button.active { background: rgba(56,189,248,.11); border-color: rgba(56,189,248,.32); color: var(--sky); }
-.rf-transfer-status-filter svg { width: 15px; height: 15px; display: block; }
-.rf-transfer-status-filter .dot { width: 10px; height: 10px; border-radius: 99px; display: block; }
-.rf-transfer-status-filter .dot.ok { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.13), 0 0 12px rgba(34,197,94,.38); }
-.rf-transfer-status-filter .dot.no { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.13), 0 0 12px rgba(239,68,68,.38); }
+.rf-transfer-status-filter button:hover { color: var(--text); transform: translateY(-1px); }
+.rf-transfer-status-filter button.active {
+  background: var(--surface1, #0f172a);
+  color: var(--sky);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.rf-transfer-status-filter button.ok.active { color: #22c55e; }
+.rf-transfer-status-filter button.no.active { color: #ef4444; }
+.rf-transfer-status-filter svg { width: 14px; height: 14px; display: block; }
+.rf-transfer-status-filter .dot { width: 8px; height: 8px; border-radius: 99px; display: block; }
+.rf-transfer-status-filter .dot.ok { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,.55); }
+.rf-transfer-status-filter .dot.no { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.55); }
 
 #transfer-log-filtre-btn {
   display: inline-flex !important;
   align-items: center;
-  gap: 6px;
-  color: var(--sky);
+  gap: 5px;
+  height: 27px;
+  padding: 0 9px 0 8px !important;
+  border-radius: 8px;
+  background: var(--surface3, rgba(255,255,255,.05)) !important;
+  border: 1px solid transparent !important;
+  color: var(--text2, #cbd5e1);
+  font-size: 11px;
+  font-weight: 600;
   flex-shrink: 0;
-  max-width: 100%;
+  max-width: 160px;
   min-width: 0;
+  transition: background .15s ease, border-color .15s ease;
 }
+#transfer-log-filtre-btn:hover { border-color: rgba(56,189,248,.35) !important; }
+#transfer-log-filtre-btn.sc-has-value { color: var(--sky); background: rgba(56,189,248,.12) !important; }
 #transfer-log-filtre-btn #transfer-log-filtre-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
 }
-html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 #transfer-log-filtre-btn .rf-transfer-filtre-ico {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
   display: block;
   stroke: currentColor;
 }
+#transfer-log-filtre-btn .sc-popup-trigger-chevron { width: 12px; height: 12px; flex-shrink: 0; opacity: .7; }
 
 /* ── Liste konteyneri ── */
 #transfer-log-liste {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-width: 100%;
   min-width: 0;
   overflow-x: hidden;
   box-sizing: border-box;
 }
+#transfer-log-liste::-webkit-scrollbar { width: 6px; }
+#transfer-log-liste::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 99px; }
+
+/* ── Tarih grup ayracı ── */
+#transfer-log-liste .rf-transfer-daygroup {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 6px 2px 1px;
+  opacity: .75;
+}
+#transfer-log-liste .rf-transfer-daygroup:first-child { padding-top: 0; }
 
 /* ── Tek bir transfer kartı ── */
 #transfer-log-liste .rf-transfer-row {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content max-content;
-  grid-template-areas: "main amount actions";
+  grid-template-columns: 30px minmax(0, 1fr) max-content max-content;
+  grid-template-areas: "icon main amount actions";
   align-items: center;
-  gap: 8px 10px;
+  gap: 2px 10px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--surface2);
-  border: 1px solid rgba(255, 255, 255, .09);
-  border-left: 3px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: var(--surface1, #0f172a);
+  border: 1px solid rgba(255, 255, 255, .06);
   font-size: 11.5px;
-  transition: border-color .15s ease, background .15s ease;
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
 }
 #transfer-log-liste .rf-transfer-row:hover {
-  border-color: rgba(255, 255, 255, .18);
-  background: color-mix(in srgb, var(--surface2) 92%, white 8%);
+  border-color: rgba(56, 189, 248, .3);
+  transform: translateY(-1px);
 }
 [data-theme="light"] #transfer-log-liste .rf-transfer-row,
 .light #transfer-log-liste .rf-transfer-row {
-  border-color: rgba(0, 0, 0, .09);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+  background: #fff;
+  border-color: rgba(0, 0, 0, .07);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
 }
-#transfer-log-liste .rf-transfer-row.state-ok { border-left-color: #22c55e; }
-#transfer-log-liste .rf-transfer-row.state-no { border-left-color: #ef4444; }
+
+/* Durum ikonu (soldaki nokta yerine küçük rozet) */
+#transfer-log-liste .rf-transfer-icon {
+  grid-area: icon;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+#transfer-log-liste .rf-transfer-icon svg { width: 13px; height: 13px; }
+#transfer-log-liste .rf-transfer-row.state-ok .rf-transfer-icon { background: rgba(34,197,94,.13); color: #22c55e; }
+#transfer-log-liste .rf-transfer-row.state-no .rf-transfer-icon { background: rgba(239,68,68,.12); color: #ef4444; }
 
 /* Rota + not (açıklama/tarih) */
 #transfer-log-liste .rf-transfer-main {
@@ -124,9 +212,9 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
   align-items: center;
   flex-wrap: wrap;
   row-gap: 2px;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 650;
   color: var(--text2, #cbd5e1);
   min-width: 0;
 }
@@ -139,13 +227,13 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 }
 #transfer-log-liste .rf-transfer-route .rf-transfer-arrow {
   flex-shrink: 0;
-  opacity: .55;
-  font-weight: 700;
+  opacity: .5;
+  color: var(--sky);
 }
 #transfer-log-liste .rf-transfer-note {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text3);
-  margin-top: 2px;
+  margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -158,21 +246,17 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
   text-align: right;
 }
 #transfer-log-liste .rf-transfer-amount .mono {
-  /* [BUG FIX] Global .mono kuralı (part-001.css) tabular-nums açıyor; bazı
-     font/tarayıcı kombinasyonlarında "." ve "," karakterleri neredeyse
-     görünmez genişliğe düşüyordu. Bu tek satırlık alanda tablo hizalaması
-     gerekmediği için burada kapatılıyor. */
   font-variant-numeric: normal;
   font-feature-settings: normal;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: .2px;
   color: var(--teal);
 }
 #transfer-log-liste .rf-transfer-amount .rf-transfer-date {
-  font-size: 10.5px;
-  margin-top: 2px;
-  opacity: .75;
+  font-size: 10px;
+  margin-top: 1px;
+  opacity: .7;
   color: var(--text3);
 }
 
@@ -180,58 +264,64 @@ html[data-theme="light"] #transfer-log-filtre-btn { color: #0284c7; }
 #transfer-log-liste .rf-transfer-actions {
   grid-area: actions;
   display: inline-flex;
-  gap: 4px;
+  gap: 2px;
   align-items: center;
   justify-self: end;
   min-width: max-content;
+  opacity: .55;
+  transition: opacity .15s ease;
 }
+#transfer-log-liste .rf-transfer-row:hover .rf-transfer-actions { opacity: 1; }
 #transfer-log-liste .rf-transfer-actions button {
   background: transparent;
   border: 0;
   cursor: pointer;
   color: var(--text3);
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
+  border-radius: 8px;
   line-height: 1;
   padding: 0;
   transition: background .15s ease, color .15s ease;
 }
-#transfer-log-liste .rf-transfer-actions button svg { width: 14px; height: 14px; display: block; }
-#transfer-log-liste .rf-transfer-actions button:hover { background: rgba(255, 255, 255, .08); color: var(--text); }
-#transfer-log-liste .rf-transfer-actions button.danger:hover { background: rgba(239, 68, 68, .1); color: #ef4444; }
-[data-theme="light"] #transfer-log-liste .rf-transfer-actions button:hover,
-.light #transfer-log-liste .rf-transfer-actions button:hover {
-  background: rgba(0, 0, 0, .06);
-}
+#transfer-log-liste .rf-transfer-actions button svg { width: 13px; height: 13px; display: block; }
+#transfer-log-liste .rf-transfer-actions button:hover { background: rgba(56,189,248,.12); color: var(--sky); }
+#transfer-log-liste .rf-transfer-actions button.danger:hover { background: rgba(239, 68, 68, .12); color: #ef4444; }
 
 /* ── Responsive kırılımlar ── */
 @media (max-width: 600px) {
   #transfer-log-liste .rf-transfer-row {
-    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-columns: 26px minmax(0, 1fr) max-content;
     grid-template-areas:
-      "main main"
-      "amount actions";
-    gap: 6px 8px;
+      "icon main main"
+      "icon amount actions";
+    row-gap: 4px;
   }
   #transfer-log-liste .rf-transfer-amount { justify-self: start; text-align: left; }
 }
 @media (max-width: 340px) {
   #transfer-log-liste .rf-transfer-row {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "main" "amount" "actions";
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-areas: "icon main" "icon amount" "icon actions";
   }
   #transfer-log-liste .rf-transfer-actions { justify-self: start; }
 }
 
 /* Boş / kayıt yok durumu */
 #transfer-log-liste .rf-transfer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   color: var(--text3);
-  font-size: 12px;
-  padding: 8px 4px;
+  font-size: 11.5px;
+  padding: 22px 4px;
+  text-align: center;
 }
+#transfer-log-liste .rf-transfer-empty svg { width: 26px; height: 26px; opacity: .35; }
