@@ -20,6 +20,7 @@ import { kd2RenderExtreler, kd2RenderIslemler } from './05-kart-detay-v2.js';
 // pratikte tamamen ölü kalıyordu (ölü kod taraması, 2026-07).
 // _kdKatAraCtxFromWrapId ve _kdKatAraAktifFiltre hâlâ kdKatFiltreToggle'ın
 // kardeşi olarak kullanımda oldukları için korundu (bkz. aşağıda).
+export function kdRenderKatBar(wrap, islemler) {
   // Not: kategori bar'ının kendi mini arama kutusu kaldırıldı — alttaki genel arama kutusu
   // (kd-islem-arama) zaten açıklama + kategori adına göre arıyor, iki ayrı "kategori ara"
   // kutusu göstermek kafa karıştırıyordu. Bar/lejant tıklanabilir filtre olarak kalıyor.
