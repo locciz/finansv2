@@ -131,6 +131,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  color: inherit;
 }
 #transfer-log-msec .rf-transfer-filtre-btn .sc-popup-placeholder { color: inherit; font-weight: 600; }
 #transfer-log-msec .rf-transfer-filtre-ico {
@@ -138,17 +139,22 @@
   height: 13px;
   flex-shrink: 0;
   display: block;
-  stroke: currentColor;
+  stroke: var(--text3);
+  fill: none;
 }
+#transfer-log-msec .rf-transfer-filtre-btn:hover .rf-transfer-filtre-ico { stroke: var(--text2); }
+#transfer-log-msec .rf-transfer-filtre-btn.sc-has-value .rf-transfer-filtre-ico { stroke: var(--sky); }
 #transfer-log-msec .rf-transfer-filtre-chevron {
   width: 11px;
   height: 11px;
   flex-shrink: 0;
   display: block;
-  stroke: currentColor;
+  stroke: var(--text3);
+  fill: none;
   opacity: .65;
   margin-left: auto;
 }
+#transfer-log-msec .rf-transfer-filtre-btn.sc-has-value .rf-transfer-filtre-chevron { stroke: var(--sky); }
 
 /* ── Liste konteyneri ── */
 #transfer-log-liste {
