@@ -218,37 +218,96 @@ function _wrGetActiveStepFromDom(modalEl) {
 }
 
 function _wrSyncStepToHash(modalId, modalEl) {
-  console.log('[wizard-routing DEBUG] _wrSyncStepToHash çağrıldı', modalId, 'open?', modalEl.classList.contains('open'));
   if (!modalEl.classList.contains('open')) return;
   const curParams = _wrCurrentHashParams();
-  console.log('[wizard-routing DEBUG] curParams.modal:', curParams.modal, 'beklenen:', modalId);
   if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
   const step = _wrGetActiveStepFromDom(modalEl);
-  console.log('[wizard-routing DEBUG] tespit edilen step:', step);
   if (curParams.step === String(step)) return; // değişiklik yok, gereksiz history girişi açma
   curParams.step = String(step);
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
-  console.log('[wizard-routing DEBUG] hash güncellendi, yeni hash:', location.hash);
+}
+
+// Modal kapandığında (.open class'ı kalktığında) hash'teki step/form
+// parametrelerini temizle. modal-genel.js:closeModalBase() zaten
+// curParams.modal'ı siliyor ama step/form'dan haberi yok (bu ikisi
+// wizard-routing.js'e özgü) — burada tamamlıyoruz. modal-genel.js'e
+// dokunmadan, aynı .modal-bg elemanının class değişimini izleyerek.
+function _wrSyncCloseToHash(modalId, modalEl) {
+  if (modalEl.classList.contains('open')) return; // hâlâ açık, ilgilenmiyoruz
+  const curParams = _wrCurrentHashParams();
+  // closeModalBase() (modal-genel.js) modal kapanırken zaten curParams.modal'ı
+  // silip hash'i güncelliyor — ama step/form parametrelerinden (bu ikisi
+  // wizard-routing.js'e özgü) haberi yok. closeModalBase() ile bu observer'ın
+  // hangisinin önce çalışacağı garanti değil, bu yüzden iki durumu da ele alıyoruz:
+  //   a) curParams.modal hâlâ modalId  → closeModalBase henüz silmemiş, biz sileriz.
+  //   b) curParams.modal artık boş/undefined → closeModalBase zaten silmiş; modal
+  //      kapalıyken hash'te asla "modal=" olmayacağından (her modal kendi
+  //      açılışında curParams.modal'ı kendi id'sine yazar), step/form burada
+  //      duruyorsa bu MUTLAKA bizim (artık kapanmış) modalId'mize ait kalıntıdır.
+  //   c) curParams.modal BAŞKA bir id → kullanıcı hızlıca başka modal açmış,
+  //      o modalin state'i olabilir; dokunma.
+  if (curParams.modal && curParams.modal !== modalId) return;
+  if (!curParams.step && !curParams.form && !curParams.modal) return; // zaten tertemiz
+  delete curParams.step;
+  delete curParams.form;
+  delete curParams.modal;
+  _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
 }
 
 function _wrObserveStepsForModal(modalId) {
   if (_wrStepObservers.has(modalId)) return; // zaten izleniyor
   const modalEl = document.getElementById(modalId);
-  if (!modalEl) { console.warn('[wizard-routing DEBUG] modal bulunamadı:', modalId); return; }
-  const obs = new MutationObserver(muts => {
-    console.log('[wizard-routing DEBUG] mutation tetiklendi', modalId, muts.map(m => m.target.className));
-    // Sadece .swiz-step-panel üzerindeki class değişimleriyle ilgileniyoruz
-    const relevant = muts.some(m => m.target.classList && m.target.classList.contains('swiz-step-panel'));
-    console.log('[wizard-routing DEBUG] relevant?', relevant);
-    if (relevant) _wrSyncStepToHash(modalId, modalEl);
+  if (!modalEl) return;
+  // Performans: iki ayrı observer kuruyoruz —
+  //   1) modalEl'in KENDİSİ üzerinde (subtree:false) sadece .open class'ı
+  //      açılıp/kapanınca tetiklenir. Tek bir elementi izlediği için maliyeti
+  //      neredeyse sıfır, her zaman aktif kalabilir.
+  //   2) modalEl üzerinde subtree:true ile step panellerin is-active class'ını
+  //      izler — ama SADECE modal açıkken bağlanır, kapanınca disconnect()
+  //      edilir. Önceki sürüm bu ikinci observer'ı 12 modal için SÜREKLİ
+  //      (modal kapalıyken bile) aktif tutuyordu; her modalin subtree'sindeki
+  //      money-input/date-wrap/buton hover gibi class değişimleri de callback'i
+  //      tetikliyordu — bu da sürekli, gereksiz CPU/pil tüketimine yol açıyordu.
+  //      subtree:true'yu koruyoruz (step-panel'in .modal-body'nin doğrudan
+  //      çocuğu mu yoksa bir ara wrapper içinde mi olduğu modalden modale
+  //      değişebiliyor, subtree:false ile bazı modallerde sessizce kaçırma
+  //      riski olurdu) ama artık sadece modal GERÇEKTEN AÇIKKEN çalışıyor —
+  //      yani zaten kullanıcının o an etkileşimde olduğu, kısıtlı bir süre.
+  let bodyObs = null;
+  function startBodyObserver() {
+    if (bodyObs) return;
+    bodyObs = new MutationObserver(muts => {
+      const stepChanged = muts.some(m => m.target.classList && m.target.classList.contains('swiz-step-panel'));
+      if (stepChanged) _wrSyncStepToHash(modalId, modalEl);
+    });
+    bodyObs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: true });
+  }
+  function stopBodyObserver() {
+    if (!bodyObs) return;
+    bodyObs.disconnect();
+    bodyObs = null;
+  }
+
+  const openObs = new MutationObserver(muts => {
+    const openChanged = muts.some(m => m.target === modalEl && m.attributeName === 'class');
+    if (!openChanged) return;
+    if (modalEl.classList.contains('open')) {
+      startBodyObserver();
+      _wrSyncStepToHash(modalId, modalEl); // açılış anındaki (genelde step=1) durumu da yakala
+    } else {
+      stopBodyObserver();
+      _wrSyncCloseToHash(modalId, modalEl);
+    }
   });
-  obs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: true });
-  _wrStepObservers.set(modalId, obs);
-  console.log('[wizard-routing DEBUG] observer kuruldu:', modalId);
+  openObs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: false });
+  // Modül yüklendiğinde modal zaten açık olabilir (nadir ama olası) — o
+  // durumu da kaçırmayalım.
+  if (modalEl.classList.contains('open')) startBodyObserver();
+
+  _wrStepObservers.set(modalId, { openObs, stopBodyObserver });
 }
 
 function installHashRoutingForAllWizards() {
-  console.log('[wizard-routing DEBUG] installHashRoutingForAllWizards çalıştı, modaller:', WIZARD_RESTORABLE_MODAL_IDS);
   WIZARD_RESTORABLE_MODAL_IDS.forEach(modalId => _wrObserveStepsForModal(modalId));
 }
 
