@@ -11,13 +11,23 @@
 // arasında gezinsin.
 //
 // Tasarım kararı — mevcut 13 dosyaya TEK SATIR bile dokunmadan:
-//   1) Adım değişimini YAKALAMAK için register() sarmalamayı DENEDİK ama
-//      bu çalışmadı — "İleri/Geri" butonları stepNext/stepGoto'yu registry
-//      üzerinden değil doğrudan çağırıyor (bkz. aşağıdaki uzun not).
-//      Onun yerine her modalin `.swiz-step-panel.is-active` DOM class'ını
-//      MutationObserver ile izliyoruz; bu class hangi kod yolundan
-//      tetiklenirse tetiklensin her zaman güncelleniyor.
-//   2) Modal restore edilirken (sayfa yenileme/deep-link) hangi "open"
+//   1) MODAL AÇILIŞ/KAPANIŞ: modal-genel.js zaten iki merkezi köprü
+//      barındırıyor — openModal() → call('openModal', ...) registry'sini,
+//      closeModal() → setCloseModal(fn) ile değiştirilebilen bir pointer'ı
+//      kullanıyor. İkisi de "gerçek, canlı, TEK export" — 13 dosyanın
+//      hepsi bu ikisini import edip kullanıyor, MutationObserver'a hiç
+//      gerek yok: register('openModal', ...) ve setCloseModal(...) ile
+//      doğrudan hook'luyoruz.
+//   2) ADIM DEĞİŞİMİ: "İleri/Geri" butonları (wizardStepNext/StepGoto)
+//      DOM DEĞİL, doğrudan yerel fonksiyon referansı çağırıyor — bu yüzden
+//      register() sarmalamak işe yaramıyor (ayrıntı için bkz. aşağıdaki not).
+//      Bunun için MutationObserver yerine document-level CLICK delegasyonu
+//      kullanıyoruz: id'si "-step-next-btn"/"-step-back-btn" ile biten bir
+//      elemente tıklanınca, bir sonraki mikro-task'te (DOM güncellendikten
+//      hemen sonra) o modalin güncel adımını okuyup hash'e yazıyoruz. Bu,
+//      sürekli çalışan bir DOM gözlemcisinden ÇOK daha ucuz — sadece
+//      gerçek tıklama anında, tek seferlik çalışır.
+//   3) Modal restore edilirken (sayfa yenileme/deep-link) hangi "open"
 //      fonksiyonunun çağrılacağını burada bir eşleme tablosunda tutuyoruz.
 //      Sadece id GEREKTİRMEYEN (yeni kayıt) açılışlar restore edilir —
 //      var olan bir kaydı düzenlerken sayfa yenilenirse form kaybolur;
@@ -34,8 +44,8 @@ import { openKrediModal } from '../ui/pages/krediler/04-bireysel-kredi.js';
 import { openNakitAvansModal } from '../ui/pages/krediler/02-nakit-avans.js';
 import { openParaBirimiModal } from '../ui/pages/tanimlamalar/06-para-birimi.js';
 import { openHesapModal } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
-import { openModal } from '../ui/components/modal-genel.js';
-import { get } from './wrap-registry.js';
+import { openModal, getCloseModal, setCloseModal } from '../ui/components/modal-genel.js';
+import { register, get } from './wrap-registry.js';
 import { getMoneyInput, setMoneyInput, setDateInputValue } from '../ui/components/money-input.js';
 // NOT: _currentHashPage/_currentHashParams/_pushHashState burada import
 // EDİLMİYOR — init.js zaten wizard-routing.js'i import ediyor; ters yönde
@@ -145,6 +155,7 @@ function _wrRestoreModalForm(modalEl, data) {
 // 300ms sessizlikten sonra hash'e yazılır (history.pushState'i spam'lememek için).
 let _wrFormSyncT = null;
 function _wrScheduleFormSync(modalId) {
+  if (_wrRestoring) return; // restore süresince form senkronu tetiklenmesin
   clearTimeout(_wrFormSyncT);
   _wrFormSyncT = setTimeout(() => {
     const curParams = _wrCurrentHashParams();
@@ -191,34 +202,43 @@ export const WIZARD_RESTORE_OPENERS = {
 // eklenecek isim listesi — orada da bu diziye referans veriliyor).
 export const WIZARD_RESTORABLE_MODAL_IDS = Object.keys(WIZARD_RESTORE_OPENERS);
 
-// ── 1) Aktif adımı hash ile senkron tut — MutationObserver tabanlı ──────
-// İLK TASARIM (artık terk edildi): registry'deki wizardStepGoto:X /
-// wizardStepNext:X kayıtlarını sarmalayıp üzerine hash-yazma davranışı
-// eklemek. BU YAKLAŞIM ÇALIŞMADI çünkü modallerin "İleri/Geri" butonları
-// (bkz. js/core/onclick-bootstrap.js, örn. transfer-step-next-btn) bu
-// fonksiyonları registry'nin call() fonksiyonu ÜZERİNDEN değil, import
-// edilen fonksiyon referansını DOĞRUDAN çağırıyor. register() sadece
-// registry'deki referansı değiştirir — modülün kendi local fonksiyon
-// referansına ya da onu doğrudan tutan başka bir dosyaya dokunamaz. Yani
-// sarmalama hiç tetiklenmiyordu.
-//
-// GERÇEK ÇÖZÜM: step-wizard.js:swizUpdateStepIndicator(modal, step), hangi
-// fonksiyon (call() ile mi, doğrudan mı) tetiklerse tetiklesin HER ZAMAN
-// modal içindeki `.swiz-step-panel[data-step-panel]` elemanlarına
-// `is-active` class'ını ekleyip çıkarıyor. Bu, "şu an hangi adımdayız"
-// sorusuna DOM üzerinden %100 güvenilir cevap veren tek sinyal. Bu yüzden
-// fonksiyon çağrılarını sarmalamak yerine, her restorabilir modal için bu
-// class değişimini MutationObserver ile izliyoruz — hangi kod yolu adımı
-// değiştirirse değiştirsin yakalanır.
-const _wrStepObservers = new Map();
+// RESTORE MODU: restoreWizardModalFromHash() çalışırken, opener() fonksiyonu
+// (örn. openTransferModal()) kendi içinde openModal('modal-transfer')'ı
+// çağırır — bu da BİZİM sarmaladığımız openModal hook'unu tetikler. Eğer bu
+// hook o an hash'e yazarsa, DOM'da step henüz 1'deyken (stepNext() ile
+// ilerletmeden ÖNCE) hash'teki doğru step=N değerini step=1'e DÜŞÜRÜR —
+// gerçek bir bug. _wrRestoring bayrağı, restore süresince tüm hash-yazma
+// yan etkilerini (openModal hook + step click delegasyonu, ki restore
+// stepNext() gerçek tıklama olmadığı için zaten tetiklenmez ama garanti
+// olsun diye) susturur; restore bitince hash'i biz kendimiz, tek seferde,
+// DOM'daki GERÇEK son durumla senkronlarız.
+let _wrRestoring = false;
 
+// ── 1) Aktif adımı hash ile senkron tut — click delegasyonu ─────────────
+// İLK TASARIM (terk edildi): registry sarmalama — çalışmadı, çünkü
+// "İleri/Geri" butonları wizardStepNext/StepGoto'yu registry üzerinden
+// değil, doğrudan import edilen fonksiyon referansı üzerinden çağırıyor
+// (bkz. js/core/onclick-bootstrap.js).
+// İKİNCİ TASARIM (terk edildi): MutationObserver ile `.swiz-step-panel`
+// class değişimini izlemek. Çalışıyordu ama 12 modal için sürekli DOM
+// gözlemi (subtree:true) kurmak fark edilir CPU/pil maliyeti yaratıyordu.
+// GÜNCEL TASARIM: adım butonlarının id'leri tutarlı bir örüntü izliyor
+// (`<prefix>-step-next-btn`, `<prefix>-step-back-btn`) ve step-dot'lar da
+// ortak bir `.swiz-step-dot-wrap` class'ı taşıyor — hepsi normal DOM
+// tıklamaları. Tek bir document-level click listener ile — tıpkı form-sync
+// için zaten kullandığımız desenle — bunlardan birine tıklanınca, DOM
+// güncellendikten hemen sonra (setTimeout 0) o modalin güncel adımını
+// `.swiz-step-panel.is-active` üzerinden okuyup hash'e yazıyoruz. Bu, sürekli
+// çalışan bir gözlemciden ÇOK daha ucuz — sadece gerçek tıklama anında.
 function _wrGetActiveStepFromDom(modalEl) {
   const activePanel = modalEl.querySelector('.swiz-step-panel.is-active[data-step-panel]');
   return activePanel ? Number(activePanel.dataset.stepPanel) : 1;
 }
 
-function _wrSyncStepToHash(modalId, modalEl) {
-  if (!modalEl.classList.contains('open')) return;
+function _wrSyncStepToHash(modalId) {
+  if (_wrRestoring) return; // restore süresince hash'i biz kendimiz yöneteceğiz
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl || !modalEl.classList.contains('open')) return;
   const curParams = _wrCurrentHashParams();
   if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
   const step = _wrGetActiveStepFromDom(modalEl);
@@ -227,25 +247,37 @@ function _wrSyncStepToHash(modalId, modalEl) {
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
 }
 
-// Modal kapandığında (.open class'ı kalktığında) hash'teki step/form
-// parametrelerini temizle. modal-genel.js:closeModalBase() zaten
-// curParams.modal'ı siliyor ama step/form'dan haberi yok (bu ikisi
-// wizard-routing.js'e özgü) — burada tamamlıyoruz. modal-genel.js'e
-// dokunmadan, aynı .modal-bg elemanının class değişimini izleyerek.
-function _wrSyncCloseToHash(modalId, modalEl) {
-  if (modalEl.classList.contains('open')) return; // hâlâ açık, ilgilenmiyoruz
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[id$="-step-next-btn"], [id$="-step-back-btn"], .swiz-step-dot-wrap');
+  if (!btn) return;
+  const modalBg = btn.closest('.modal-bg');
+  if (!modalBg || !modalBg.id || !WIZARD_RESTORABLE_MODAL_IDS.includes(modalBg.id)) return;
+  // setTimeout(0): tıklamayı işleyen asıl handler (transferStepNext vb.)
+  // önce çalışıp DOM'u (is-active class'larını) güncellesin, biz ondan
+  // SONRA okuyalım. Aynı event loop turunda "sonraki task" olarak sıraya girer.
+  setTimeout(() => _wrSyncStepToHash(modalBg.id), 0);
+});
+
+// ── 2) Modal açılış/kapanışını hash ile senkron tut ──────────────────────
+// modal-genel.js'nin kendi merkezi köprülerini (openModal → registry,
+// closeModal → setCloseModal pointer'ı) kullanıyoruz — 13 dosyanın hepsi
+// zaten bunları import ediyor, MutationObserver'a hiç gerek yok.
+
+// Modal kapandığında hash'teki step/form parametrelerini temizle.
+// closeModal() (aşağıdaki sarmalama) zaten curParams.modal'ı siliyor
+// (closeModalBase içinde) ama step/form'dan haberi yok (bu ikisi
+// wizard-routing.js'e özgü) — burada tamamlıyoruz.
+function _wrSyncCloseToHash(modalId) {
+  if (_wrRestoring) return; // restore süresince hash'i biz kendimiz yöneteceğiz
   const curParams = _wrCurrentHashParams();
-  // closeModalBase() (modal-genel.js) modal kapanırken zaten curParams.modal'ı
-  // silip hash'i güncelliyor — ama step/form parametrelerinden (bu ikisi
-  // wizard-routing.js'e özgü) haberi yok. closeModalBase() ile bu observer'ın
-  // hangisinin önce çalışacağı garanti değil, bu yüzden iki durumu da ele alıyoruz:
-  //   a) curParams.modal hâlâ modalId  → closeModalBase henüz silmemiş, biz sileriz.
-  //   b) curParams.modal artık boş/undefined → closeModalBase zaten silmiş; modal
-  //      kapalıyken hash'te asla "modal=" olmayacağından (her modal kendi
-  //      açılışında curParams.modal'ı kendi id'sine yazar), step/form burada
-  //      duruyorsa bu MUTLAKA bizim (artık kapanmış) modalId'mize ait kalıntıdır.
-  //   c) curParams.modal BAŞKA bir id → kullanıcı hızlıca başka modal açmış,
-  //      o modalin state'i olabilir; dokunma.
+  // closeModalBase() (modal-genel.js) zaten curParams.modal'ı silip hash'i
+  // güncellemiş olabilir (biz onu SARMALADIĞIMIZ için, bu her zaman ÖNCE
+  // çalışır — _wrBaseCloseModal(id) çağrısı aşağıda synchronous olarak
+  // tamamlanmış olur). Yani curParams.modal burada normal şartlarda zaten
+  // boştur; step/form varsa bu modalId'ye ait kalıntıdır, temizleriz.
+  //   a) curParams.modal hâlâ modalId  → (teorik olarak olmamalı ama) sileriz.
+  //   b) curParams.modal boş/undefined → kalıntı varsa bize aittir, temizleriz.
+  //   c) curParams.modal BAŞKA bir id  → başka modalin state'i, dokunma.
   if (curParams.modal && curParams.modal !== modalId) return;
   if (!curParams.step && !curParams.form && !curParams.modal) return; // zaten tertemiz
   delete curParams.step;
@@ -254,75 +286,38 @@ function _wrSyncCloseToHash(modalId, modalEl) {
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
 }
 
-function _wrObserveStepsForModal(modalId) {
-  if (_wrStepObservers.has(modalId)) return; // zaten izleniyor
-  const modalEl = document.getElementById(modalId);
-  if (!modalEl) return;
-  // Performans: iki ayrı observer kuruyoruz —
-  //   1) modalEl'in KENDİSİ üzerinde (subtree:false) sadece .open class'ı
-  //      açılıp/kapanınca tetiklenir. Tek bir elementi izlediği için maliyeti
-  //      neredeyse sıfır, her zaman aktif kalabilir.
-  //   2) modalEl üzerinde subtree:true ile step panellerin is-active class'ını
-  //      izler — ama SADECE modal açıkken bağlanır, kapanınca disconnect()
-  //      edilir. Önceki sürüm bu ikinci observer'ı 12 modal için SÜREKLİ
-  //      (modal kapalıyken bile) aktif tutuyordu; her modalin subtree'sindeki
-  //      money-input/date-wrap/buton hover gibi class değişimleri de callback'i
-  //      tetikliyordu — bu da sürekli, gereksiz CPU/pil tüketimine yol açıyordu.
-  //      subtree:true'yu koruyoruz (step-panel'in .modal-body'nin doğrudan
-  //      çocuğu mu yoksa bir ara wrapper içinde mi olduğu modalden modale
-  //      değişebiliyor, subtree:false ile bazı modallerde sessizce kaçırma
-  //      riski olurdu) ama artık sadece modal GERÇEKTEN AÇIKKEN çalışıyor —
-  //      yani zaten kullanıcının o an etkileşimde olduğu, kısıtlı bir süre.
-  let bodyObs = null;
-  function startBodyObserver() {
-    if (bodyObs) return;
-    bodyObs = new MutationObserver(muts => {
-      const stepChanged = muts.some(m => m.target.classList && m.target.classList.contains('swiz-step-panel'));
-      if (stepChanged) _wrSyncStepToHash(modalId, modalEl);
-    });
-    bodyObs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: true });
-  }
-  function stopBodyObserver() {
-    if (!bodyObs) return;
-    bodyObs.disconnect();
-    bodyObs = null;
-  }
-
-  const openObs = new MutationObserver(muts => {
-    const openChanged = muts.some(m => m.target === modalEl && m.attributeName === 'class');
-    if (!openChanged) return;
-    if (modalEl.classList.contains('open')) {
-      startBodyObserver();
-      _wrSyncStepToHash(modalId, modalEl); // açılış anındaki (genelde step=1) durumu da yakala
-    } else {
-      stopBodyObserver();
-      _wrSyncCloseToHash(modalId, modalEl);
+// select-to-chips.js'deki AYNI güvenli desen: modal-genel.js kendi içinde
+// register('openModal', _openModalBase) çağırıyor — bu bizden ÖNCE
+// çalışmamış olabilir (script/import sırası garanti değil). get('openModal')
+// henüz undefined ise, _wrBaseOpenModal'ı YANLIŞLIKLA openModal'ın kendisine
+// eşitlemek sonsuz döngü yaratırdı (openModal zaten call('openModal',...)'a
+// yönleniyor — o zaman bizim wrapper'ımız kendi kendini çağırırdı). Bunun
+// yerine taban kayıt gelene kadar kısa aralıklarla tekrar deniyoruz.
+(function installOpenModalHook() {
+  const base = get('openModal');
+  if (typeof base !== 'function') { setTimeout(installOpenModalHook, 20); return; }
+  register('openModal', function(...args) {
+    const r = base(...args);
+    const modalId = args[0];
+    if (WIZARD_RESTORABLE_MODAL_IDS.includes(modalId)) {
+      // Modal içeriği (select doldurma vb.) openXModal() içinde openModal()'dan
+      // ÖNCE tamamlanmış olur (bkz. örn. openTransferModal), bu yüzden burada
+      // ekstra bekleme gerekmiyor — sadece açılış anındaki adımı (genelde 1)
+      // hash'e yazıyoruz.
+      setTimeout(() => _wrSyncStepToHash(modalId), 0);
     }
+    return r;
   });
-  openObs.observe(modalEl, { attributes: true, attributeFilter: ['class'], subtree: false });
-  // Modül yüklendiğinde modal zaten açık olabilir (nadir ama olası) — o
-  // durumu da kaçırmayalım.
-  if (modalEl.classList.contains('open')) startBodyObserver();
+})();
 
-  _wrStepObservers.set(modalId, { openObs, stopBodyObserver });
-}
+const _wrBaseCloseModal = getCloseModal();
+setCloseModal(function(id) {
+  const r = _wrBaseCloseModal(id);
+  if (WIZARD_RESTORABLE_MODAL_IDS.includes(id)) _wrSyncCloseToHash(id);
+  return r;
+});
 
-function installHashRoutingForAllWizards() {
-  WIZARD_RESTORABLE_MODAL_IDS.forEach(modalId => _wrObserveStepsForModal(modalId));
-}
-
-// DOM parse sırasına göre modal elemanları script çalıştığında zaten
-// mevcut olmalı (modal HTML'leri index.html'de bu script tag'inden önce
-// duruyor) ama DOMContentLoaded'ı beklemek ekstra güvenlik sağlıyor —
-// document.readyState kontrolü, bu modül zaten geç yüklendiyse (DOM
-// hazırsa) event'i asla ateşlemeyen bir bekleyişe düşmemek için.
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', installHashRoutingForAllWizards, { once: true });
-} else {
-  installHashRoutingForAllWizards();
-}
-
-// ── 2) Modal + step restore ───────────────────────────────────────────
+// ── 3) Modal + step restore ───────────────────────────────────────────
 // init.js:navigateToHash() tarafından çağrılır. params.modal bu dosyadaki
 // WIZARD_RESTORE_OPENERS'da varsa modalini açar, ardından params.step
 // verilmişse (ve 1'den büyükse) o adıma VALİDASYONLU şekilde gider.
@@ -341,29 +336,42 @@ export function restoreWizardModalFromHash(params) {
   if (!params || !params.modal) return false;
   const opener = WIZARD_RESTORE_OPENERS[params.modal];
   if (!opener) return false;
-  try { opener(); } catch (e) { console.warn('[wizard-routing] restore açılış hatası', params.modal, e); return false; }
+  _wrRestoring = true;
+  try { opener(); }
+  catch (e) { console.warn('[wizard-routing] restore açılış hatası', params.modal, e); _wrRestoring = false; return false; }
   const targetStep = Number(params.step);
   setTimeout(() => {
-    const modalEl = document.getElementById(params.modal);
-    // Önce form verilerini geri yükle (step ilerlemesi bunlara bakarak
-    // validasyondan geçecek) — sonra hedef adıma doğru validasyonlu ilerle.
-    if (params.form) {
-      try {
-        const formData = JSON.parse(params.form);
-        _wrRestoreModalForm(modalEl, formData);
-      } catch (e) { console.warn('[wizard-routing] form restore hatası', params.modal, e); }
-    }
-    if (targetStep > 1) {
-      const getCurrent = get('wizardCurrentStep:' + params.modal);
-      const stepNext = get('wizardStepNext:' + params.modal);
-      if (typeof getCurrent !== 'function' || typeof stepNext !== 'function') return;
-      let guard = 0;
-      while (getCurrent() < targetStep && guard < 50) {
-        const before = getCurrent();
-        stepNext();
-        if (getCurrent() === before) break; // validasyon başarısız oldu, olduğu adımda kal
-        guard++;
+    try {
+      const modalEl = document.getElementById(params.modal);
+      // Önce form verilerini geri yükle (step ilerlemesi bunlara bakarak
+      // validasyondan geçecek) — sonra hedef adıma doğru validasyonlu ilerle.
+      if (params.form) {
+        try {
+          const formData = JSON.parse(params.form);
+          _wrRestoreModalForm(modalEl, formData);
+        } catch (e) { console.warn('[wizard-routing] form restore hatası', params.modal, e); }
       }
+      if (targetStep > 1) {
+        const getCurrent = get('wizardCurrentStep:' + params.modal);
+        const stepNext = get('wizardStepNext:' + params.modal);
+        if (typeof getCurrent === 'function' && typeof stepNext === 'function') {
+          let guard = 0;
+          while (getCurrent() < targetStep && guard < 50) {
+            const before = getCurrent();
+            stepNext();
+            if (getCurrent() === before) break; // validasyon başarısız oldu, olduğu adımda kal
+            guard++;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[wizard-routing] restore step/form hatası', params.modal, e);
+    } finally {
+      // Restore tamamlandı (başarılı ya da hatalı) — bayrağı HER KOŞULDA
+      // indiriyoruz; aksi halde bir hata _wrRestoring'i sonsuza kadar true
+      // bırakır ve o andan sonra hiçbir hash senkronu çalışmaz.
+      _wrRestoring = false;
+      _wrSyncStepToHash(params.modal);
     }
   }, 60);
   return true;
