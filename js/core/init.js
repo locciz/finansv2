@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'modal-extre-durum',
       'modal-extre-kategori',
       'modal-ozel-extre',
-      ...wizardRestorableIds, // modal-transfer, modal-kira, modal-maas, modal-elden, modal-abonelik, modal-kmhkredi, modal-kredi, modal-nakit-avans, modal-para-birimi, modal-hesap, modal-mevduat, modal-kart-odeme
+      ...wizardRestorableIds, // modal-transfer, modal-kira, modal-maas, modal-elden, modal-abonelik, modal-kmhkredi, modal-kredi, modal-nakit-avans, modal-para-birimi, modal-hesap, modal-kart, modal-mevduat, modal-kart-odeme
     ];
     if(params.modal && RESTORABLE_MODALS.includes(params.modal)) {
       setTimeout(() => {

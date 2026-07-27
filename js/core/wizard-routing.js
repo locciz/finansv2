@@ -28,22 +28,30 @@
 //      sürekli çalışan bir DOM gözlemcisinden ÇOK daha ucuz — sadece
 //      gerçek tıklama anında, tek seferlik çalışır.
 //   3) Modal restore edilirken (sayfa yenileme/deep-link) hangi "open"
-//      fonksiyonunun çağrılacağını burada bir eşleme tablosunda tutuyoruz.
-//      Sadece id GEREKTİRMEYEN (yeni kayıt) açılışlar restore edilir —
-//      var olan bir kaydı düzenlerken sayfa yenilenirse form kaybolur;
-//      bu, modal-genel.js'deki "Yeni kayıt formları restore edilmez"
-//      kuralıyla tutarlı bir davranış.
+//      fonksiyonunun çağrılacağını burada bir eşleme tablosunda tutuyoruz
+//      (WIZARD_RESTORE_OPENERS). Ayrıca hash'e modalin o anki DÜZENLEME
+//      id'sini de yazıyoruz (WIZARD_EDIT_SUPPORT / params.editId) — böylece
+//      var olan bir kaydı düzenlerken sayfa yenilenirse de kayıp yaşanmaz:
+//      restore sırasında kayıt hâlâ mevcutsa openEdit(id) ile aynı kayıt
+//      düzenleme modunda tekrar açılır; kayıt silinmişse (bayat deep-link)
+//      sessizce "yeni kayıt" opener'ına düşülür.
 // ============================================================
 import { openTransferModal } from '../ui/components/transfer-modal.js';
-import { openKiraModal } from '../ui/pages/kira.js';
-import { openMaasModal } from '../ui/pages/maas.js';
-import { openEldenModal } from '../ui/pages/elden.js';
-import { openAbonelikModal } from '../ui/pages/abonelik.js';
+import { openKiraModal, editKiraId } from '../ui/pages/kira.js';
+import { openMaasModal, editMaas, editMaasId } from '../ui/pages/maas.js';
+import { openEldenModal, editElden, editEldenId } from '../ui/pages/elden.js';
+import { openAbonelikModal, editAbonelikId } from '../ui/pages/abonelik.js';
 import { openKmhKrediModal } from '../ui/pages/krediler/03-kmh-kredi.js';
 import { openKrediModal } from '../ui/pages/krediler/04-bireysel-kredi.js';
-import { openNakitAvansModal } from '../ui/pages/krediler/02-nakit-avans.js';
+import { editKmhKrediId, editKrediId, editNaId } from '../ui/pages/krediler/00-state.js';
+import { openNakitAvansModal, editNakitAvans } from '../ui/pages/krediler/02-nakit-avans.js';
 import { openParaBirimiModal } from '../ui/pages/tanimlamalar/06-para-birimi.js';
+import { editParaBirimiKod } from '../ui/pages/tanimlamalar/00-state.js';
 import { openHesapModal } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
+import { editHesapId } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
+import { editKart } from '../ui/pages/kartlar/01-kart-data.js';
+import { editKartId, setEditKartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
+import { DB } from './state.js';
 import { openModal, getCloseModal, setCloseModal } from '../ui/components/modal-genel.js';
 import { register, get } from './wrap-registry.js';
 import { getMoneyInput, setMoneyInput, setDateInputValue } from '../ui/components/money-input.js';
@@ -188,11 +196,28 @@ document.addEventListener('change', e => {
 });
 
 
-// modal-kart, modal-mevduat ve modal-kart-odeme kasıtlı olarak burada YOK:
-// - modal-kart: düzenleme/yeni ayrımı editKartId global'ine bağlı, deep-link
-//   ile karışmasın diye kapsam dışı bırakıldı.
-// - modal-mevduat / modal-kart-odeme: zaten genel openModal(id) ile açılabiliyor
-//   (bkz. modal-genel.js:_openModalBase), ayrı bir "open" fonksiyonuna gerek yok.
+// Her restore edilebilir modal için EDİT desteği:
+//   getEditId()   → o an modalin "düzenleme" state'inde tuttuğu id/kod (yoksa null/'')
+//   findRecord(id)→ o id'ye ait kayıt DB'de var mı (silinmişse restore "yeni kayıt"a düşer)
+//   openEdit(id)  → kaydı düzenleme modunda açan fonksiyon (id'li opener)
+// modal-transfer'ın kalıcı bir "kayıt"ı olmadığı (geçmiş işlem, düzenlenmez)
+// için burada YOK — sadece yeni-transfer akışı restore edilir.
+const WIZARD_EDIT_SUPPORT = {
+  'modal-kira':        { getEditId: () => editKiraId,        findRecord: id => (DB.kiralar||[]).find(x=>x.id===id),        openEdit: id => openKiraModal(id) },
+  'modal-maas':        { getEditId: () => editMaasId,        findRecord: id => (DB.maaslar||[]).find(x=>x.id===id),        openEdit: id => editMaas(id) },
+  'modal-elden':       { getEditId: () => editEldenId,       findRecord: id => (DB.eldenler||[]).find(x=>x.id===id),       openEdit: id => editElden(id) },
+  'modal-abonelik':    { getEditId: () => editAbonelikId,    findRecord: id => (DB.abonelikler||[]).find(x=>x.id===id),    openEdit: id => openAbonelikModal(id) },
+  'modal-kmhkredi':    { getEditId: () => editKmhKrediId,    findRecord: id => (DB.krediler||[]).find(x=>x.id===id),       openEdit: id => openKmhKrediModal(id) },
+  'modal-kredi':       { getEditId: () => editKrediId,       findRecord: id => (DB.krediler||[]).find(x=>x.id===id),       openEdit: id => openKrediModal(id) },
+  'modal-nakit-avans': { getEditId: () => editNaId,          findRecord: id => (DB.islemler||[]).find(x=>x.id===id),       openEdit: id => editNakitAvans(id) },
+  'modal-para-birimi': { getEditId: () => editParaBirimiKod, findRecord: kod => (DB.paraBirimleri||[]).find(x=>x.kod===kod), openEdit: kod => openParaBirimiModal(kod) },
+  'modal-hesap':       { getEditId: () => editHesapId,       findRecord: id => (DB.hesaplar||[]).find(x=>x.id===id),       openEdit: id => openHesapModal(id) },
+  'modal-kart':        { getEditId: () => editKartId,        findRecord: id => (DB.kartlar||[]).find(x=>x.id===id),        openEdit: id => editKart(id) },
+};
+
+// modal-mevduat ve modal-kart-odeme kasıtlı olarak burada YOK: zaten genel
+// openModal(id) ile açılabiliyor (bkz. modal-genel.js:_openModalBase), ayrı
+// bir "open" fonksiyonuna gerek yok; edit ayrımı zaten o mekanizmanın içinde.
 export const WIZARD_RESTORE_OPENERS = {
   'modal-transfer':     () => openTransferModal(),
   'modal-kira':         () => openKiraModal(),
@@ -204,6 +229,7 @@ export const WIZARD_RESTORE_OPENERS = {
   'modal-nakit-avans':  () => openNakitAvansModal(),
   'modal-para-birimi':  () => openParaBirimiModal(),
   'modal-hesap':        () => openHesapModal(),
+  'modal-kart':         () => { setEditKartId(null); openModal('modal-kart'); },
   'modal-mevduat':      () => openModal('modal-mevduat'),
   'modal-kart-odeme':   () => openModal('modal-kart-odeme'),
 };
@@ -260,8 +286,16 @@ function _wrSyncStepToHash(modalId) {
   const curParams = _wrCurrentHashParams();
   if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
   const step = _wrGetActiveStepFromDom(modalEl);
-  if (curParams.step === String(step)) return; // değişiklik yok, gereksiz history girişi açma
+  // Edit modunda mıyız? (varsa) editId'yi hash'e ekliyoruz ki F5/deep-link
+  // sonrası aynı KAYDI düzenlemeye devam edilebilsin. Yeni kayıt modundaysa
+  // (getEditId() null/'' döner) editId hash'ten çıkarılır.
+  const editSupport = WIZARD_EDIT_SUPPORT[modalId];
+  const editId = editSupport ? editSupport.getEditId() : null;
+  const editIdStr = (editId != null && editId !== '') ? String(editId) : '';
+  const changed = curParams.step !== String(step) || (curParams.editId || '') !== editIdStr;
+  if (!changed) return; // değişiklik yok, gereksiz history girişi açma
   curParams.step = String(step);
+  if (editIdStr) curParams.editId = editIdStr; else delete curParams.editId;
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
 }
 
@@ -318,9 +352,10 @@ function _wrSyncCloseToHash(modalId) {
   //   b) curParams.modal boş/undefined → kalıntı varsa bize aittir, temizleriz.
   //   c) curParams.modal BAŞKA bir id  → başka modalin state'i, dokunma.
   if (curParams.modal && curParams.modal !== modalId) return;
-  if (!curParams.step && !curParams.form && !curParams.modal) return; // zaten tertemiz
+  if (!curParams.step && !curParams.form && !curParams.editId && !curParams.modal) return; // zaten tertemiz
   delete curParams.step;
   delete curParams.form;
+  delete curParams.editId;
   delete curParams.modal;
   _wrPushHashState(_wrCurrentHashPage() || 'ozet', curParams);
 }
@@ -388,8 +423,22 @@ export function restoreWizardModalFromHash(params) {
   if (!params || !params.modal) return false;
   const opener = WIZARD_RESTORE_OPENERS[params.modal];
   if (!opener) return false;
+  // EDİT MODU: hash'te editId varsa, ilgili kaydın DB'de hâlâ var olduğunu
+  // doğrulayıp openEdit(id) ile düzenleme moduna geçiyoruz. Kayıt silinmişse
+  // (deep-link bayatlamışsa) sessizce "yeni kayıt" opener'ına düşüyoruz —
+  // kullanıcıya hatalı/boş bir düzenleme ekranı göstermek yerine.
+  let effectiveOpener = opener;
+  const editSupport = WIZARD_EDIT_SUPPORT[params.modal];
+  if (params.editId && editSupport) {
+    const record = editSupport.findRecord(params.editId);
+    if (record) {
+      effectiveOpener = () => editSupport.openEdit(params.editId);
+    } else {
+      console.warn('[wizard-routing] editId için kayıt bulunamadı, yeni kayıt modunda açılıyor', params.modal, params.editId);
+    }
+  }
   _wrRestoring = true;
-  try { opener(); }
+  try { effectiveOpener(); }
   catch (e) { console.warn('[wizard-routing] restore açılış hatası', params.modal, e); _wrRestoring = false; return false; }
   const targetStep = Number(params.step);
   setTimeout(() => {
