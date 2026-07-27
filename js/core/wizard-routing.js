@@ -153,20 +153,30 @@ function _wrRestoreModalForm(modalEl, data) {
 // senkron tut. Tek bir document-level delegasyon — 13 modalin hiçbirine
 // ayrı ayrı listener eklemeye gerek yok. debounce: her tuş vuruşunda değil,
 // 300ms sessizlikten sonra hash'e yazılır (history.pushState'i spam'lememek için).
+function _wrDoFormSync(modalId) {
+  if (_wrRestoring) return; // restore süresince form senkronu tetiklenmesin
+  const curParams = _wrCurrentHashParams();
+  if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl || !modalEl.classList.contains('open')) return;
+  const formData = _wrSerializeModalForm(modalEl);
+  curParams.form = Object.keys(formData).length ? JSON.stringify(formData) : '';
+  if (!curParams.form) delete curParams.form;
+  _wrReplaceHashState(_wrCurrentHashPage() || 'ozet', curParams);
+}
 let _wrFormSyncT = null;
 function _wrScheduleFormSync(modalId) {
   if (_wrRestoring) return; // restore süresince form senkronu tetiklenmesin
   clearTimeout(_wrFormSyncT);
-  _wrFormSyncT = setTimeout(() => {
-    const curParams = _wrCurrentHashParams();
-    if (curParams.modal !== modalId) return; // hash zaten başka bir şeyi gösteriyor
-    const modalEl = document.getElementById(modalId);
-    if (!modalEl || !modalEl.classList.contains('open')) return;
-    const formData = _wrSerializeModalForm(modalEl);
-    curParams.form = Object.keys(formData).length ? JSON.stringify(formData) : '';
-    if (!curParams.form) delete curParams.form;
-    _wrReplaceHashState(_wrCurrentHashPage() || 'ozet', curParams);
-  }, 300);
+  _wrFormSyncT = setTimeout(() => _wrDoFormSync(modalId), 300);
+}
+// tekrarlaTransfer gibi, alanları event dispatch ETMEDEN doğrudan .value=
+// ile dolduran işlemler için: debounce beklemeden hemen senkronla (tek
+// tıklamayla tetiklenen, tek seferlik bir işlem olduğu için 300ms'lik
+// debounce'a gerek yok — zaten arka arkaya tetiklenmeyecek).
+function _wrScheduleFormSyncImmediate(modalId) {
+  clearTimeout(_wrFormSyncT);
+  _wrDoFormSync(modalId);
 }
 document.addEventListener('input', e => {
   const modalBg = e.target.closest('.modal-bg.open');
@@ -264,6 +274,27 @@ document.addEventListener('click', e => {
   // önce çalışıp DOM'u (is-active class'larını) güncellesin, biz ondan
   // SONRA okuyalım. Aynı event loop turunda "sonraki task" olarak sıraya girer.
   setTimeout(() => _wrSyncStepToHash(modalBg.id), 0);
+});
+
+// "Son Transferler" widget'ındaki "tekrarla" butonu (rf-transfer-tekrar-btn,
+// bkz. transfer-log.js) transferStepGoto(1)'i çağırıp transfer-kaynak/
+// transfer-hedef/transfer-tutar/transfer-tarih/transfer-aciklama alanlarını
+// DOĞRUDAN `el.value = ...` ile dolduruyor (bkz. transfer-modal.js:
+// tekrarlaTransfer) — hiçbir input/change event'i dispatch ETMİYOR. Bizim
+// form-sync mekanizmamız (aşağıdaki "0) Form alanları" bölümü) input/change
+// event delegasyonuna dayandığı için bu dolduruşu hiç yakalayamıyor ve hash
+// boş kalıyor. Bu yüzden bu butona özel bir click sonrası manuel senkron
+// tetikliyoruz — DOM'un dolmasını bekleyip (setTimeout 0) formu kendimiz
+// serialize edip hash'e yazıyoruz.
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.rf-transfer-tekrar-btn');
+  if (!btn) return;
+  setTimeout(() => {
+    // "Son Transferler" transfer modalinin İÇİNDE değil, ayrı bir widget'ta
+    // (transfer-log.js) yaşıyor ama tekrarlaTransfer() zaten modal-transfer'i
+    // dolduruyor — modal o an açık olmalı (widget zaten modal içinde).
+    _wrScheduleFormSyncImmediate('modal-transfer');
+  }, 0);
 });
 
 // ── 2) Modal açılış/kapanışını hash ile senkron tut ──────────────────────
