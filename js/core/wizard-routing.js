@@ -201,6 +201,14 @@ export const WIZARD_RESTORE_OPENERS = {
 // Restore edilebilir tüm modaller (init.js'deki RESTORABLE_MODALS'a
 // eklenecek isim listesi — orada da bu diziye referans veriliyor).
 export const WIZARD_RESTORABLE_MODAL_IDS = Object.keys(WIZARD_RESTORE_OPENERS);
+// init.js BU DEĞERİ DOĞRUDAN import ETMİYOR (döngüsel import riski —
+// modal-genel.js zaten init.js'i import ediyor, wizard-routing.js de
+// modal-genel.js'i import ediyor; init.js bir de wizard-routing.js'i import
+// ederse üçlü döngü oluşup TDZ hatalarına yol açıyordu). Bunun yerine
+// registry üzerinden okunuyor. register() sadece FONKSİYON kabul ettiği
+// için (bkz. wrap-registry.js) diziyi doğrudan değil, diziyi döndüren bir
+// getter fonksiyonu kaydediyoruz: get('WIZARD_RESTORABLE_MODAL_IDS')().
+register('WIZARD_RESTORABLE_MODAL_IDS', () => WIZARD_RESTORABLE_MODAL_IDS);
 
 // RESTORE MODU: restoreWizardModalFromHash() çalışırken, opener() fonksiyonu
 // (örn. openTransferModal()) kendi içinde openModal('modal-transfer')'ı
@@ -310,12 +318,25 @@ function _wrSyncCloseToHash(modalId) {
   });
 })();
 
-const _wrBaseCloseModal = getCloseModal();
-setCloseModal(function(id) {
-  const r = _wrBaseCloseModal(id);
-  if (WIZARD_RESTORABLE_MODAL_IDS.includes(id)) _wrSyncCloseToHash(id);
-  return r;
-});
+// AYNI döngüsel-import riski closeModal için de geçerli: modal-genel.js
+// kendi içinde init.js'i import ediyor, init.js de (RESTORABLE_MODALS için)
+// wizard-routing.js'i import ediyor — yani modal-genel.js → init.js →
+// wizard-routing.js → modal-genel.js döngüsü oluşuyor. Bu döngüde
+// getCloseModal()'ı DOĞRUDAN, modül seviyesinde çağırmak, modal-genel.js'in
+// `let _currentCloseModal = closeModalBase;` satırı henüz ÇALIŞMADAN
+// erişmeye çalışıp "Cannot access before initialization" (TDZ) hatası
+// fırlatabiliyordu. openModal hook'unda kullandığımız güvenli retry
+// desenini burada da uyguluyoruz.
+(function installCloseModalHook() {
+  let base;
+  try { base = getCloseModal(); } catch (e) { setTimeout(installCloseModalHook, 20); return; }
+  if (typeof base !== 'function') { setTimeout(installCloseModalHook, 20); return; }
+  setCloseModal(function(id) {
+    const r = base(id);
+    if (WIZARD_RESTORABLE_MODAL_IDS.includes(id)) _wrSyncCloseToHash(id);
+    return r;
+  });
+})();
 
 // ── 3) Modal + step restore ───────────────────────────────────────────
 // init.js:navigateToHash() tarafından çağrılır. params.modal bu dosyadaki
@@ -376,3 +397,7 @@ export function restoreWizardModalFromHash(params) {
   }, 60);
   return true;
 }
+
+// init.js'in döngüsel import olmadan erişebilmesi için registry'ye de
+// kaydediyoruz (bkz. yukarıdaki WIZARD_RESTORABLE_MODAL_IDS notu).
+register('restoreWizardModalFromHash', restoreWizardModalFromHash);

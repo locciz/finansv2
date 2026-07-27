@@ -18,8 +18,15 @@ import { loadCurrencyConfig, updateParaBirimiPreview } from '../ui/pages/tanimla
 import { renderOzet } from '../ui/pages/ozet.js';
 import { openModal } from '../ui/components/modal-genel.js';
 import { showPage } from './app-core-base.js';
-import { register, call } from './wrap-registry.js';
-import { restoreWizardModalFromHash, WIZARD_RESTORABLE_MODAL_IDS } from './wizard-routing.js';
+import { register, call, get } from './wrap-registry.js';
+// NOT: wizard-routing.js BURADAN DOĞRUDAN import EDİLMİYOR — modal-genel.js
+// zaten init.js'i import ediyor, wizard-routing.js de modal-genel.js'i import
+// ediyor; burada bir de wizard-routing.js'i import etmek init.js ↔
+// wizard-routing.js ↔ modal-genel.js döngüsü yaratıp "Cannot access before
+// initialization" (TDZ) hatalarına yol açıyordu. Bunun yerine wizard-routing.js
+// kendi restoreWizardModalFromHash fonksiyonunu ve WIZARD_RESTORABLE_MODAL_IDS
+// listesini registry'ye (register/get) kaydediyor, biz de buradan get() ile
+// okuyoruz — import zinciri hiç oluşmuyor.
 // ============================================================
 // js/core/init.js — Uygulama başlangıç/init akışı
 // ============================================================
@@ -137,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal geri yükle — sadece belirli "form dışı" / "okuma" modalleri restore et
     // (Yeni kayıt formları restore edilmez — kullanıcı formu yarıda bırakmış sayılır)
+    const wizardIdsGetter = get('WIZARD_RESTORABLE_MODAL_IDS');
+    const wizardRestorableIds = typeof wizardIdsGetter === 'function' ? wizardIdsGetter() : [];
     const RESTORABLE_MODALS = [
       'modal-hesap-log',
       'modal-iban-popup',
@@ -148,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'modal-extre-durum',
       'modal-extre-kategori',
       'modal-ozel-extre',
-      ...WIZARD_RESTORABLE_MODAL_IDS, // modal-transfer, modal-kira, modal-maas, modal-elden, modal-abonelik, modal-kmhkredi, modal-kredi, modal-nakit-avans, modal-para-birimi, modal-hesap, modal-mevduat, modal-kart-odeme
+      ...wizardRestorableIds, // modal-transfer, modal-kira, modal-maas, modal-elden, modal-abonelik, modal-kmhkredi, modal-kredi, modal-nakit-avans, modal-para-birimi, modal-hesap, modal-mevduat, modal-kart-odeme
     ];
     if(params.modal && RESTORABLE_MODALS.includes(params.modal)) {
       setTimeout(() => {
@@ -157,8 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Wizard modalleri (transfer, kira, maaş, elden, abonelik, kmh/kredi,
         // nakit avans, para birimi, hesap, mevduat) — kendi "open" fonksiyonlarını
         // çağırıp gerekiyorsa doğru adıma (params.step) gider. bkz. wizard-routing.js
-        if(WIZARD_RESTORABLE_MODAL_IDS.includes(params.modal) && params.modal !== 'modal-kart-odeme') {
-          if(restoreWizardModalFromHash(params)) return;
+        if(wizardRestorableIds.includes(params.modal) && params.modal !== 'modal-kart-odeme') {
+          const restoreFn = get('restoreWizardModalFromHash');
+          if(typeof restoreFn === 'function' && restoreFn(params)) return;
         }
         switch(params.modal) {
           case 'modal-kategori-oneri':
