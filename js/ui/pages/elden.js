@@ -7,7 +7,7 @@ import { buildCurrencyOptions } from '../../domain/doviz.js';
 import { hesapKullanilabilirBakiye } from '../../domain/hesaplamalar.js';
 import { formatIbanView } from '../../domain/iban-utils.js';
 import { _ibanKopyalaVeToastGoster, renderIbanPicker } from '../components/iban-ui.js';
-import { _sidebarDim, checkManuelKarsiTarafAndSave, phSet, showConfirm, showToast, validateRequiredFields } from '../components/modal-genel.js';
+import { checkManuelKarsiTarafAndSave, phSet, showConfirm, showToast, validateRequiredFields } from '../components/modal-genel.js';
 import { getMoneyInput, setDateInputValue, setMoneyInput, updateModalMoneyWraps } from '../components/money-input.js';
 import { applyChipsToContainer, wireAllMoneyCurButtons } from '../components/select-to-chips.js';
 import { swizBakiyeHintGuncelle, swizUpdateStepIndicator } from '../components/step-wizard.js';
@@ -495,11 +495,17 @@ export function editElden(id) {
       }
     }
   }
-  document.getElementById('modal-elden').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
-  // NOT: bu fonksiyon openModal() sarmalayıcısını değil doğrudan classList.add('open')
-  // kullanıyor — bu yüzden normalde modal açılışında otomatik tetiklenen popup
-  // dönüşümü (applyChipsToContainer) burada manuel çağrılmazsa "Kendi Hesabım" gibi
-  // alanlar düzenleme modunda düz/native select olarak kalıyordu.
+  // [ES module] Eskiden burada doğrudan classList.add('open') kullanılıyordu
+  // (openModal() sarmalayıcısı BYPASS ediliyordu). Bu, wizard-routing.js'in
+  // openModal() üzerinden kurduğu hash senkronunu (adım + düzenleme id'si)
+  // hiç tetiklemiyordu — modal-elden içinde F5 yapılınca veya deep-link
+  // paylaşılınca düzenlenen kayıt kayboluyordu. openModal('modal-elden')
+  // ile açılış, davranışı KORUYARAK (_sidebarDim, modal-open class'ı zaten
+  // openModal() içinde de yapılıyor) hash senkronunu da devreye sokuyor.
+  openModal('modal-elden');
+  // NOT: openModal() kendi başına popup dönüşümünü (applyChipsToContainer)
+  // tetiklemediği için "Kendi Hesabım" gibi alanlar düzenleme modunda düz/
+  // native select olarak kalıyordu — bu yüzden burada hâlâ manuel çağırıyoruz.
   const _eldenModalEl = document.getElementById('modal-elden');
   if (_eldenModalEl) setTimeout(() => { applyChipsToContainer(_eldenModalEl); wireAllMoneyCurButtons(); }, 80);
 }

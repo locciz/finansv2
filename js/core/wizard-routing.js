@@ -51,6 +51,8 @@ import { openHesapModal } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
 import { editHesapId } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
 import { editKart } from '../ui/pages/kartlar/01-kart-data.js';
 import { editKartId, setEditKartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
+import { editMevduat } from '../ui/pages/mevduat/01-mevduat-form-wizard.js';
+import { editMevduatId, setEditMevduatId } from '../ui/pages/mevduat/00-state.js';
 import { DB } from './state.js';
 import { openModal, getCloseModal, setCloseModal } from '../ui/components/modal-genel.js';
 import { register, get } from './wrap-registry.js';
@@ -213,6 +215,7 @@ const WIZARD_EDIT_SUPPORT = {
   'modal-para-birimi': { getEditId: () => editParaBirimiKod, findRecord: kod => (DB.paraBirimleri||[]).find(x=>x.kod===kod), openEdit: kod => openParaBirimiModal(kod) },
   'modal-hesap':       { getEditId: () => editHesapId,       findRecord: id => (DB.hesaplar||[]).find(x=>x.id===id),       openEdit: id => openHesapModal(id) },
   'modal-kart':        { getEditId: () => editKartId,        findRecord: id => (DB.kartlar||[]).find(x=>x.id===id),        openEdit: id => editKart(id) },
+  'modal-mevduat':     { getEditId: () => editMevduatId,      findRecord: id => (DB.mevduatlar||[]).find(x=>x.id===id),     openEdit: id => editMevduat(id) },
 };
 
 // modal-mevduat ve modal-kart-odeme kasıtlı olarak burada YOK: zaten genel
@@ -230,7 +233,7 @@ export const WIZARD_RESTORE_OPENERS = {
   'modal-para-birimi':  () => openParaBirimiModal(),
   'modal-hesap':        () => openHesapModal(),
   'modal-kart':         () => { setEditKartId(null); openModal('modal-kart'); },
-  'modal-mevduat':      () => openModal('modal-mevduat'),
+  'modal-mevduat':      () => { setEditMevduatId(null); openModal('modal-mevduat'); },
   'modal-kart-odeme':   () => openModal('modal-kart-odeme'),
 };
 

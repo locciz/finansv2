@@ -17,6 +17,7 @@ import { populateIslemModal } from '../pages/islemler/07-islem-modal-crud.js';
 import { populateKartModal } from '../pages/kartlar/06-kart-form.js';
 import { editKartId } from '../pages/kartlar/09-kart-altyapi.js';
 import { populateMevduatModal } from '../pages/mevduat/01-mevduat-form-wizard.js';
+import { editMevduatId } from '../pages/mevduat/00-state.js';
 import { call, register } from '../../core/wrap-registry.js';
 // ============================================================
 // js/ui/components/modal-genel.js — Genel modal altyapısı
@@ -84,7 +85,15 @@ function _openModalBase(id, onceSecimKartId) {
   _sidebarDim(true);
   if(id==='modal-kart') populateKartModal(editKartId ? (DB.kartlar||[]).find(k=>k.id===editKartId) : null);
   if(id==='modal-islem') populateIslemModal(onceSecimKartId);
-  if(id==='modal-mevduat') populateMevduatModal();
+  // [ES module] editMevduat() artık openModal() sarmalayıcısını kullanıyor
+  // (bkz. mevduat/01-mevduat-form-wizard.js). populateMevduatModal() KOŞULSUZ
+  // setEditMevduatId(null) yaptığı için, editMevduat() zaten editMevduatId'yi
+  // set ETTİKTEN SONRA openModal() çağırdığında bu satır onu hemen null'a
+  // geri döndürüp formu resetlerdi. modal-kart'taki desenle aynı korumayı
+  // uyguluyoruz: sadece YENİ KAYIT açılışında (editMevduatId henüz boşken)
+  // populateMevduatModal() çağrılır; edit modunda editMevduat() kendi
+  // doldurma mantığını zaten tamamlamış olur, buradan dokunmuyoruz.
+  if(id==='modal-mevduat' && !editMevduatId) populateMevduatModal();
   if(id==='modal-eslestir') renderEkstreEslestir();
   if(id==='modal-tcmb-gecmis') populateTcmbGecmisModal();
   // Money input binding — yeni açılan modalda da çalışsın

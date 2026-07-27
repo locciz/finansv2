@@ -5,7 +5,7 @@ import { buildCurrencyOptions } from '../../../domain/doviz.js';
 import { _tutarAsiyorMu, getStopajOrani } from '../../../domain/hesaplamalar.js';
 import { swizOzetSatirHtml, swizUpdateStepIndicator } from '../../components/step-wizard.js';
 import { hesaplaMevduatOnizleme } from '../../../domain/mevduat-hesaplama.js';
-import { _markFieldError, _sidebarDim, showToast } from '../../components/modal-genel.js';
+import { _markFieldError, showToast, openModal } from '../../components/modal-genel.js';
 import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
 import { applyChipsToContainer, wireAllMoneyCurButtons } from '../../components/select-to-chips.js';
 import { renderIslemler } from '../islemler/03-islem-liste-render.js';
@@ -547,13 +547,22 @@ export function editMevduat(id) {
   calcMevduat();
   const bitisGoster = document.getElementById('mev-bitis-goster');
   if(bitisGoster) bitisGoster.value = fmtDate(m.bitis);
-  document.getElementById('modal-mevduat').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
+  // [ES module] Eskiden burada doğrudan classList.add('open') kullanılıyordu
+  // (openModal() sarmalayıcısı BYPASS ediliyordu — "formu resetlemesin diye"
+  // deniyordu, çünkü modal-genel.js'deki populateMevduatModal() koşulsuz
+  // setEditMevduatId(null) yapıyordu). Bunu modal-genel.js'de düzelttik:
+  // artık populateMevduatModal() sadece editMevduatId BOŞKEN çağrılıyor —
+  // burada zaten setEditMevduatId(id) yukarıda çağrıldığı için openModal()
+  // güvenle kullanılabiliyor. Bu da wizard-routing.js'in hash senkronunu
+  // (adım + düzenleme id'si) devreye sokuyor — F5/deep-link sonrası aynı
+  // kayıt düzenleme modunda tekrar açılabiliyor.
+  openModal('modal-mevduat');
 
-  // editMevduat() modalı openModal() üzerinden açmıyor (formu resetlemesin diye),
-  // bu yüzden openModal()'ın patch'lediği applyChipsToContainer çağrısı burada
-  // tetiklenmiyor — aynı editIslem() bug'ı: Vadeli/Kaynak Hesap, Strateji ve
-  // Vadesiz Hesap select'leri popup'a dönüşmeden native select olarak kalıyordu.
-  // Burada da manuel tetikliyoruz.
+  // editMevduat() modalı eskiden openModal() üzerinden açmıyordu, bu yüzden
+  // openModal()'ın patch'lediği applyChipsToContainer çağrısı tetiklenmiyordu
+  // — aynı editIslem() bug'ı: Vadeli/Kaynak Hesap, Strateji ve Vadesiz Hesap
+  // select'leri popup'a dönüşmeden native select olarak kalıyordu.
+  // Burada da manuel tetikliyoruz (openModal() zaten bunu yapmadığı için).
   setTimeout(() => {
     const modalEl = document.getElementById('modal-mevduat');
     if(modalEl) {
