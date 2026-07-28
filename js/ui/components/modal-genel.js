@@ -1,24 +1,33 @@
-import { saveData } from '../../core/app-core-base.js';
-import { uid } from '../../core/format.js';
-import { _currentHashPage, _currentHashParams, _pushHashState } from '../../core/init.js';
-import { refreshVisiblePage } from '../../core/render-core.js';
-import { ALL_CURRENCIES, DB, FORMAT_CONFIG } from '../../core/state.js';
-import { rebuildAllCurrencies } from '../../domain/doviz.js';
-import { ibanMod97 } from '../../domain/iban-utils.js';
-import { populateTcmbGecmisModal } from '../../services/kur-servisleri.js';
-import { cpsSync } from './cps-select.js';
-import { _ibanPopupKapat, attachAllIbanValidations } from './iban-ui.js';
-import { openModalDateOverlayRefresh } from './mobile-nav-tema/05-tarih-input-overlay.js';
-import { mkpRenderList } from './kisiler.js';
-import { bindMoneyInputs } from './money-input.js';
-import { renderEkstreEslestir } from '../pages/ekstreler/03-ekstre-eslestirme-pdf-import.js';
-import { populateEldenKisiSelect } from '../pages/elden.js';
-import { populateIslemModal } from '../pages/islemler/07-islem-modal-crud.js';
-import { populateKartModal } from '../pages/kartlar/06-kart-form.js';
-import { editKartId } from '../pages/kartlar/09-kart-altyapi.js';
-import { populateMevduatModal } from '../pages/mevduat/01-mevduat-form-wizard.js';
-import { editMevduatId } from '../pages/mevduat/00-state.js';
-import { call, register } from '../../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+const _kurServisleri = inject('services.kurServisleri');
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.format, core.init,
+// core.renderCore, core.state, domain.doviz, domain.ibanUtils,
+// core.wrapRegistry, ui.components.cpsSelect, ui.components.tarihInputOverlay,
+// ui.components.kisiler, ui.components.moneyInput zaten container'a
+// taşınmış katmanlara ait. iban-ui.js ve kisiler.js ile üçlü dairesel
+// bağımlılık var (bkz. iban-ui.js'teki aynı yorum) — inject() ile güvenle
+// çözülüyor. @pages/* importları o katman henüz taşınmadığı için
+// BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _format = inject('core.format');
+const _init = inject('core.init');
+const _renderCore = inject('core.renderCore');
+const _coreState = inject('core.state');
+const _doviz = inject('domain.doviz');
+const _ibanUtils = inject('domain.ibanUtils');
+const _wrapRegistry = inject('core.wrapRegistry');
+const _cpsSelect = inject('ui.components.cpsSelect');
+const _ibanUi = inject('ui.components.ibanUi');
+const _tarihInputOverlay = inject('ui.components.tarihInputOverlay');
+const _kisiler = inject('ui.components.kisiler');
+const _moneyInput = inject('ui.components.moneyInput');
+import { renderEkstreEslestir } from '@pages/ekstreler/03-ekstre-eslestirme-pdf-import.js';
+import { populateEldenKisiSelect } from '@pages/elden.js';
+import { populateIslemModal } from '@pages/islemler/07-islem-modal-crud.js';
+import { populateKartModal } from '@pages/kartlar/06-kart-form.js';
+import { editKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { populateMevduatModal } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { editMevduatId } from '@pages/mevduat/00-state.js';
 // ============================================================
 // js/ui/components/modal-genel.js — Genel modal altyapısı
 // (aç/kapat/sıfırlama, alan doğrulama, toast, placeholder select
@@ -50,7 +59,7 @@ export function showConfirm(msg, onOk, opts) {
 }
 
 function _openModalBase(id, onceSecimKartId) {
-  if(!ALL_CURRENCIES.length) rebuildAllCurrencies();
+  if(!_coreState.ALL_CURRENCIES.length) _doviz.rebuildAllCurrencies();
 
   // ── Açılmadan önce modal içini temizle ──
   const modalBg = document.getElementById(id);
@@ -83,7 +92,7 @@ function _openModalBase(id, onceSecimKartId) {
   document.getElementById(id).classList.add('open');
   document.body.classList.add('modal-open');
   _sidebarDim(true);
-  if(id==='modal-kart') populateKartModal(editKartId ? (DB.kartlar||[]).find(k=>k.id===editKartId) : null);
+  if(id==='modal-kart') populateKartModal(editKartId ? (_coreState.DB.kartlar||[]).find(k=>k.id===editKartId) : null);
   if(id==='modal-islem') populateIslemModal(onceSecimKartId);
   // [ES module] editMevduat() artık openModal() sarmalayıcısını kullanıyor
   // (bkz. mevduat/01-mevduat-form-wizard.js). populateMevduatModal() KOŞULSUZ
@@ -95,11 +104,11 @@ function _openModalBase(id, onceSecimKartId) {
   // doldurma mantığını zaten tamamlamış olur, buradan dokunmuyoruz.
   if(id==='modal-mevduat' && !editMevduatId) populateMevduatModal();
   if(id==='modal-eslestir') renderEkstreEslestir();
-  if(id==='modal-tcmb-gecmis') populateTcmbGecmisModal();
+  if(id==='modal-tcmb-gecmis') _kurServisleri.populateTcmbGecmisModal();
   // Money input binding — yeni açılan modalda da çalışsın
   const modalEl = document.getElementById(id);
   if(modalEl) setTimeout(()=>{
-    bindMoneyInputs(modalEl);
+    _moneyInput.bindMoneyInputs(modalEl);
     // Büyük (hero) tutar alanı olan modallarda açılışta focus doğrudan
     // tutar alanına gitsin; içinde veri varsa hepsi seçiliymiş gibi
     // görünmesin (bkz. bindMoneyInputs focus handler'ındaki _skipAutoSelect).
@@ -111,20 +120,20 @@ function _openModalBase(id, onceSecimKartId) {
   }, 10);
 
   // Hash'e modal bilgisini ekle (mevcut sayfa korunarak)
-  const curPage = _currentHashPage() || 'ozet';
-  const curParams = _currentHashParams();
+  const curPage = _init._currentHashPage() || 'ozet';
+  const curParams = _init._currentHashParams();
   curParams.modal = id;
   if(onceSecimKartId) curParams.modalKart = onceSecimKartId;
-  _pushHashState(curPage, curParams);
+  _init._pushHashState(curPage, curParams);
 
   // Eskiden window.openModal patch'i (patchOpenModal) burayı ayrıca sarmalayıp
   // her açılıştan sonra IBAN validasyonlarını yeniden bağlıyordu. ES module
   // export'ları immutable binding olduğu için dışarıdan wrap edilemez;
   // davranış birebir korunarak doğrudan buraya taşındı.
-  setTimeout(attachAllIbanValidations, 120);
+  setTimeout(_ibanUi.attachAllIbanValidations, 120);
   // Aynı sebeple, tarih input overlay'lerini modal açılışında yenileyen
   // patch de (patchOpenModalForDateOverlay) buraya taşındı.
-  openModalDateOverlayRefresh(id);
+  _tarihInputOverlay.openModalDateOverlayRefresh(id);
 }
 
 function closeModalBase(id) {
@@ -156,7 +165,7 @@ function closeModalBase(id) {
     if (el._cpsOpts) {
       const defOpt = Array.from(el.options).find(o => o.defaultSelected) || el.options[0];
       el.value = defOpt ? defOpt.value : '';
-      cpsSync(el.id);
+      _cpsSelect.cpsSync(el.id);
     }
   });
 
@@ -208,20 +217,20 @@ function closeModalBase(id) {
   });
 
   // Hash'ten modal bilgisini temizle
-  const curPage = _currentHashPage() || 'ozet';
-  const curParams = _currentHashParams();
+  const curPage = _init._currentHashPage() || 'ozet';
+  const curParams = _init._currentHashParams();
   delete curParams.modal;
   delete curParams.modalKart;
-  _pushHashState(curPage, curParams);
+  _init._pushHashState(curPage, curParams);
 
   // ── Genel tazeleme ──────────────────────────────────────
   // Popup hangi sayfadan açılmış olursa olsun (ör. Özet'teyken Mevduat popup'ı
   // açılıp kaydedilmişse), o an ekranda görünen sayfayı ve dashboard özetini
   // güncel veriyle yeniden çiz. Böylece "popup kapandı ama ekran eskisi gibi
   // kaldı" sorunu tüm sayfalarda tutarlı biçimde önlenmiş olur.
-  refreshVisiblePage();
+  _renderCore.refreshVisiblePage();
   if (id === 'modal-transfer') {
-    setTimeout(function(){ call('_odModalRestoreAfterTransfer'); }, 0);
+    setTimeout(function(){ _wrapRegistry.call('_odModalRestoreAfterTransfer'); }, 0);
   }
 }
 
@@ -283,8 +292,8 @@ export function _isFieldEmpty(id) {
   // money-input: parse ederek kontrol et
   if (el.classList.contains('money-input')) {
     const raw = (el.value||'').replace(/\s/g,'')
-      .replace(new RegExp('\\' + (FORMAT_CONFIG.binlikAyrac||'.'), 'g'), '')
-      .replace(FORMAT_CONFIG.ondalikAyrac||',', '.');
+      .replace(new RegExp('\\' + (_coreState.FORMAT_CONFIG.binlikAyrac||'.'), 'g'), '')
+      .replace(_coreState.FORMAT_CONFIG.ondalikAyrac||',', '.');
     return !parseFloat(raw);
   }
   return !(el.value||'').trim();
@@ -483,16 +492,16 @@ export function showManuelKarsiKaydetModal(ad, iban, saveFn) {
     saveFn();
     // Kişiyi saveFn'den SONRA kaydet — böylece form hatası çıksa bile kişi fazladan eklenmez
     if (ad) {
-      const ibanGecerli = !!iban && /^TR\d{24}$/.test(iban) && ibanMod97(iban);
+      const ibanGecerli = !!iban && /^TR\d{24}$/.test(iban) && _ibanUtils.ibanMod97(iban);
       // Aynı IBAN zaten kayıtlıysa tekrar ekleme
-      const zatenVar = ibanGecerli && (DB.kisiler||[]).some(k => (k.ibanlar||[]).some(i => i.iban === iban));
+      const zatenVar = ibanGecerli && (_coreState.DB.kisiler||[]).some(k => (k.ibanlar||[]).some(i => i.iban === iban));
       if (!zatenVar) {
-        const newKisi = { id: uid(), ad, tel: '', ibanlar: ibanGecerli ? [{iban, etiket:''}] : [], not:'' };
-        if (!DB.kisiler) DB.kisiler = [];
-        DB.kisiler.push(newKisi);
-        saveData();
+        const newKisi = { id: _format.uid(), ad, tel: '', ibanlar: ibanGecerli ? [{iban, etiket:''}] : [], not:'' };
+        if (!_coreState.DB.kisiler) _coreState.DB.kisiler = [];
+        _coreState.DB.kisiler.push(newKisi);
+        _appCoreBase.saveData();
         try { populateEldenKisiSelect(); } catch(e){}
-        try { mkpRenderList(); } catch(e){}
+        try { _kisiler.mkpRenderList(); } catch(e){}
         showToast(iban && !ibanGecerli
           ? ad + ' eklendi (IBAN geçersiz olduğu için kaydedilmedi)'
           : ad + ' kişi listesine eklendi ✓');
@@ -632,7 +641,7 @@ document.querySelectorAll('.modal-bg').forEach(m => {
     if(e.target===m) {
       // IBAN popup dışına tıklanınca "atla" gibi kapat
       if(m.id === 'modal-iban-popup') {
-        _ibanPopupKapat(true);
+        _ibanUi._ibanPopupKapat(true);
         return;
       }
       closeModal(m.id);
@@ -656,15 +665,30 @@ if (document.readyState === 'loading') {
 
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
-register('openModal', _openModalBase);
+_wrapRegistry.register('openModal', _openModalBase);
 
 // [ES module] Eskiden bu dosyanın DIŞINDAKİ ~40 dosya `import { openModal }`
 // ile TABAN tanımı doğrudan çağırıyordu — bu yüzden select-to-chips.js gibi
-// başka modüllerin register('openModal', wrap(...)) ile eklediği katmanlar
+// başka modüllerin _wrapRegistry.register('openModal', wrap(...)) ile eklediği katmanlar
 // (chip render, vb.) o çağrılarda hiç devreye girmiyordu (sessiz bug).
 // Artık `openModal` adı altında export edilen bu köprü, HER ZAMAN registry'
 // deki EN GÜNCEL (en dıştaki) katmanı çağırır — çağıran dosya değişmeden
 // (hâlâ `import { openModal }` kullanabilirler) davranış otomatik doğru olur.
 export function openModal(...args) {
-  return call('openModal', ...args);
+  return _wrapRegistry.call('openModal', ...args);
 }
+
+// ============================================================
+// [DI-MIGRATION] ui.components.modalGenel — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.modalGenel', {
+  showConfirm, setCloseModal, getCloseModal, closeModal, _fieldErrorHedefEl,
+  _fieldErrorVurgula, showFieldError, _isFieldEmpty, _markFieldError,
+  validateRequiredFields, showToast, initManuelKarsiObservers,
+  checkManuelKarsiTarafAndSave, showManuelKarsiKaydetModal, phUpdate,
+  phInit, phSet, _sidebarDim,
+  get _scrollLockY() { return _scrollLockY; },
+  get _lastKnownScrollY() { return _lastKnownScrollY; },
+  openModal,
+});

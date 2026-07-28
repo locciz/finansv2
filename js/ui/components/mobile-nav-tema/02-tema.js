@@ -1,5 +1,11 @@
-import { showToast } from '../modal-genel.js';
-import { refreshDateOverlayStyles } from './05-tarih-input-overlay.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: her iki bağımlılık da (ui.components.modalGenel,
+// ui.components.tarihInputOverlay) zaten container'a taşınmış katmanlara
+// ait. IIFE içindeki applyTheme() çağrısı modül evaluate anında
+// refreshDateOverlayStyles()'ı tetikliyor — inject() tembel Proxy olduğu
+// için script yükleme sırasına bağımlı değil, güvenle çözülür.
+const _modalGenel = inject('ui.components.modalGenel');
+const _tarihInputOverlay = inject('ui.components.tarihInputOverlay');
 // ============================================================
 // js/ui/components/mobile-nav-tema/02-tema.js
 // Açık/koyu tema seçimi ve sistem temasına uyum
@@ -37,7 +43,7 @@ export function applyTheme(theme) {
   // Tarih input overlay'leri (fake input) ilk oluşturulduğunda o anki temayı
   // donduruyor — tema değişiminde bunları tazele (yoksa örn. dark mode'a
   // geçince eski açık tema arka planı kalır).
-  refreshDateOverlayStyles();
+  _tarihInputOverlay.refreshDateOverlayStyles();
 }
 
 export function updateMobThemeBtn() {
@@ -98,7 +104,7 @@ export function temaSistemeDondur() {
   _temaManuelSecildi = false;
   localStorage.removeItem('finans-theme-manuel');
   applyTheme(sistemTemasiniOku());
-  showToast('Tema artık sistemle otomatik eşleşiyor');
+  _modalGenel.showToast('Tema artık sistemle otomatik eşleşiyor');
 }
 
 /* rf-v85: eski global observer ağırlıklı UX katmanı kaldırıldı; hafif prosedürel katman aşağıda. */
@@ -111,3 +117,13 @@ export function temaSistemeDondur() {
 // Her kayıt: "tip:id:key:durum" → ödenen tutar
 // DB.otoBakiyeLog = {}  şeklinde saklanır
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.tema — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.tema', {
+  applyTheme, updateMobThemeBtn, toggleTheme, sistemTemasiniOku,
+  get _temaManuelSecildi() { return _temaManuelSecildi; },
+  temaSistemeDondur,
+});

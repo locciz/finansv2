@@ -1,16 +1,16 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmt, fmtCur, localDateStr, uid } from '../../../core/format.js';
-import { ALL_CURRENCIES, DB, defaultCurrency } from '../../../core/state.js';
-import { rebuildAllCurrencies } from '../../../domain/doviz.js';
-import { _tutarAsiyorMu, getBsmvOrani, getKkdfOrani, getKmhFaizOrani, hesaplaNakitAvansOnizleme } from '../../../domain/hesaplamalar.js';
-import { phSet, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { renderIslemler } from '../islemler/03-islem-liste-render.js';
-import { getKartCurrencies, getKartDefaultCurrency } from '../kartlar/01-kart-data.js';
-import { NA_STEP_COUNT, _naCurrentStep, _naLimitAutoSaveTimer, editNaId, setEditNaId, set_naCurrentStep, set_naLimitAutoSaveTimer } from './00-state.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmt, fmtCur, localDateStr, uid } from '@core/format.js';
+import { ALL_CURRENCIES, DB, defaultCurrency } from '@core/state.js';
+import { rebuildAllCurrencies } from '@domain/doviz.js';
+import { _tutarAsiyorMu, getBsmvOrani, getKkdfOrani, getKmhFaizOrani, hesaplaNakitAvansOnizleme } from '@domain/hesaplamalar.js';
+import { phSet, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { getKartCurrencies, getKartDefaultCurrency } from '@pages/kartlar/01-kart-data.js';
+import { NA_STEP_COUNT, _naCurrentStep, _naLimitAutoSaveTimer, editNaId, setEditNaId, set_naCurrentStep, set_naLimitAutoSaveTimer } from '@pages/krediler/00-state.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/krediler/02-nakit-avans.js
 // Nakit avans akışı (ekleme/düzenleme wizard, limit kontrolleri)

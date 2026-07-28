@@ -1,11 +1,11 @@
-import { cpsInit } from '../../../components/cps-select.js';
-import { setMoneyInput } from '../../../components/money-input.js';
-import { _kartOdemeQuickTransferContext } from '../../kartlar/08-kart-odeme.js';
-import { odGetDurum } from '../01-genel-yardimcilar.js';
-import { _odModalSecDurum } from '../06-genel-odeme-modali.js';
-import { odGetItem } from '../02-sayfa-render.js';
-import { register, call, get } from '../../../../core/wrap-registry.js';
-import { _odModal } from '../08-popup-giris-noktalari.js';
+import { cpsInit } from '@components/cps-select.js';
+import { setMoneyInput } from '@components/money-input.js';
+import { _kartOdemeQuickTransferContext } from '@pages/kartlar/08-kart-odeme.js';
+import { odGetDurum } from '@pages/odeme/01-genel-yardimcilar.js';
+import { _odModalSecDurum } from '@pages/odeme/06-genel-odeme-modali.js';
+import { odGetItem } from '@pages/odeme/02-sayfa-render.js';
+import { register, call, get } from '@core/wrap-registry.js';
+import { _odModal } from '@pages/odeme/08-popup-giris-noktalari.js';
 // [KALDIRILDI] "Son Transferler" render/filtre mantığı (accLabel, side,
 // possible, ensureTransferLogPrefs, renderStatus, _transferLogFiltreItems,
 // openTransferLogFiltrePopup, setTransferLogStatusFilter, register('renderTransferLog',...))

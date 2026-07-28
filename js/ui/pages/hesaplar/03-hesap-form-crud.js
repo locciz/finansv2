@@ -1,23 +1,23 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr, uid } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { buildCurrencyOptions } from '../../../domain/doviz.js';
-import { parseIban } from '../../../domain/iban-utils.js';
-import { _markFieldError, phSet, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { swizOzetSatirHtml, swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { HESAP_STEP_COUNT, _hesapCurrentStep, set_hesapCurrentStep } from './00-state.js';
-import { hesapOtomatikGunlukKontrol } from './01-genel-yardimcilar.js';
-import { onHesapTurChange } from './02-hesap-turu-tanimlama.js';
-import { editHesapId, setEditHesapId } from './04-hesap-liste-render.js';
-import { readKmhLimitGecmis, renderKmhLimitGecmis } from '../krediler/03-kmh-kredi.js';
-import { renderMevduat } from '../mevduat/05-mevduat-liste-render.js';
-import { bankaOptionMetin } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { readOtoGunlukOranGecmisi, renderOtoGunlukOranGecmis } from '../tanimlamalar/05-genel-oran-tablolari.js';
-import { getSubeAdFromKodlar } from '../tanimlamalar/08-subeler.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { renderHesaplar } from './04-hesap-liste-render.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, localDateStr, uid } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { buildCurrencyOptions } from '@domain/doviz.js';
+import { parseIban } from '@domain/iban-utils.js';
+import { _markFieldError, phSet, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { swizOzetSatirHtml, swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { HESAP_STEP_COUNT, _hesapCurrentStep, set_hesapCurrentStep } from '@pages/hesaplar/00-state.js';
+import { hesapOtomatikGunlukKontrol } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { onHesapTurChange } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
+import { editHesapId, setEditHesapId } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { readKmhLimitGecmis, renderKmhLimitGecmis } from '@pages/krediler/03-kmh-kredi.js';
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { bankaOptionMetin } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { readOtoGunlukOranGecmisi, renderOtoGunlukOranGecmis } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { getSubeAdFromKodlar } from '@pages/tanimlamalar/08-subeler.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/hesaplar/03-hesap-form-crud.js
 // Hesap ekleme/düzenleme formu (step wizard)
@@ -156,6 +156,12 @@ export function _hesapValidateStep(step) {
       _markFieldError('hesap-banka');
       return false;
     }
+    const ibanRaw = (document.getElementById('hesap-iban')||{}).value?.replace(/\s+/g,'').toUpperCase() || '';
+    if (ibanRaw && !parseIban(ibanRaw)) {
+      showToast('Geçersiz IBAN', 'error');
+      _markFieldError('hesap-iban');
+      return false;
+    }
     return true;
   }
   if (step === 2) {
@@ -234,6 +240,11 @@ export function saveHesap() {
 
   const ibanRaw = document.getElementById('hesap-iban').value.replace(/\s+/g,'').toUpperCase();
   const parsed = ibanRaw ? parseIban(ibanRaw) : null;
+  if (ibanRaw && !parsed) {
+    showToast('Geçersiz IBAN', 'error');
+    _markFieldError('hesap-iban');
+    return;
+  }
 
   const hesap = {
     id: editHesapId || uid(),

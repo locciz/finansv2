@@ -1,7 +1,7 @@
-import { DB } from '../../../core/state.js';
-import { KD_KAT_PALET, _kd2ExtreKatFiltre, _kd2IslemKatFiltre, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatBarCtx, set_kd2ExtreKatFiltre, set_kd2IslemKatFiltre, set_kdExtreKatFiltre, set_kdIslemKatFiltre } from './00-state.js';
-import { kdRenderIslemler, kdRenderExtreler } from './04-kart-detay-v1.js';
-import { kd2RenderExtreler, kd2RenderIslemler } from './05-kart-detay-v2.js';
+import { DB } from '@core/state.js';
+import { KD_KAT_PALET, _kd2ExtreKatFiltre, _kd2IslemKatFiltre, _kdExtreKatFiltre, _kdIslemKatFiltre, _kdKatBarCtx, set_kd2ExtreKatFiltre, set_kd2IslemKatFiltre, set_kdExtreKatFiltre, set_kdIslemKatFiltre } from '@pages/kartlar/00-state.js';
+import { kdRenderIslemler, kdRenderExtreler } from '@pages/kartlar/04-kart-detay-v1.js';
+import { kd2RenderExtreler, kd2RenderIslemler } from '@pages/kartlar/05-kart-detay-v2.js';
 // ============================================================
 // js/ui/pages/kartlar/02-kategori-arama-widget.js
 // İşlem/ekstre kategori arama & filtre bar widget'ı

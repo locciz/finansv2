@@ -1,17 +1,17 @@
-import { fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { phSet } from '../../components/modal-genel.js';
-import { persistExtreFiltreToDB, restoreExtreFiltreFromDB } from '../../components/tablo-filtre-sirala.js';
-import { calcAsgariOdeme } from '../asgari-odeme.js';
-import { isEkstreKesinlesmis, kesinlestirEkstre, openOzelExtreModal } from './01-ekstre-kesinlestirme.js';
-import { _extreKartTemsiliDonem, extreKartSec } from '../islemler/05-ekstre-kart-secici.js';
-import { deleteKartOdeme } from '../kartlar/08-kart-odeme.js';
-import { odAcPopupKart } from '../odeme/08-popup-giris-noktalari.js';
-import { getKartCurrencies, getKartCurrency, getKartDonemBorcu, getKartKullanim, getKartRenk, getKartStatementAmount, kartDonemHesapla } from '../kartlar/01-kart-data.js';
-import { bankaIkonObj, getBanka, getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { phSet } from '@components/modal-genel.js';
+import { persistExtreFiltreToDB, restoreExtreFiltreFromDB } from '@components/tablo-filtre-sirala.js';
+import { calcAsgariOdeme } from '@pages/asgari-odeme.js';
+import { isEkstreKesinlesmis, kesinlestirEkstre, openOzelExtreModal } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { _extreKartTemsiliDonem, extreKartSec } from '@pages/islemler/05-ekstre-kart-secici.js';
+import { deleteKartOdeme } from '@pages/kartlar/08-kart-odeme.js';
+import { odAcPopupKart } from '@pages/odeme/08-popup-giris-noktalari.js';
+import { getKartCurrencies, getKartCurrency, getKartDonemBorcu, getKartKullanim, getKartRenk, getKartStatementAmount, kartDonemHesapla } from '@pages/kartlar/01-kart-data.js';
+import { bankaIkonObj, getBanka, getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/ekstreler/02-ekstre-render.js
 // Ekstreler sayfası — ana liste/özet render

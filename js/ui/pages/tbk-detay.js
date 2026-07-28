@@ -1,13 +1,13 @@
-import { saveData, getShowPage, setShowPage } from '../../core/app-core-base.js';
-import { fmtCur, fmtDate, localDateStr } from '../../core/format.js';
-import { DB, defaultCurrency } from '../../core/state.js';
-import { setDateInputValue } from '../components/money-input.js';
-import { renderTahminBakiye, _tbkAylikVeriler, _tbkAylikPb } from './ozet.js';
-import { _tbkFaizFormButonGuncelle, renderTbkFaizListesi } from './tanimlamalar/04-tbk-faiz-oranlari.js';
-import { _sidebarDim, openModal } from '../components/modal-genel.js';
-import { register, get } from '../../core/wrap-registry.js';
-import { FinansPaymentUiHelpers } from './odeme/patches/01-transfer-log-senkron.js';
-import { FinansUiCoreRefresh } from './odeme/patches/07-genel-ui-burst-refresh.js';
+import { saveData, getShowPage, setShowPage } from '@core/app-core-base.js';
+import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { renderTahminBakiye, _tbkAylikVeriler, _tbkAylikPb } from '@pages/ozet.js';
+import { _tbkFaizFormButonGuncelle, renderTbkFaizListesi } from '@pages/tanimlamalar/04-tbk-faiz-oranlari.js';
+import { _sidebarDim, openModal } from '@components/modal-genel.js';
+import { register, get } from '@core/wrap-registry.js';
+import { FinansPaymentUiHelpers } from '@pages/odeme/patches/01-transfer-log-senkron.js';
+import { FinansUiCoreRefresh } from '@pages/odeme/patches/07-genel-ui-burst-refresh.js';
 // Orijinal 02-core-app-engine.js içinden çıkarıldı. İçerik değiştirilmedi.
 
 export function tbkSetGecmis(gun, btn) {

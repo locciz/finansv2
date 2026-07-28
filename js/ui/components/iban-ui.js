@@ -1,14 +1,20 @@
-import { saveData } from '../../core/app-core-base.js';
-import { DB } from '../../core/state.js';
-import { BANKA_LOGOLAR, BANK_ICON_MAP, IBAN_BANKA_MAP } from '../../domain/banka-verisi.js';
-import { formatIbanView, ibanMod97, parseIban } from '../../domain/iban-utils.js';
-import { renderKisilerGrid } from './kisiler.js';
-import { showToast } from './modal-genel.js';
-import { populateEldenKisiSelect } from '../pages/elden.js';
-import { bankaLogoByKod } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { getSubeAdFromKodlar } from '../pages/tanimlamalar/08-subeler.js';
-import { _pickBankaLogo } from '../pages/tanimlamalar/07-bankalar.js';
-import { closeModal, openModal } from './modal-genel.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.state, domain.bankaVerisi,
+// domain.ibanUtils zaten container'a taşınmış katmanlara ait. kisiler.js ve
+// modal-genel.js ile üçlü dairesel bağımlılık var (kisiler.js ↔ iban-ui.js ↔
+// modal-genel.js) — inject() tembel Proxy olduğu için hangisinin script
+// olarak önce/sonra yüklendiği/evaluate olduğu önemli değil, güvenle çözülür.
+// @pages/* importları o katman henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _coreState = inject('core.state');
+const _bankaVerisi = inject('domain.bankaVerisi');
+const _ibanUtils = inject('domain.ibanUtils');
+const _kisiler = inject('ui.components.kisiler');
+const _modalGenel = inject('ui.components.modalGenel');
+import { populateEldenKisiSelect } from '@pages/elden.js';
+import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { getSubeAdFromKodlar } from '@pages/tanimlamalar/08-subeler.js';
+import { _pickBankaLogo } from '@pages/tanimlamalar/07-bankalar.js';
 // ============================================================
 // js/ui/components/iban-ui.js — IBAN doğrulama/format UI'ı,
 // banka logo seçici, IBAN hızlı-ekle popup'ı, IBAN chip seçici
@@ -25,7 +31,7 @@ export var _ibanPopupKisiId = null;
 export function _renderBankaLogoPicker(selectedSvg) {
   const picker = document.getElementById('banka-logo-picker');
   if(!picker) return;
-  picker.innerHTML = BANKA_LOGOLAR.map((logo, i) => {
+  picker.innerHTML = _bankaVerisi.BANKA_LOGOLAR.map((logo, i) => {
     const isSelected = logo.svg === selectedSvg || (logo.id === 'none' && !selectedSvg);
     return `<div class="altyapi-logo-picker-item${isSelected ? ' selected' : ''}" data-idx="${i}"
       title="${logo.ad}">
@@ -45,7 +51,7 @@ export function _renderBankaLogoPicker(selectedSvg) {
 export function _selectBankaLogo(svg) {
   document.getElementById('banka-logo').value = svg || '';
   document.querySelectorAll('#banka-logo-picker .altyapi-logo-picker-item').forEach((el, i) => {
-    const logo = BANKA_LOGOLAR[i];
+    const logo = _bankaVerisi.BANKA_LOGOLAR[i];
     const match = logo.svg === svg || (logo.id === 'none' && !svg);
     el.classList.toggle('selected', match);
   });
@@ -62,7 +68,7 @@ export function onBankaIbanKodInput() {
   const kod = (document.getElementById('banka-iban-kod')||{}).value?.trim().padStart(4,'0') || '';
   const ikonInput = document.getElementById('banka-ikon');
   const oneriDiv = document.getElementById('banka-ikon-oneri');
-  const preset = BANK_ICON_MAP[kod];
+  const preset = _bankaVerisi.BANK_ICON_MAP[kod];
   if (preset && ikonInput && !ikonInput.value) {
     if (oneriDiv) oneriDiv.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.18)">`
       + `<span style="font-size:15px;line-height:1">${preset.emoji}</span>`
@@ -83,7 +89,7 @@ export function onBankaIbanKodInput() {
 
 export function _ibanPopupAc(kisiId) {
   _ibanPopupKisiId = kisiId;
-  const kisi = (DB.kisiler||[]).find(k=>k.id===kisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===kisiId);
   if(!kisi) return;
 
   // Başlığı ayarla
@@ -104,12 +110,12 @@ export function _ibanPopupAc(kisiId) {
   // Tamam butonunu güncelle
   _ibanPopupListeGuncelle();
 
-  openModal('modal-iban-popup');
+  _modalGenel.openModal('modal-iban-popup');
   setTimeout(() => ibanInp.focus(), 120);
 }
 
 export function _ibanPopupListeGuncelle() {
-  const kisi = (DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
   const ibanlar = kisi ? (kisi.ibanlar||[]) : [];
   const listEl = document.getElementById('iban-popup-list');
   const tamamBtn = document.getElementById('iban-popup-tamam-btn');
@@ -140,7 +146,7 @@ export function _ibanPopupListeGuncelle() {
     </div>`).join('');
   // [ES module] onclick="navigator.clipboard.writeText(...)" ve onclick="_ibanPopupSil(...)" kaldırıldı.
   listEl.querySelectorAll('.iban-popup-kopyala-btn').forEach(btn => {
-    btn.addEventListener('click', () => navigator.clipboard.writeText(btn.getAttribute('data-iban')).then(() => showToast('Kopyalandı ✓')));
+    btn.addEventListener('click', () => navigator.clipboard.writeText(btn.getAttribute('data-iban')).then(() => _modalGenel.showToast('Kopyalandı ✓')));
   });
   listEl.querySelectorAll('.iban-popup-sil-btn').forEach(btn => {
     btn.addEventListener('click', () => _ibanPopupSil(Number(btn.getAttribute('data-idx'))));
@@ -156,14 +162,14 @@ export function _ibanPopupEkle() {
   if(!raw) { ibanInp.focus(); return; }
 
   // Mod-97 kontrolü
-  if(!/^TR\d{24}$/.test(raw) || !ibanMod97(raw)) {
+  if(!/^TR\d{24}$/.test(raw) || !_ibanUtils.ibanMod97(raw)) {
     statusEl.innerHTML = _ibanHataHtml('Geçersiz IBAN — lütfen kontrol edin');
     ibanInp.style.borderColor = 'var(--rose)';
     ibanInp.focus();
     return;
   }
 
-  const kisi = (DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
   if(!kisi) return;
   if(!kisi.ibanlar) kisi.ibanlar = [];
 
@@ -175,8 +181,8 @@ export function _ibanPopupEkle() {
 
   const etiket = etiketInp.value.trim();
   kisi.ibanlar.push({ iban: raw, etiket });
-  saveData();
-  renderKisilerGrid();
+  _appCoreBase.saveData();
+  _kisiler.renderKisilerGrid();
   populateEldenKisiSelect();
 
   // Inputları temizle
@@ -189,28 +195,28 @@ export function _ibanPopupEkle() {
   _ibanPopupListeGuncelle();
   ibanInp.focus();
 
-  showToast('IBAN eklendi ✓');
+  _modalGenel.showToast('IBAN eklendi ✓');
 }
 
 export function _ibanPopupSil(idx) {
-  const kisi = (DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
   if(!kisi || !kisi.ibanlar) return;
   kisi.ibanlar.splice(idx, 1);
-  saveData();
-  renderKisilerGrid();
+  _appCoreBase.saveData();
+  _kisiler.renderKisilerGrid();
   _ibanPopupListeGuncelle();
 }
 
 export function _ibanPopupKapat(atla) {
-  closeModal('modal-iban-popup');
-  const kisi = (DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
+  _modalGenel.closeModal('modal-iban-popup');
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===_ibanPopupKisiId);
   const adet = kisi ? (kisi.ibanlar||[]).length : 0;
   if(atla && adet === 0) {
-    showToast('Kişi eklendi ✓');
+    _modalGenel.showToast('Kişi eklendi ✓');
   } else if(adet > 0) {
-    showToast(`Kişi eklendi · ${adet} IBAN kaydedildi ✓`);
+    _modalGenel.showToast(`Kişi eklendi · ${adet} IBAN kaydedildi ✓`);
   } else {
-    showToast('Kişi eklendi ✓');
+    _modalGenel.showToast('Kişi eklendi ✓');
   }
   _ibanPopupKisiId = null;
 }
@@ -222,7 +228,7 @@ export function renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId) {
 
   if (!kisiId) { pickerWrap.style.display = 'none'; return; }
 
-  const kisi = (DB.kisiler||[]).find(k=>k.id===kisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===kisiId);
   if (!kisi || !kisi.ibanlar || !kisi.ibanlar.length) {
     pickerWrap.style.display = 'none';
     return;
@@ -254,7 +260,7 @@ export function renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId) {
       ? kisi.ibanlar[0].iban.replace(/\s+/g,'').toUpperCase()
       : (typeof kisi.ibanlar[0] === 'string' ? kisi.ibanlar[0].replace(/\s+/g,'').toUpperCase() : '');
     const inp = document.getElementById(ibanInputId);
-    if (inp && raw) { inp.value = raw; formatIbanView(inp); }
+    if (inp && raw) { inp.value = raw; _ibanUtils.formatIbanView(inp); }
     renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId);
     return;
   }
@@ -264,7 +270,7 @@ export function selectIbanChip(ibanInputId, rawIban, pickerWrapId, chipsId, kisi
   const inp = document.getElementById(ibanInputId);
   if (!inp) return;
   inp.value = rawIban;
-  formatIbanView(inp);
+  _ibanUtils.formatIbanView(inp);
   renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId);
 }
 
@@ -275,11 +281,11 @@ export function selectIbanChip(ibanInputId, rawIban, pickerWrapId, chipsId, kisi
 // sessizce çıkıyor, biri hata toast'ı gösteriyor) o kısımlara dokunulmadı —
 // sadece ortak kopyalama adımı buraya taşındı.
 export function _ibanKopyalaVeToastGoster(raw) {
-  navigator.clipboard.writeText(raw).then(() => showToast('IBAN kopyalandı ✓')).catch(() => {
+  navigator.clipboard.writeText(raw).then(() => _modalGenel.showToast('IBAN kopyalandı ✓')).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = raw; document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
-    showToast('IBAN kopyalandı ✓');
+    _modalGenel.showToast('IBAN kopyalandı ✓');
   });
 }
 
@@ -287,7 +293,7 @@ export function copyFieldIban(fieldId) {
   const el = document.getElementById(fieldId);
   if (!el) return;
   const raw = (el.dataset.rawIban || el.value).replace(/\s+/g,'').toUpperCase();
-  if (!raw) { showToast('Kopyalanacak IBAN yok'); return; }
+  if (!raw) { _modalGenel.showToast('Kopyalanacak IBAN yok'); return; }
   _ibanKopyalaVeToastGoster(raw);
 }
 
@@ -342,7 +348,7 @@ export function handleIbanInput(inputEl, statusEl, opts) {
   }
 
   // 26 hane — mod-97 kontrol
-  const parsed = parseIban(raw);
+  const parsed = _ibanUtils.parseIban(raw);
   if (!parsed) {
     statusEl.innerHTML = _ibanHataHtml('Geçersiz IBAN — kontrol haneleri uyuşmuyor');
     inputEl.style.borderColor = 'var(--rose)';
@@ -351,8 +357,8 @@ export function handleIbanInput(inputEl, statusEl, opts) {
 
   // Geçerli — banka adını göster
   inputEl.style.borderColor = 'var(--teal)';
-  const dbBank = (DB?.bankalar || []).find(b => b.ibanKod === parsed.bankaKodu || b.kod === parsed.bankaKodu);
-  const mapBank = (typeof IBAN_BANKA_MAP !== 'undefined') ? IBAN_BANKA_MAP[parsed.bankaKodu] : null;
+  const dbBank = (_coreState.DB?.bankalar || []).find(b => b.ibanKod === parsed.bankaKodu || b.kod === parsed.bankaKodu);
+  const mapBank = (typeof _bankaVerisi.IBAN_BANKA_MAP !== 'undefined') ? _bankaVerisi.IBAN_BANKA_MAP[parsed.bankaKodu] : null;
   const bankLabel = dbBank ? dbBank.kisa : (mapBank || ('Kod: ' + parsed.bankaKodu));
   statusEl.innerHTML = `<span class="iban-status iban-ok"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Geçerli &nbsp;·&nbsp; <b>${bankLabel}</b></span>`;
 
@@ -405,7 +411,7 @@ export function attachAllIbanValidations() {
         const sEl = statusEl || ensureIbanStatus(this);
         if (raw.length === 26 && !/^TR\d{24}$/.test(raw)) {
           sEl.innerHTML = _ibanHataHtml('Geçersiz IBAN');
-        } else if (raw.length === 26 && !ibanMod97(raw)) {
+        } else if (raw.length === 26 && !_ibanUtils.ibanMod97(raw)) {
           sEl.innerHTML = _ibanHataHtml('Geçersiz IBAN — kontrol haneleri uyuşmuyor');
           this.style.borderColor = 'var(--rose)';
         } else if (raw.length === 26) {
@@ -429,7 +435,7 @@ export function attachAllIbanValidations() {
 export function onIbanInput() {
   const inp = document.getElementById('hesap-iban');
   const raw = _ibanFormatlaVeImleciKoru(inp, 26);
-  const parsed = parseIban(raw);
+  const parsed = _ibanUtils.parseIban(raw);
   const statusEl = document.getElementById('hesap-iban-status');
   const parsedRow = document.getElementById('hesap-parsed-row');
 
@@ -450,19 +456,19 @@ export function onIbanInput() {
   // Şube adını IBAN kodundan otomatik bul
   updateSubeAdFromIban(parsed.bankaKodu, parsed.subeKodu);
 
-  // Banka eşleştir: önce DB.bankalar'da ibanKod'a göre direkt eşleş
-  const bankaAd = IBAN_BANKA_MAP[parsed.bankaKodu];
+  // Banka eşleştir: önce _coreState.DB.bankalar'da ibanKod'a göre direkt eşleş
+  const bankaAd = _bankaVerisi.IBAN_BANKA_MAP[parsed.bankaKodu];
   const sel = document.getElementById('hesap-banka');
   const ibanLogoSvg = bankaLogoByKod(parsed.bankaKodu);
   const ibanLogoHtml = ibanLogoSvg ? `<span class="bank-logo bank-logo-sm" style="vertical-align:-3px;margin-right:5px">${ibanLogoSvg}</span>` : '';
-  // 1. DB'deki banka ibanKod'u ile doğrudan eşleştir
-  const dbMatch = (DB.bankalar||[]).find(b => b.ibanKod === parsed.bankaKodu);
+  // 1. _coreState.DB'deki banka ibanKod'u ile doğrudan eşleştir
+  const dbMatch = (_coreState.DB.bankalar||[]).find(b => b.ibanKod === parsed.bankaKodu);
   if(dbMatch) {
     sel.value = dbMatch.id;
     sel.dispatchEvent(new Event('change', { bubbles: true }));
     statusEl.innerHTML=`<span style="color:var(--accent2)">✓ Geçerli IBAN &nbsp;|&nbsp; Banka: ${ibanLogoHtml}<b>${dbMatch.kisa}</b> (kod: ${parsed.bankaKodu})</span>`;
   } else if(bankaAd) {
-    // 2. IBAN_BANKA_MAP'te varsa isim benzerliğiyle dene
+    // 2. _bankaVerisi.IBAN_BANKA_MAP'te varsa isim benzerliğiyle dene
     const opts = [...sel.options];
     const firstWord = bankaAd.split(' ')[0].toLowerCase();
     const nameMatch = opts.find(o => o.text.toLowerCase().includes(firstWord));
@@ -514,3 +520,18 @@ export function attachIbanValidation(inputEl, opts) {
 document.addEventListener('DOMContentLoaded', () => setTimeout(attachAllIbanValidations, 300));
 
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.ibanUi — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.ibanUi', {
+  _ibanHataHtml,
+  get _ibanPopupKisiId() { return _ibanPopupKisiId; },
+  _renderBankaLogoPicker, _selectBankaLogo, updateSubeAdFromIban,
+  onBankaIbanKodInput, _ibanPopupAc, _ibanPopupListeGuncelle, _ibanPopupEkle,
+  _ibanPopupSil, _ibanPopupKapat, renderIbanPicker, selectIbanChip,
+  _ibanKopyalaVeToastGoster, copyFieldIban, _ibanFormatlaVeImleciKoru,
+  handleIbanInput, ensureIbanStatus, attachAllIbanValidations, onIbanInput,
+  attachIbanValidation,
+});

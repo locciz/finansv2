@@ -1,6 +1,6 @@
-import { _kartOdemeHizliTransferGuncelle } from '../../kartlar/08-kart-odeme.js';
-import { _odHesapTriggerGuncelle } from '../05-hesap-secim-popup.js';
-import { register } from '../../../../core/wrap-registry.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { _odHesapTriggerGuncelle } from '@pages/odeme/05-hesap-secim-popup.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/patches/06-bakiye-bilgi-kutusu-kaldirildi.js
 // Hesap bakiye-bilgi kutusu kaldırıldı (yalnızca yan etkiler)

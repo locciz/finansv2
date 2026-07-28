@@ -1,8 +1,8 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { DB } from '../../../core/state.js';
-import { _sidebarDim } from '../../components/modal-genel.js';
-import { setSubeListTumu, setSubeModalBankaId, subeListTumu, subeModalBankaId } from './00-state.js';
-import { renderTanimlamalar } from './02-ana-sayfa.js';
+import { saveData } from '@core/app-core-base.js';
+import { DB } from '@core/state.js';
+import { _sidebarDim } from '@components/modal-genel.js';
+import { setSubeListTumu, setSubeModalBankaId, subeListTumu, subeModalBankaId } from '@pages/tanimlamalar/00-state.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/08-subeler.js
 // Şube tanımlama CRUD'u

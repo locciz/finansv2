@@ -1,8 +1,8 @@
-import { toggleMobMore, closeMobMore, mobNavRenderDynSlots, mobNavSyncActive, toggleMobileSidebar, closeMobileSidebar } from '../../../components/mobile-nav-tema/01-mobil-nav.js';
-import { mobNavGo } from '../../../../core/render-core.js';
-import { closeModal, _sidebarDim } from '../../../components/modal-genel.js';
-import { renderIslemler } from '../../islemler/03-islem-liste-render.js';
-import { register, get } from '../../../../core/wrap-registry.js';
+import { toggleMobMore, closeMobMore, mobNavRenderDynSlots, mobNavSyncActive, toggleMobileSidebar, closeMobileSidebar } from '@components/mobile-nav-tema/01-mobil-nav.js';
+import { mobNavGo } from '@core/render-core.js';
+import { closeModal, _sidebarDim } from '@components/modal-genel.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { register, get } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/patches/07-genel-ui-burst-refresh.js
 // Genel UI yenileme: render sonrası burst-refresh zamanlayıcısı

@@ -1,8 +1,8 @@
-import { activePageId, installRenderOverrides, pageLooksBlank, renderDirect, scheduleRender } from '../../../../core/render-core.js';
-import { _kartOdemeHizliTransferGuncelle } from '../../kartlar/08-kart-odeme.js';
-import { _odHesapTriggerGuncelle } from '../05-hesap-secim-popup.js';
-import { getCloseModal, setCloseModal } from '../../../components/modal-genel.js';
-import { call, get, register } from '../../../../core/wrap-registry.js';
+import { activePageId, installRenderOverrides, pageLooksBlank, renderDirect, scheduleRender } from '@core/render-core.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { _odHesapTriggerGuncelle } from '@pages/odeme/05-hesap-secim-popup.js';
+import { getCloseModal, setCloseModal } from '@components/modal-genel.js';
+import { call, get, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/patches/04-bakiye-hooklari.js
 // Bakiye-hook'ları (hesap seçince/transfer sonrası tetikleyiciler)

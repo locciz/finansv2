@@ -1,27 +1,28 @@
-import { loadGoruntuAyarlariUI, uid } from './format.js';
-import { _pushHashState } from './init.js';
-import { renderPage } from './render-core.js';
-import { ALL_CURRENCIES, DB, FORMAT_CONFIG, defaultCurrency, setDefaultCurrency, setFORMAT_CONFIG } from './state.js';
-import { populateCurrencySelects, rebuildAllCurrencies } from '../domain/doviz.js';
-import { gDirty, gDriveReady, gDriveSaveNow, setGDirty } from '../services/gdrive.js';
-import { openModal } from '../ui/components/modal-genel.js';
-import { refreshDateOverlays } from '../ui/components/mobile-nav-tema/05-tarih-input-overlay.js';
-import { renderKisilerGrid } from '../ui/components/kisiler.js';
-import { closeMobileSidebar, mobNavRenderDynSlots, mobNavSyncActive } from '../ui/components/mobile-nav-tema/01-mobil-nav.js';
-import { register } from './wrap-registry.js';
-import { snavMobileClose } from '../ui/components/mobile-side-nav.js';
-import { bindMoneyInputs } from '../ui/components/money-input.js';
-import { ALTYAPI_LOGOLAR, applyChipsToContainer } from '../ui/components/select-to-chips.js';
-import { asgariKosulTurChange, asgariOnizle, renderAsgariCurGrid, renderAsgariEsikPbSelect, renderAsgariKurallar } from '../ui/pages/asgari-odeme.js';
-import { populateEldenHesapSelect, populateEldenKisiSelect } from '../ui/pages/elden.js';
-import { renderHesapTurFiltreler } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { kartDetayGeriDon } from '../ui/pages/kartlar/03-kart-detay-ortak.js';
-import { renderNakitAvansCurGrid, renderNakitAvansLimitKural, renderNakitAvansTavanlar } from '../ui/pages/krediler/02-nakit-avans.js';
-import { renderOzet } from '../ui/pages/ozet.js';
-import { populateKategoriSelects } from '../ui/pages/tanimlamalar/03-kategoriler.js';
-import { renderTumOranTablolari } from '../ui/pages/tanimlamalar/05-genel-oran-tablolari.js';
-import { loadCurrencyConfig, updateParaBirimiPreview } from '../ui/pages/tanimlamalar/06-para-birimi.js';
-import { renderVeriYonetimiOzet, renderYerelYedekDurumu } from '../ui/pages/veri-yonetimi.js';
+import { _pushHashState } from '@core/init.js';
+import { renderPage } from '@core/render-core.js';
+import { inject } from '@core/container.js';
+const _gdrive = inject('services.gdrive');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _doviz = inject('domain.doviz');
+const _wrapRegistry = inject('core.wrapRegistry');
+import { openModal } from '@components/modal-genel.js';
+import { refreshDateOverlays } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
+import { renderKisilerGrid } from '@components/kisiler.js';
+import { closeMobileSidebar, mobNavRenderDynSlots, mobNavSyncActive } from '@components/mobile-nav-tema/01-mobil-nav.js';
+import { snavMobileClose } from '@components/mobile-side-nav.js';
+import { bindMoneyInputs } from '@components/money-input.js';
+import { ALTYAPI_LOGOLAR, applyChipsToContainer } from '@components/select-to-chips.js';
+import { asgariKosulTurChange, asgariOnizle, renderAsgariCurGrid, renderAsgariEsikPbSelect, renderAsgariKurallar } from '@pages/asgari-odeme.js';
+import { populateEldenHesapSelect, populateEldenKisiSelect } from '@pages/elden.js';
+import { renderHesapTurFiltreler } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { kartDetayGeriDon } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { renderNakitAvansCurGrid, renderNakitAvansLimitKural, renderNakitAvansTavanlar } from '@pages/krediler/02-nakit-avans.js';
+import { renderOzet } from '@pages/ozet.js';
+import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
+import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { loadCurrencyConfig, updateParaBirimiPreview } from '@pages/tanimlamalar/06-para-birimi.js';
+import { renderVeriYonetimiOzet, renderYerelYedekDurumu } from '@pages/veri-yonetimi.js';
 // Bu dosya, temel tanımları içerir (loadData/applyMigrations/defaultData/
 // saveData/showPage/renderAll/showTab). Bu tanımlar diğer dosyaların
 // (kartlar.js, odeme.js, mobile-nav-tema.js gibi) üzerlerine wrap
@@ -90,12 +91,12 @@ export function applyMigrations(d) {
   if(!d) return defaultData();
 
   // ── Eksik alanları varsayılanlarla tamamla (eski Drive verilerinde
-  //    bulunmayan diziler/objeler için DB.xxx undefined olmasın) ───────────
+  //    bulunmayan diziler/objeler için _coreState.DB.xxx undefined olmasın) ───────────
   d = {...defaultData(), ...d};
 
-  // ── FORMAT_CONFIG ve para birimi Drive verisinden uygula ─────────────────
-  if(d._formatConfig) setFORMAT_CONFIG({...FORMAT_CONFIG, ...d._formatConfig});
-  if(d._currency)     setDefaultCurrency(d._currency);
+  // ── _coreState.FORMAT_CONFIG ve para birimi Drive verisinden uygula ─────────────────
+  if(d._formatConfig) _coreState.setFORMAT_CONFIG({..._coreState.FORMAT_CONFIG, ...d._formatConfig});
+  if(d._currency)     _coreState.setDefaultCurrency(d._currency);
 
   // ── Kredi kartı altyapısı tanımları yoksa varsayılanları ekle ────────────
   if(!d.kartAltyapilari || !d.kartAltyapilari.length) {
@@ -120,7 +121,7 @@ export function applyMigrations(d) {
   d.uiFiltreler = {
     islemler: { kart:'', ay:'', taksit:'', q:'', ...(d.uiFiltreler && d.uiFiltreler.islemler) },
     extreler: { kart:'', durum:'', ...(d.uiFiltreler && d.uiFiltreler.extreler) },
-    // Kredi kartları sayfası: arama + durum filtresi kalıcı DB tercihi
+    // Kredi kartları sayfası: arama + durum filtresi kalıcı _coreState.DB tercihi
     kartlar: { q:'', arama:'', durum:'', status:'', ...(d.uiFiltreler && d.uiFiltreler.kartlar) },
     // Özet sayfası: Gelecek Tahmini Bakiye periyodu (gün) + Yaklaşan Ödemeler & Gelirler periyodu (gün)
     ozet: { tahminGun: 365, odemelerGun: 30, ...(d.uiFiltreler && d.uiFiltreler.ozet) },
@@ -146,7 +147,7 @@ export function applyMigrations(d) {
     asgariKurallari: { pb:null, ...(d.uiFiltreler && d.uiFiltreler.asgariKurallari) },
     // Kart detayı İşlemler sekmesi sıralama tercihi (tarih-yeni/tarih-eski/tutar-buyuk/tutar-kucuk)
     kartIslem: { sirala:'tarih-yeni', ...(d.uiFiltreler && d.uiFiltreler.kartIslem) },
-    // Aylık Gelir / Gider / Bakiye ay detay popup sıralama tercihi — DB/Drive'da saklanır
+    // Aylık Gelir / Gider / Bakiye ay detay popup sıralama tercihi — _coreState.DB/Drive'da saklanır
     tbkAyDetay: { sirala:'tur-ozel', ...(d.uiFiltreler && d.uiFiltreler.tbkAyDetay) },
     // Son transfer geçmişi filtreleri — hesap/nakit popup filtresi + yapılabilirlik durumu
     transferLog: { filtre:[], status:'', ...(d.uiFiltreler && d.uiFiltreler.transferLog) },
@@ -175,27 +176,27 @@ export function defaultKartAltyapilari() {
   // tanımlanıyor ama bu fonksiyon her zaman runtime'da çağrıldığı için erişilebilir.
   const logoOf = (id) => (typeof ALTYAPI_LOGOLAR !== 'undefined' ? (ALTYAPI_LOGOLAR.find(l => l.id === id) || {}).svg : null) || undefined;
   return [
-    {id: uid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
-    {id: uid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
-    {id: uid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
-    {id: uid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
+    {id: _format.uid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
+    {id: _format.uid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
+    {id: _format.uid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
+    {id: _format.uid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
   ];
 }
 
 export function saveData() {
   // Drive senkronu aynen korunur; ayrıca standalone/test kullanımında veri kaybolmasın
   // diye güvenli local fallback tutulur. localStorage kapalıysa sessiz geçilir.
-  try { localStorage.setItem('finans_local_db_v90', JSON.stringify(DB)); } catch(e) {}
+  try { localStorage.setItem('finans_local_db_v90', JSON.stringify(_coreState.DB)); } catch(e) {}
 
-  setGDirty(true);
-  if (typeof gDriveReady === 'function' && gDriveReady()) {
+  _gdrive.setGDirty(true);
+  if (typeof _gdrive.gDriveReady === 'function' && _gdrive.gDriveReady()) {
     clearTimeout(gSaveTimer);
-    gSaveTimer = setTimeout(gDriveSaveNow, 1500);
+    gSaveTimer = setTimeout(() => _gdrive.gDriveSaveNow(), 1500);
   }
 }
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
-register('saveData', saveData);
+_wrapRegistry.register('saveData', saveData);
 
 export function defaultData() {
   return {
@@ -236,7 +237,7 @@ export function defaultData() {
 }
 
 export function updateSidebarKartNav() {
-  const hasKart = DB.kartlar && DB.kartlar.length > 0;
+  const hasKart = _coreState.DB.kartlar && _coreState.DB.kartlar.length > 0;
   const navIslemler = document.getElementById('nav-islemler');
   const navExtreler = document.getElementById('nav-extreler');
   if(navIslemler) navIslemler.style.display = hasKart ? '' : 'none';
@@ -303,7 +304,7 @@ function showPageBase(id, btn) {
 export function renderAll() {
   // Tüm populate/select'leri güncelle
   loadCurrencyConfig();
-  populateCurrencySelects();
+  _doviz.populateCurrencySelects();
   populateKategoriSelects();
   populateEldenHesapSelect();
   populateEldenKisiSelect();
@@ -321,14 +322,14 @@ export function renderAll() {
   // Özet her zaman güncel kalsın
   if(activeId !== 'ozet') renderOzet();
 
-  // Vergi & Faiz tabloları her zaman yenile (FORMAT_CONFIG tarih formatı)
+  // Vergi & Faiz tabloları her zaman yenile (_coreState.FORMAT_CONFIG tarih formatı)
   if(activeId !== 'tanimlamalar') renderTumOranTablolari();
 
-  // Date overlay'leri FORMAT_CONFIG ile yenile
+  // Date overlay'leri _coreState.FORMAT_CONFIG ile yenile
   refreshDateOverlays();
 }
 
-/* renderPage() burada tanımlıydı — artık ölü kod; aktif tanım js/core/render-core.js'de (export function renderPage + register('renderPage', ...) ile wrap-registry üzerinden çağrılıyor). */
+/* renderPage() burada tanımlıydı — artık ölü kod; aktif tanım js/core/render-core.js'de (export function renderPage + _wrapRegistry.register('renderPage', ...) ile wrap-registry üzerinden çağrılıyor). */
 
 export function showTab(id, btn) {
   // Hide all tab content inside snav-content
@@ -358,12 +359,12 @@ export function showTab(id, btn) {
 
   _pushHashState('tanimlamalar', {tab: id});
   if(id==='tab-para-birimi' || id==='tab-para-birimi-yonetim') {
-    populateCurrencySelects();
+    _doviz.populateCurrencySelects();
   }
   if(id==='tab-goruntu-ayarlari') {
-    populateCurrencySelects();
+    _doviz.populateCurrencySelects();
     updateParaBirimiPreview();
-    loadGoruntuAyarlariUI();
+    _format.loadGoruntuAyarlariUI();
   }
   if(id==='tab-kisiler') {
     renderKisilerGrid();
@@ -374,11 +375,11 @@ export function showTab(id, btn) {
     renderAsgariEsikPbSelect();
     asgariKosulTurChange();
     bindMoneyInputs(document.getElementById('tab-asgari-odeme'));
-    if(!ALL_CURRENCIES.length) rebuildAllCurrencies();
+    if(!_coreState.ALL_CURRENCIES.length) _doviz.rebuildAllCurrencies();
     const pbSel = document.getElementById('asgari-prev-pb');
     if(pbSel) {
-      pbSel.innerHTML = ALL_CURRENCIES.map(c=>`<option value="${c.code}">${c.code}${c.symbol && c.symbol!==c.code ? ' · '+c.symbol : ''}</option>`).join('');
-      pbSel.value = defaultCurrency;
+      pbSel.innerHTML = _coreState.ALL_CURRENCIES.map(c=>`<option value="${c.code}">${c.code}${c.symbol && c.symbol!==c.code ? ' · '+c.symbol : ''}</option>`).join('');
+      pbSel.value = _coreState.defaultCurrency;
     }
     asgariOnizle();
   }
@@ -420,4 +421,16 @@ export function getShowPage() {
 export function showPage(id, btn) {
   return _currentShowPage(id, btn);
 }
+
+// ============================================================
+// [DI-MIGRATION] core.appCoreBase — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('core.appCoreBase', {
+  PAGE_TITLES, NAV_BTN_ID_BY_PAGE, MOB_MORE_ITEM_ID_BY_PAGE, loadData,
+  applyMigrations, defaultKartAltyapilari, saveData, defaultData,
+  updateSidebarKartNav, renderAll, showTab, setShowPage, getShowPage,
+  showPage,
+  get gSaveTimer() { return gSaveTimer; },
+});
 

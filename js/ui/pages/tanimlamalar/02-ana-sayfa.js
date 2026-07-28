@@ -1,21 +1,22 @@
-import { fmtDate } from '../../../core/format.js';
-import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../../core/state.js';
-import { loadCorsProxyWorkerInput } from '../../../services/kur-servisleri.js';
-import { renderKisilerGrid } from '../../components/kisiler.js';
-import { deleteKartAltyapi, openKartAltyapiModal } from '../kartlar/09-kart-altyapi.js';
-import { renderHesapTurTablo } from '../hesaplar/02-hesap-turu-tanimlama.js';
-import { kartAltyapiRenk } from '../kartlar/01-kart-data.js';
-import { deleteKrediTip, openKrediTipModal } from '../krediler/05-kredi-tipi-tanimlama.js';
-import { krediTipiRenk } from '../krediler/01-genel-yardimcilar.js';
-import { _renkKolonHtml, _tanimBadgeHtml, bankaIkonObj, paraBirimiRenk, urunTipiRenk } from './01-genel-yardimcilar.js';
-import { deleteParaBirimi, editParaBirimi, setGosterimParaBirimi } from './06-para-birimi.js';
-import { deleteBanka, openBankaModal } from './07-bankalar.js';
-import { openSubeModal } from './08-subeler.js';
-import { deleteUrunTip, editUrunTip } from './09-urun-tipleri.js';
-import { deleteTatil, editTatil } from './10-resmi-tatiller.js';
-import { renderKategoriGrid } from './03-kategoriler.js';
-import { renderTumOranTablolari } from './05-genel-oran-tablolari.js';
-import { register } from '../../../core/wrap-registry.js';
+import { fmtDate } from '@core/format.js';
+import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { inject } from '@core/container.js';
+const _kurServisleri = inject('services.kurServisleri');
+import { renderKisilerGrid } from '@components/kisiler.js';
+import { deleteKartAltyapi, openKartAltyapiModal } from '@pages/kartlar/09-kart-altyapi.js';
+import { renderHesapTurTablo } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
+import { kartAltyapiRenk } from '@pages/kartlar/01-kart-data.js';
+import { deleteKrediTip, openKrediTipModal } from '@pages/krediler/05-kredi-tipi-tanimlama.js';
+import { krediTipiRenk } from '@pages/krediler/01-genel-yardimcilar.js';
+import { _renkKolonHtml, _tanimBadgeHtml, bankaIkonObj, paraBirimiRenk, urunTipiRenk } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { deleteParaBirimi, editParaBirimi, setGosterimParaBirimi } from '@pages/tanimlamalar/06-para-birimi.js';
+import { deleteBanka, openBankaModal } from '@pages/tanimlamalar/07-bankalar.js';
+import { openSubeModal } from '@pages/tanimlamalar/08-subeler.js';
+import { deleteUrunTip, editUrunTip } from '@pages/tanimlamalar/09-urun-tipleri.js';
+import { deleteTatil, editTatil } from '@pages/tanimlamalar/10-resmi-tatiller.js';
+import { renderKategoriGrid } from '@pages/tanimlamalar/03-kategoriler.js';
+import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/02-ana-sayfa.js
 // Tanımlamalar ana sayfası render
@@ -30,7 +31,7 @@ export function renderTanimlamalar() {
   renderHesapTurTablo();
   renderTumOranTablolari();
   renderKisilerGrid();
-  loadCorsProxyWorkerInput();
+  _kurServisleri.loadCorsProxyWorkerInput();
 
   document.getElementById('banka-tbody').innerHTML = (DB.bankalar||[]).map((b,i)=>{
     const ikon = bankaIkonObj(b);

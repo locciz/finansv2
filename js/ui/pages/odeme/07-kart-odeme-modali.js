@@ -1,20 +1,20 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { showToast } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { renderExtreler } from '../ekstreler/02-ekstre-render.js';
-import { renderIslemler } from '../islemler/03-islem-liste-render.js';
-import { kd2RenderExtreler } from '../kartlar/05-kart-detay-v2.js';
-import { kdRenderExtreler } from '../kartlar/04-kart-detay-v1.js';
-import { _kartOdemeHizliTransferGuncelle, _kartOdemeUygula, deleteKartOdeme } from '../kartlar/08-kart-odeme.js';
-import { _kd2KartId, _kdKartId } from '../kartlar/09-kart-altyapi.js';
-import { odKartDonemOverride, odSetDurum } from './01-genel-yardimcilar.js';
-import { odLogEkle } from './03-odeme-log.js';
-import { odModalKapat } from './04-modal-yasam-dongusu.js';
-import { _odPopSeciliHesapId } from './05-hesap-secim-popup.js';
-import { _odModal } from './08-popup-giris-noktalari.js';
-import { renderOzet } from '../ozet.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { showToast } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { renderExtreler } from '@pages/ekstreler/02-ekstre-render.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { kd2RenderExtreler } from '@pages/kartlar/05-kart-detay-v2.js';
+import { kdRenderExtreler } from '@pages/kartlar/04-kart-detay-v1.js';
+import { _kartOdemeHizliTransferGuncelle, _kartOdemeUygula, deleteKartOdeme } from '@pages/kartlar/08-kart-odeme.js';
+import { _kd2KartId, _kdKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { odKartDonemOverride, odSetDurum } from '@pages/odeme/01-genel-yardimcilar.js';
+import { odLogEkle } from '@pages/odeme/03-odeme-log.js';
+import { odModalKapat } from '@pages/odeme/04-modal-yasam-dongusu.js';
+import { _odPopSeciliHesapId } from '@pages/odeme/05-hesap-secim-popup.js';
+import { _odModal } from '@pages/odeme/08-popup-giris-noktalari.js';
+import { renderOzet } from '@pages/ozet.js';
 // ============================================================
 // js/ui/pages/odeme/07-kart-odeme-modali.js
 // Kart ödemesi özel modal akışı (ertelendi/bekliyor/ödendi)

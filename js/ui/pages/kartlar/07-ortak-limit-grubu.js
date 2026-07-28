@@ -1,13 +1,13 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { showConfirm, showToast } from '../../components/modal-genel.js';
-import { getMoneyInput, setMoneyInput } from '../../components/money-input.js';
-import { _editGrupId, set_editGrupId } from './00-state.js';
-import { getKartKullanim } from './01-kart-data.js';
-import { editKartId } from './09-kart-altyapi.js';
-import { renderKartlar } from './10-kart-liste.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { showConfirm, showToast } from '@components/modal-genel.js';
+import { getMoneyInput, setMoneyInput } from '@components/money-input.js';
+import { _editGrupId, set_editGrupId } from '@pages/kartlar/00-state.js';
+import { getKartKullanim } from '@pages/kartlar/01-kart-data.js';
+import { editKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { renderKartlar } from '@pages/kartlar/10-kart-liste.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/kartlar/07-ortak-limit-grubu.js
 // Ortak limit grubu yönetimi (birden fazla kartın limiti paylaşması)

@@ -1,4 +1,5 @@
-import { localDateStr } from './format.js';
+import { inject } from '@core/container.js';
+const _format = inject('core.format');
 // ============================================================
 // js/core/date-utils.js — İş günü / tarih aritmetiği yardımcıları
 // (localDateStr için bkz. js/core/format.js)
@@ -7,7 +8,7 @@ import { localDateStr } from './format.js';
 export function isIsBgunu(d, tatilSet) {
   const day = d.getDay();
   if(day === 0 || day === 6) return false; // hafta sonu
-  const key = localDateStr(d);
+  const key = _format.localDateStr(d);
   if(tatilSet.has(key)) return false; // resmi tatil
   return true;
 }
@@ -24,7 +25,13 @@ export function nextIsBgunu(d, tatilSet, forward = true) {
 export function addDaysStr(dateStr, days) {
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return localDateStr(d);
+  return _format.localDateStr(d);
 }
+
+// ============================================================
+// [DI-MIGRATION] core.dateUtils — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('core.dateUtils', { isIsBgunu, nextIsBgunu, addDaysStr });
 
 

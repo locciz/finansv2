@@ -36,27 +36,35 @@
 //      düzenleme modunda tekrar açılır; kayıt silinmişse (bayat deep-link)
 //      sessizce "yeni kayıt" opener'ına düşülür.
 // ============================================================
-import { openTransferModal } from '../ui/components/transfer-modal.js';
-import { openKiraModal, editKiraId } from '../ui/pages/kira.js';
-import { openMaasModal, editMaas, editMaasId } from '../ui/pages/maas.js';
-import { openEldenModal, editElden, editEldenId } from '../ui/pages/elden.js';
-import { openAbonelikModal, editAbonelikId } from '../ui/pages/abonelik.js';
-import { openKmhKrediModal } from '../ui/pages/krediler/03-kmh-kredi.js';
-import { openKrediModal } from '../ui/pages/krediler/04-bireysel-kredi.js';
-import { editKmhKrediId, editKrediId, editNaId } from '../ui/pages/krediler/00-state.js';
-import { openNakitAvansModal, editNakitAvans } from '../ui/pages/krediler/02-nakit-avans.js';
-import { openParaBirimiModal } from '../ui/pages/tanimlamalar/06-para-birimi.js';
-import { editParaBirimiKod } from '../ui/pages/tanimlamalar/00-state.js';
-import { openHesapModal } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
-import { editHesapId } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { editKart } from '../ui/pages/kartlar/01-kart-data.js';
-import { editKartId, setEditKartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
-import { editMevduat } from '../ui/pages/mevduat/01-mevduat-form-wizard.js';
-import { editMevduatId, setEditMevduatId } from '../ui/pages/mevduat/00-state.js';
-import { DB } from './state.js';
-import { openModal, getCloseModal, setCloseModal } from '../ui/components/modal-genel.js';
-import { register, get } from './wrap-registry.js';
-import { getMoneyInput, setMoneyInput, setDateInputValue } from '../ui/components/money-input.js';
+import { openTransferModal } from '@components/transfer-modal.js';
+import { openKiraModal, editKiraId } from '@pages/kira.js';
+import { openMaasModal, editMaas, editMaasId } from '@pages/maas.js';
+import { openEldenModal, editElden, editEldenId } from '@pages/elden.js';
+import { openAbonelikModal, editAbonelikId } from '@pages/abonelik.js';
+import { openKmhKrediModal } from '@pages/krediler/03-kmh-kredi.js';
+import { openKrediModal } from '@pages/krediler/04-bireysel-kredi.js';
+import { editKmhKrediId, editKrediId, editNaId } from '@pages/krediler/00-state.js';
+import { openNakitAvansModal, editNakitAvans } from '@pages/krediler/02-nakit-avans.js';
+import { openParaBirimiModal } from '@pages/tanimlamalar/06-para-birimi.js';
+import { editParaBirimiKod } from '@pages/tanimlamalar/00-state.js';
+import { openHesapModal } from '@pages/hesaplar/03-hesap-form-crud.js';
+import { editHesapId } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { editKart } from '@pages/kartlar/01-kart-data.js';
+import { editKartId, setEditKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { editMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { editMevduatId, setEditMevduatId } from '@pages/mevduat/00-state.js';
+import { inject, provide } from '@core/container.js';
+import { openModal, getCloseModal, setCloseModal } from '@components/modal-genel.js';
+import { getMoneyInput, setMoneyInput, setDateInputValue } from '@components/money-input.js';
+
+// core.state ve core.wrapRegistry zaten container'da kayıtlı (Tur 1) —
+// inject() ile çözülüyor. DB SADECE OKUNUYOR burada (findRecord sorguları),
+// hiçbir yerde `=` ile atanmıyor — bkz. DI-MIGRATION.md kritik kural.
+const _coreState = inject('core.state');
+const DB = new Proxy({}, { get(_t, prop){ return _coreState.DB[prop]; } });
+const _wrapRegistry = inject('core.wrapRegistry');
+const register = (...a) => _wrapRegistry.register(...a);
+const get = (...a) => _wrapRegistry.get(...a);
 // NOT: _currentHashPage/_currentHashParams/_pushHashState burada import
 // EDİLMİYOR — init.js zaten wizard-routing.js'i import ediyor; ters yönde
 // bir import döngüsel bağımlılık yaratıp script sıralamasına gereksiz
@@ -484,3 +492,12 @@ export function restoreWizardModalFromHash(params) {
 // init.js'in döngüsel import olmadan erişebilmesi için registry'ye de
 // kaydediyoruz (bkz. yukarıdaki WIZARD_RESTORABLE_MODAL_IDS notu).
 register('restoreWizardModalFromHash', restoreWizardModalFromHash);
+
+// ============================================================
+// DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+// @components/*, @pages/* importları HENÜZ silinmedi (ui katmanı henüz
+// taşınmadı).
+// ============================================================
+provide('core.wizardRouting', {
+  WIZARD_RESTORE_OPENERS, WIZARD_RESTORABLE_MODAL_IDS, restoreWizardModalFromHash,
+});

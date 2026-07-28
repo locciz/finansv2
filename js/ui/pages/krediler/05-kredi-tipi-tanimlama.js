@@ -1,11 +1,11 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _sidebarDim, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { applyChipsToContainer } from '../../components/select-to-chips.js';
-import { editKrediTipId, setEditKrediTipId } from './00-state.js';
-import { renderTanimlamalar } from '../tanimlamalar/02-ana-sayfa.js';
-import { closeModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _sidebarDim, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { applyChipsToContainer } from '@components/select-to-chips.js';
+import { editKrediTipId, setEditKrediTipId } from '@pages/krediler/00-state.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { closeModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/krediler/05-kredi-tipi-tanimlama.js
 // Kredi tipi tanımlama CRUD'u

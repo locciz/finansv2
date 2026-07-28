@@ -1,16 +1,16 @@
-import { escapeHtml, fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../../core/state.js';
-import { pbRenkAl } from '../../../domain/doviz.js';
-import { getKrediKalanBorc } from '../../../domain/hesaplamalar.js';
-import { kartAltyapiLogoHtml } from '../../components/select-to-chips.js';
-import { tblSiralamaOku, tblSiralamaUygula } from '../../components/tablo-filtre-sirala.js';
-import { getKart, getKartKullanilabilirLimit, getKartKullanim, getKartRenk, getKartToplamLimit, kartAktifDonemBul, kartAltyapiRenk, editKart, deleteKart } from './01-kart-data.js';
-import { kd2RenderOzetBanner } from './05-kart-detay-v2.js';
-import { getOrtakGrupKullanim, openOrtakGrupModal } from './07-ortak-limit-grubu.js';
-import { _kd2KartId, bindKartlarToolbarEvents, kartAramaText, kartlarFiltreMatch, kartlarFiltreOku, kartlarSeciliSiralamaKaydir, kartlarToolbarHtml } from './09-kart-altyapi.js';
-import { bankaIkonObj, getBanka, getTatilSet, urunTipiRenk } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { gotoKartIslemleri } from './03-kart-detay-ortak.js';
-import { register } from '../../../core/wrap-registry.js';
+import { escapeHtml, fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { pbRenkAl } from '@domain/doviz.js';
+import { getKrediKalanBorc } from '@domain/hesaplamalar.js';
+import { kartAltyapiLogoHtml } from '@components/select-to-chips.js';
+import { tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { getKart, getKartKullanilabilirLimit, getKartKullanim, getKartRenk, getKartToplamLimit, kartAktifDonemBul, kartAltyapiRenk, editKart, deleteKart } from '@pages/kartlar/01-kart-data.js';
+import { kd2RenderOzetBanner } from '@pages/kartlar/05-kart-detay-v2.js';
+import { getOrtakGrupKullanim, openOrtakGrupModal } from '@pages/kartlar/07-ortak-limit-grubu.js';
+import { _kd2KartId, bindKartlarToolbarEvents, kartAramaText, kartlarFiltreMatch, kartlarFiltreOku, kartlarSeciliSiralamaKaydir, kartlarToolbarHtml } from '@pages/kartlar/09-kart-altyapi.js';
+import { bankaIkonObj, getBanka, getTatilSet, urunTipiRenk } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { gotoKartIslemleri } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/kartlar/10-kart-liste.js
 // Ana kart listesi render fonksiyonu

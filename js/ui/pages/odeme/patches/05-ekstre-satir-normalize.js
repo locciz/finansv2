@@ -1,4 +1,5 @@
-import { get, register } from '../../../../core/wrap-registry.js';
+import { get, register } from '@core/wrap-registry.js';
+import { provide as _provide } from '@core/container.js';
 // ============================================================
 // js/ui/pages/odeme/patches/05-ekstre-satir-normalize.js
 // Kart detay: ekstre satırlarını normalize et
@@ -37,4 +38,12 @@ import { get, register } from '../../../../core/wrap-registry.js';
     const ths=document.querySelectorAll('#modal-tbk-ay-detay thead th'); if(ths && ths[2]) ths[2].textContent='';
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
+
+  // ============================================================
+  // DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+  // Kendi üstteki `core/wrap-registry.js` importu BİLİNÇLİ OLARAK
+  // bırakıldı — bu dosya, sırayla yüklenmesi zorunlu 7 patch'lik
+  // zincirin (01-07) bir parçası, davranışı değişmedi.
+  // ============================================================
+  _provide('ui.pages.odemePatches.ekstreSatirNormalize', { normalizeExtreRows });
 })();

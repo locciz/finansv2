@@ -1,6 +1,6 @@
-import { DB } from '../../../core/state.js';
-import { seçKategoriChip } from '../tanimlamalar/03-kategoriler.js';
-import { openModal } from '../../components/modal-genel.js';
+import { DB } from '@core/state.js';
+import { seçKategoriChip } from '@pages/tanimlamalar/03-kategoriler.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/islemler/06-islem-kategori-secici.js
 // İşlem kategori seçim widget'ı

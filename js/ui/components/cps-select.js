@@ -101,3 +101,12 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cpsClose(); });
 
+// ============================================================
+// [DI-MIGRATION] ui.components.cpsSelect — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.cpsSelect', {
+  get _cpsOpenId() { return _cpsOpenId; },
+  cpsInit, cpsSync, cpsToggle, cpsClose,
+});
+

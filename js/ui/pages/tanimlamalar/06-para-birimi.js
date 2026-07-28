@@ -1,16 +1,17 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur } from '../../../core/format.js';
-import { renderPage } from '../../../core/render-core.js';
-import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency, replaceObjectContents, setDefaultCurrency } from '../../../core/state.js';
-import { populateCurrencySelects, rebuildAllCurrencies } from '../../../domain/doviz.js';
-import { _pbKaynaklar, _pbTestJsonCache, pbKaynakListesiRender, pbKurTipDegisti, set_pbKaynaklar, set_pbTestJsonCache } from '../../../services/kur-servisleri.js';
-import { showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { updateMoneyWrapSymbols } from '../../components/money-input.js';
-import { swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { DEFAULT_CURRENCY_CONFIG, PB_STEP_COUNT, _pbCurrentStep, editParaBirimiKod, setEditParaBirimiKod, set_pbCurrentStep } from './00-state.js';
-import { renderTanimlamalar } from './02-ana-sayfa.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur } from '@core/format.js';
+import { renderPage } from '@core/render-core.js';
+import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency, replaceObjectContents, setDefaultCurrency } from '@core/state.js';
+import { populateCurrencySelects, rebuildAllCurrencies } from '@domain/doviz.js';
+import { inject } from '@core/container.js';
+const _kurServisleri = inject('services.kurServisleri');
+import { showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { updateMoneyWrapSymbols } from '@components/money-input.js';
+import { swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { DEFAULT_CURRENCY_CONFIG, PB_STEP_COUNT, _pbCurrentStep, editParaBirimiKod, setEditParaBirimiKod, set_pbCurrentStep } from '@pages/tanimlamalar/00-state.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/06-para-birimi.js
 // Para birimi tanımlama (ekleme/düzenleme wizard + kur önizleme)
@@ -119,7 +120,7 @@ export function selectParaBirimi(code) {
 export function openParaBirimiModal(kod=null) {
   setEditParaBirimiKod(kod);
   pbStepGoto(1);
-  set_pbTestJsonCache({});
+  _kurServisleri.set_pbTestJsonCache({});
   const title = document.getElementById('para-birimi-modal-title');
   const setBase = (cfg, k) => {
     document.getElementById('pb-sembol').value = cfg.symbol || '';
@@ -139,21 +140,21 @@ export function openParaBirimiModal(kod=null) {
     // Çoklu kaynak listesi
     if (normalTip === 'ozel') {
       if (Array.isArray(k.kaynaklar) && k.kaynaklar.length) {
-        set_pbKaynaklar(k.kaynaklar.map(s => ({...s})));
+        _kurServisleri.set_pbKaynaklar(k.kaynaklar.map(s => ({...s})));
       } else if (k.url) {
         // Eski tek-kaynak formatından migrate
-        set_pbKaynaklar([{ url: k.url, jsonPathAlis: k.jsonPathAlis||'', jsonPathSatis: k.jsonPathSatis||'', kurBirimi: k.kurBirimi||'TRY' }]);
+        _kurServisleri.set_pbKaynaklar([{ url: k.url, jsonPathAlis: k.jsonPathAlis||'', jsonPathSatis: k.jsonPathSatis||'', kurBirimi: k.kurBirimi||'TRY' }]);
       } else if (tip === 'xau_yahoo') {
         // Worker endpoint'ini kaynak olarak ekle
         const w = (DB?.ayarlar?.corsProxyWorker||'').replace(/\/$/,'');
-        set_pbKaynaklar(w ? [{ url: `${w}/xau`, jsonPathAlis: 'alis', jsonPathSatis: 'satis', kurBirimi: 'TRY' }] : []);
+        _kurServisleri.set_pbKaynaklar(w ? [{ url: `${w}/xau`, jsonPathAlis: 'alis', jsonPathSatis: 'satis', kurBirimi: 'TRY' }] : []);
       } else {
-        set_pbKaynaklar([]);
+        _kurServisleri.set_pbKaynaklar([]);
       }
     } else {
-      set_pbKaynaklar([]);
+      _kurServisleri.set_pbKaynaklar([]);
     }
-    pbKaynakListesiRender();
+    _kurServisleri.pbKaynakListesiRender();
   };
   if (kod) {
     title.textContent = 'Para Birimi Düzenle';
@@ -166,10 +167,10 @@ export function openParaBirimiModal(kod=null) {
     title.textContent = 'Para Birimi Ekle';
     document.getElementById('pb-kod').value = '';
     document.getElementById('pb-kod').readOnly = false;
-    set_pbKaynaklar([]);
+    _kurServisleri.set_pbKaynaklar([]);
     setBase({ symbol:'', ad:'', flag:'', icon:'', position:'prefix', decimals:2, locale:'tr-TR' }, { tip:'manuel' });
   }
-  pbKurTipDegisti();
+  _kurServisleri.pbKurTipDegisti();
   openModal('modal-para-birimi');
 }
 
@@ -240,7 +241,7 @@ export function saveParaBirimi() {
     const tcmbKoduGirilen = document.getElementById('pb-tcmb-kodu').value.trim().toUpperCase();
     kurKaynagi = { tip: 'tcmb', tcmbKodu: tcmbKoduGirilen || kod };
   } else if (kurTip === 'ozel') {
-    const gecerliKaynaklar = _pbKaynaklar.filter(k => k.url && k.url.trim());
+    const gecerliKaynaklar = _kurServisleri._pbKaynaklar.filter(k => k.url && k.url.trim());
     if (!gecerliKaynaklar.length) { showToast('En az bir URL giriniz', 'error'); return; }
     kurKaynagi = { tip: 'ozel', kaynaklar: gecerliKaynaklar };
   } else {

@@ -1,9 +1,9 @@
-import { localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { renderExtreler } from '../ekstreler/02-ekstre-render.js';
-import { getKartCurrency, getKartStatementAmount, kartDonemHesapla } from '../kartlar/01-kart-data.js';
-import { getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
+import { localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { renderExtreler } from '@pages/ekstreler/02-ekstre-render.js';
+import { getKartCurrency, getKartStatementAmount, kartDonemHesapla } from '@pages/kartlar/01-kart-data.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 // ============================================================
 // js/ui/pages/islemler/05-ekstre-kart-secici.js
 // Ekstre görünümünde temsili kart seçici

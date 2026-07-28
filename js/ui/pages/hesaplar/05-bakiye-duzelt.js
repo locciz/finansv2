@@ -1,12 +1,12 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr, uid } from '../../../core/format.js';
-import { CURRENCY_CONFIG, DB } from '../../../core/state.js';
-import { _nakitBakiyeDelta } from '../../../domain/hesap-entegrasyon-motoru.js';
-import { closeModal, openModal, showToast } from '../../components/modal-genel.js';
-import { getMoneyInput, setMoneyInput, updateModalMoneyWraps } from '../../components/money-input.js';
-import { _hesapLogId, _hesapLogNakitPb, renderHesaplar } from './04-hesap-liste-render.js';
-import { openHesapLogModal, openNakitLogModal } from './06-hesap-log.js';
-import { renderOzet } from '../ozet.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, localDateStr, uid } from '@core/format.js';
+import { CURRENCY_CONFIG, DB } from '@core/state.js';
+import { _nakitBakiyeDelta } from '@domain/hesap-entegrasyon-motoru.js';
+import { closeModal, openModal, showToast } from '@components/modal-genel.js';
+import { getMoneyInput, setMoneyInput, updateModalMoneyWraps } from '@components/money-input.js';
+import { _hesapLogId, _hesapLogNakitPb, renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { openHesapLogModal, openNakitLogModal } from '@pages/hesaplar/06-hesap-log.js';
+import { renderOzet } from '@pages/ozet.js';
 // ============================================================
 // js/ui/pages/hesaplar/05-bakiye-duzelt.js
 // Bakiye düzeltme (manuel fark girişi) modalı

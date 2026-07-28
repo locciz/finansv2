@@ -1,12 +1,30 @@
-import { NAV_BTN_ID_BY_PAGE, getShowPage, setShowPage } from './app-core-base.js';
-import { register, get, call, has } from './wrap-registry.js';
-import { pageRenderers } from './page-renderers.js';
-import { openModal } from '../ui/components/modal-genel.js';
-import { kartDetayGeriDon } from '../ui/pages/kartlar/03-kart-detay-ortak.js';
-import { _pushHashState } from './init.js';
-import { closeMobileSidebar, closeMobMore, mobNavRenderDynSlots, mobNavSyncActive, mobNavTrack } from '../ui/components/mobile-nav-tema/01-mobil-nav.js';
-import { renderOzet } from '../ui/pages/ozet.js';
-import { renderTumOranTablolari } from '../ui/pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { inject, provide } from '@core/container.js';
+import { openModal } from '@components/modal-genel.js';
+import { kartDetayGeriDon } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { closeMobileSidebar, closeMobMore, mobNavRenderDynSlots, mobNavSyncActive, mobNavTrack } from '@components/mobile-nav-tema/01-mobil-nav.js';
+import { renderOzet } from '@pages/ozet.js';
+import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+
+// core.appCoreBase, core.wrapRegistry, core.pageRenderers, core.init zaten
+// container'da kayıtlı (Tur 3/4/bu tur) — inject() (tembel Proxy) ile
+// çözülüyor; app-core-base.js <-> init.js dairesel bağımlılığına karşı
+// resolve() değil inject() kullanılıyor (bkz. DI-MIGRATION.md).
+const _appCoreBase = inject('core.appCoreBase');
+const NAV_BTN_ID_BY_PAGE = _appCoreBase.NAV_BTN_ID_BY_PAGE;
+const getShowPage = (...a) => _appCoreBase.getShowPage(...a);
+const setShowPage = (...a) => _appCoreBase.setShowPage(...a);
+
+const _wrapRegistry = inject('core.wrapRegistry');
+const register = (...a) => _wrapRegistry.register(...a);
+const get = (...a) => _wrapRegistry.get(...a);
+const call = (...a) => _wrapRegistry.call(...a);
+const has = (...a) => _wrapRegistry.has(...a);
+
+const _pageRenderersNs = inject('core.pageRenderers');
+const pageRenderers = new Proxy({}, { get(_t, prop){ return _pageRenderersNs.pageRenderers[prop]; } });
+
+const _init = inject('core.init');
+const _pushHashState = (...a) => _init._pushHashState(...a);
 // Bu dosya "render çekirdeğini" içerir: RENDERERS tablosu, renderDirect,
 // stableShowPage, stableRenderAll, installRenderOverrides. index.html'de
 // app-core-base.js'nin hemen ardına, TÜM domain/ui dosyalarından
@@ -227,3 +245,14 @@ if(document.readyState === 'loading') {
 }
 window.addEventListener('load', function(){ installRenderOverrides(); }, { once:true });
 [80,250,700,1300].forEach(function(ms){ setTimeout(installRenderOverrides, ms); });
+
+// ============================================================
+// DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+// @components/*, @pages/kartlar/*, @pages/ozet.js, @pages/tanimlamalar/05-*
+// importları HENÜZ silinmedi (ui katmanı henüz taşınmadı).
+// ============================================================
+provide('core.renderCore', {
+  activePageId, pageLooksBlank, renderDirect, scheduleRender,
+  stableShowPage, stableRenderAll, renderPage, refreshVisiblePage,
+  mobNavGo, installRenderOverrides,
+});

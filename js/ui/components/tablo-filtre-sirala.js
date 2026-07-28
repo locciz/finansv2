@@ -1,18 +1,22 @@
-import { saveData } from '../../core/app-core-base.js';
-import { tblFiltreMultiToggle } from '../../core/app-core.js';
-import { DB } from '../../core/state.js';
-import { _asgariKuralPbFiltre, _asgariKuralPbFiltreRestored, set_asgariKuralPbFiltre, set_asgariKuralPbFiltreRestored } from '../pages/asgari-odeme.js';
-import { _extreFiltreRestored, _katFilter, _katFiltreRestored, set_extreFiltreRestored, set_katFilter, set_katFiltreRestored } from '../pages/ekstreler/02-ekstre-render.js';
-import { _hesapFiltreRestored, hesapFiltre, setHesapFiltre, set_hesapFiltreRestored } from '../pages/hesaplar/04-hesap-liste-render.js';
-import { _kd2IslemSiralama, _kdIslemSiralama, set_kd2IslemSiralama, set_kdIslemSiralama } from '../pages/kartlar/09-kart-altyapi.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.appCore, core.state
+// zaten container'a taşınmış katmanlara ait. @pages/* importları o katman
+// henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _appCore = inject('core.appCore');
+const _coreState = inject('core.state');
+import { _asgariKuralPbFiltre, _asgariKuralPbFiltreRestored, set_asgariKuralPbFiltre, set_asgariKuralPbFiltreRestored } from '@pages/asgari-odeme.js';
+import { _extreFiltreRestored, _katFilter, _katFiltreRestored, set_extreFiltreRestored, set_katFilter, set_katFiltreRestored } from '@pages/ekstreler/02-ekstre-render.js';
+import { _hesapFiltreRestored, hesapFiltre, setHesapFiltre, set_hesapFiltreRestored } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { _kd2IslemSiralama, _kdIslemSiralama, set_kd2IslemSiralama, set_kdIslemSiralama } from '@pages/kartlar/09-kart-altyapi.js';
 // ============================================================
 // js/ui/components/tablo-filtre-sirala.js — Ortak tablo filtre/
-// sıralama sistemi (chip filtreler, sıralama barı, DB'den restore)
+// sıralama sistemi (chip filtreler, sıralama barı, _coreState.DB'den restore)
 // ============================================================
 // Mevduat, Kira, Maaş, Elden Ödeme, Abonelikler, Banka Hesapları ve Kredi
 // Kartları sayfalarındaki sıralama butonları bu yardımcı fonksiyonlar
 // üzerinden üretilir — hepsi aynı ikonlu "chip" görünümüne sahiptir ve
-// seçim DB.uiSiralama[sayfa] içinde kalıcı olarak saklanır (Drive'a senkronize edilir).
+// seçim _coreState.DB.uiSiralama[sayfa] içinde kalıcı olarak saklanır (Drive'a senkronize edilir).
 
 export var _kdIslemSiralamaRestored = false;
 
@@ -30,18 +34,18 @@ export var SIRALAMA_IKON = {
 };
 // _restoreKdIslemSiralamaFromDB, _restoreKatFiltreFromDB, _restoreHesapFiltreFromDB
 // ve _restoreAsgariKuralPbFiltreFromDB hepsi aynı kalıbı kullanıyordu: bir kez
-// çalışma guard'ı + DB.uiFiltreler[x][y]'den okuyup bir global değişkene atama.
+// çalışma guard'ı + _coreState.DB.uiFiltreler[x][y]'den okuyup bir global değişkene atama.
 // Guard bayrağını ve atama işini tek yardımcıya topluyoruz; her çağıran kendi
 // guard değişkenini ve atama fonksiyonunu (setter) veriyor.
 export function _restoreFiltreFromDBOnce(guardGetSet, dbYolu, defaultDeger, setter) {
   if(guardGetSet.get()) return;
   guardGetSet.set(true);
-  let deger = DB;
+  let deger = _coreState.DB;
   for(const parca of dbYolu) { deger = deger && deger[parca]; }
   setter(deger != null ? deger : defaultDeger);
 }
 
-// ── DB'den filtre/sıralama geri yükleme (guard'lı, tek seferlik) ──
+// ── _coreState.DB'den filtre/sıralama geri yükleme (guard'lı, tek seferlik) ──
 export function _restoreKdIslemSiralamaFromDB() {
   _restoreFiltreFromDBOnce(
     { get: () => _kdIslemSiralamaRestored, set: (v) => { _kdIslemSiralamaRestored = v; } },
@@ -53,7 +57,7 @@ export function _restoreKdIslemSiralamaFromDB() {
 export function restoreExtreFiltreFromDB() {
   if(_extreFiltreRestored) return;
   set_extreFiltreRestored(true);
-  const saved = (DB.uiFiltreler && DB.uiFiltreler.extreler) || {};
+  const saved = (_coreState.DB.uiFiltreler && _coreState.DB.uiFiltreler.extreler) || {};
   const kf = document.getElementById('extre-kart-filter');
   const df = document.getElementById('extre-durum-filter');
   const ktf = document.getElementById('extre-kategori-filter');
@@ -61,7 +65,7 @@ export function restoreExtreFiltreFromDB() {
   // "tüm kartlar" özet listesiyle açılmalı (kullanıcı isteği). Durum/Kategori
   // filtreleri bir kart seçildiğinde anlamlı olduğundan geri yüklenmeye devam eder.
   if(df && saved.durum) df.value = saved.durum;
-  if(ktf && saved.kategori && (DB.kategoriler||[]).some(k=>k.id===saved.kategori)) ktf.value = saved.kategori;
+  if(ktf && saved.kategori && (_coreState.DB.kategoriler||[]).some(k=>k.id===saved.kategori)) ktf.value = saved.kategori;
 }
 
 export function persistExtreFiltreToDB() {
@@ -69,11 +73,11 @@ export function persistExtreFiltreToDB() {
   const df = document.getElementById('extre-durum-filter');
   const ktf = document.getElementById('extre-kategori-filter');
   const yeni = { kart: kf ? kf.value : '', durum: df ? df.value : '', kategori: ktf ? ktf.value : '' };
-  const eski = (DB.uiFiltreler && DB.uiFiltreler.extreler) || {};
+  const eski = (_coreState.DB.uiFiltreler && _coreState.DB.uiFiltreler.extreler) || {};
   if(eski.kart===yeni.kart && eski.durum===yeni.durum && eski.kategori===yeni.kategori) return;
-  if(!DB.uiFiltreler) DB.uiFiltreler = { islemler:{}, extreler:{} };
-  DB.uiFiltreler.extreler = yeni;
-  saveData();
+  if(!_coreState.DB.uiFiltreler) _coreState.DB.uiFiltreler = { islemler:{}, extreler:{} };
+  _coreState.DB.uiFiltreler.extreler = yeni;
+  _appCoreBase.saveData();
 }
 
 // tblFiltreChipsHtml (tekli seçim) ve tblFiltreChipsMultiHtml (çoklu seçim)
@@ -95,12 +99,12 @@ export function bindTblFiltreChips(container, handlerMap) {
   container.querySelectorAll('[data-tbl-fn]').forEach(el => {
     const fnName = el.getAttribute('data-tbl-fn');
     if (fnName === '__bankaFiltreTemizle') {
-      // [ES module] orijinal onclick="tblFiltreMultiToggle('${sayfa}','banka','');${renderFnName}()"
+      // [ES module] orijinal onclick="_appCore.tblFiltreMultiToggle('${sayfa}','banka','');${renderFnName}()"
       // - iki ayrı fonksiyon çağrısı içeriyordu, aynı davranış korunuyor.
       const sayfa = el.getAttribute('data-tbl-arg');
       const renderFnName = el.getAttribute('data-tbl-arg2');
       el.addEventListener('click', () => {
-        tblFiltreMultiToggle(sayfa, 'banka', '');
+        _appCore.tblFiltreMultiToggle(sayfa, 'banka', '');
         const renderFn = handlerMap[renderFnName];
         if (renderFn) renderFn();
       });
@@ -143,17 +147,17 @@ export function tblFiltreClearHtml(aktifDeger, onclickFn) {
 }
 
 export function tblSiralamaOku(sayfa, varsayilanKey, varsayilanYon) {
-  const s = (DB.uiSiralama && DB.uiSiralama[sayfa]) || null;
+  const s = (_coreState.DB.uiSiralama && _coreState.DB.uiSiralama[sayfa]) || null;
   return s ? s : { key: varsayilanKey, yon: varsayilanYon || 'asc' };
 }
 
 export function tblSiralamaAyarla(sayfa, key, varsayilanYon) {
-  if(!DB.uiSiralama) DB.uiSiralama = {};
-  const mevcut = DB.uiSiralama[sayfa];
+  if(!_coreState.DB.uiSiralama) _coreState.DB.uiSiralama = {};
+  const mevcut = _coreState.DB.uiSiralama[sayfa];
   let yon = varsayilanYon || 'asc';
   if(mevcut && mevcut.key === key) yon = (mevcut.yon === 'asc') ? 'desc' : 'asc';
-  DB.uiSiralama[sayfa] = { key, yon };
-  saveData();
+  _coreState.DB.uiSiralama[sayfa] = { key, yon };
+  _appCoreBase.saveData();
 }
 
 export function tblSiralamaBarHtml(kriterler, aktif, onclickFn) {
@@ -217,3 +221,19 @@ export function _restoreAsgariKuralPbFiltreFromDB() {
 
 
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.tabloFiltreSirala — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.tabloFiltreSirala', {
+  get _kdIslemSiralamaRestored() { return _kdIslemSiralamaRestored; },
+  SIRALAMA_IKON, _restoreFiltreFromDBOnce, _restoreKdIslemSiralamaFromDB,
+  restoreExtreFiltreFromDB, persistExtreFiltreToDB, bindTblFiltreChips,
+  TBL_FILTRE_IKON, TBL_SIRALAMA_IKON, _tblFiltreChipsRender,
+  tblFiltreChipsHtml, tblFiltreClearHtml, tblSiralamaOku, tblSiralamaAyarla,
+  tblSiralamaBarHtml, tblSiralamaUygula, tblFiltreChipsMultiHtml,
+  tblFiltreClearMultiHtml, tblBankaFiltrePopupBtnHtml,
+  _restoreKatFiltreFromDB, _restoreHesapFiltreFromDB,
+  _restoreAsgariKuralPbFiltreFromDB,
+});

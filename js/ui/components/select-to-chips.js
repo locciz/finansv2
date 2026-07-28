@@ -1,10 +1,12 @@
-import { saveData } from '../../core/app-core-base.js';
-import { fmtCur } from '../../core/format.js';
-import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../core/state.js';
-import { getKartKullanim, getKartRenk, getKartToplamLimit } from '../pages/kartlar/01-kart-data.js';
-import { getOrtakGrupKullanim } from '../pages/kartlar/07-ortak-limit-grubu.js';
-import { bankaIkonObj } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { register, get } from '../../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: dört bağımlılık da (core.appCoreBase,
+// core.format, core.state, core.wrapRegistry) zaten container'a taşınmış
+// katmanlara ait, bu yüzden inject() ile tembel çözülüyor. @pages/*
+// importları ise o katman henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _wrapRegistry = inject('core.wrapRegistry');
 // ============================================================
 // js/ui/components/select-to-chips.js
 // Genel amaçlı "seç -> chip" widget'ı (para birimi/kart/banka/hesap/altyapı seçiciler). NOT: bu bileşen ekstreler.js içine gömülüydü ama ekstrelere özgü değil — kartlar, hesaplar ve diğer formlarda da kullanılıyor. Doğru yerine (components/) taşındı.
@@ -265,7 +267,7 @@ export let _scPopupOwnsBodyLock = false;
 export let _scPopupFocusIdx = -1;      // klavye/hover odağındaki render listesi indexi
 export let _scPopupRenderList = [];    // en son render edilen [{type:'item',opt}|{type:'hdr',label}, ...]
 
-// Sıralama modu — DB.uiFiltreler.scPopupSiralama içinde saklanır (bkz. defaultData/
+// Sıralama modu — _coreState.DB.uiFiltreler.scPopupSiralama içinde saklanır (bkz. defaultData/
 // applyMigrations), bu sayede Drive'a senkronlanır ve cihaz/oturum değişse de,
 // sonraki açılışlarda kullanıcının seçtiği sıralama hatırlanır.
 // 'none' → orijinal (select'teki) sıra, 'buyuk' → tutar/bakiye büyükten küçüğe,
@@ -285,14 +287,14 @@ export const _SC_SORT_TITLES = {
 };
 
 export function _scGetSortMode() {
-  const m = DB && DB.uiFiltreler && DB.uiFiltreler.scPopupSiralama;
+  const m = _coreState.DB && _coreState.DB.uiFiltreler && _coreState.DB.uiFiltreler.scPopupSiralama;
   return _SC_SORT_CYCLE.includes(m) ? m : 'none';
 }
 
 export function _scSetSortMode(mode) {
-  if (!DB.uiFiltreler) DB.uiFiltreler = {};
-  DB.uiFiltreler.scPopupSiralama = mode;
-  saveData();
+  if (!_coreState.DB.uiFiltreler) _coreState.DB.uiFiltreler = {};
+  _coreState.DB.uiFiltreler.scPopupSiralama = mode;
+  _appCoreBase.saveData();
 }
 
 export function _scUpdateSortBtn() {
@@ -569,7 +571,7 @@ document.addEventListener('keydown', (e) => {
 
 export function _currencyChipHtml(o) {
   const code = o.value;
-  const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[code]) || {};
+  const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[code]) || {};
   const sym  = cfg.symbol || '';
   const flag = cfg.flag   || '';
   const showSym = sym && sym !== code;
@@ -598,8 +600,8 @@ export function _renkChipLabel(o) { return o.text.trim(); }
 
 export function _kartVisualHtml(kart) {
   const renk = (typeof getKartRenk === 'function') ? getKartRenk(kart) : ((kart && kart.renk) || '#4f8ef7');
-  const altyapi = (kart && kart.altyapiId && typeof DB !== 'undefined')
-    ? (DB.kartAltyapilari || []).find(a => a.id === kart.altyapiId) : null;
+  const altyapi = (kart && kart.altyapiId && typeof _coreState.DB !== 'undefined')
+    ? (_coreState.DB.kartAltyapilari || []).find(a => a.id === kart.altyapiId) : null;
   const logoHtml = (altyapi && altyapi.logo) ? `<span class="kc-visual-logo">${altyapi.logo}</span>` : '';
   const isHex = /^#[0-9a-f]{6}$/i.test(renk);
   const bg = isHex
@@ -610,9 +612,9 @@ export function _kartVisualHtml(kart) {
 
 export function _kartChipHtml(o) {
   const id = o.value;
-  const kart = (typeof DB !== 'undefined' && DB.kartlar || []).find(k => k.id === id);
+  const kart = (typeof _coreState.DB !== 'undefined' && _coreState.DB.kartlar || []).find(k => k.id === id);
   if (!kart) return `<span class="hc-main"><span class="hc-name">${o.text.trim()}</span></span>`;
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === kart.banka);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === kart.banka);
   const bankaAd = banka ? banka.kisa : '';
   const son4 = kart.no ? '•••• ' + kart.no : '';
   const subParts = [bankaAd, son4].filter(Boolean);
@@ -625,9 +627,9 @@ export function _kartChipHtml(o) {
         ? getOrtakGrupKullanim(kart.ortakLimitGrupId)
         : (typeof getKartKullanim === 'function' ? getKartKullanim(kart.id) : 0);
       const kullanilabilir = Math.max(0, limit - kull);
-      const pb = kart.paraBirimi || (typeof defaultCurrency !== 'undefined' ? defaultCurrency : 'TRY');
-      const limitStr = typeof fmtCur === 'function' ? fmtCur(limit, pb) : `${limit} ${pb}`;
-      const kullanilabilirStr = typeof fmtCur === 'function' ? fmtCur(kullanilabilir, pb) : `${kullanilabilir} ${pb}`;
+      const pb = kart.paraBirimi || (typeof _coreState.defaultCurrency !== 'undefined' ? _coreState.defaultCurrency : 'TRY');
+      const limitStr = typeof fmtCur === 'function' ? _format.fmtCur(limit, pb) : `${limit} ${pb}`;
+      const kullanilabilirStr = typeof fmtCur === 'function' ? _format.fmtCur(kullanilabilir, pb) : `${kullanilabilir} ${pb}`;
       const cls = kullanilabilir <= limit * 0.1 ? 'hc-neg' : 'hc-pos';
       limitGosterim = `<span class="${cls}">Kullanılabilir: ${kullanilabilirStr}</span><span class="hc-avail"> · Limit: ${limitStr}</span>`;
       limitTitle = `Kullanılabilir: ${kullanilabilirStr} · Toplam Limit: ${limitStr}`;
@@ -642,9 +644,9 @@ export function _kartChipHtml(o) {
 }
 
 export function _kartChipLabel(o) {
-  const kart = (typeof DB !== 'undefined' && DB.kartlar || []).find(k => k.id === o.value);
+  const kart = (typeof _coreState.DB !== 'undefined' && _coreState.DB.kartlar || []).find(k => k.id === o.value);
   if (!kart) return o.text.trim();
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === kart.banka);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === kart.banka);
   // Arama kutusunda ad, banka ve son 4 haneden de eşleşsin diye label'a hepsini katıyoruz
   // (görünürde sadece kart adı gösterilir, bu sadece arama/filtreleme için).
   return [kart.ad, banka ? banka.kisa : '', kart.no || ''].filter(Boolean).join(' ');
@@ -653,7 +655,7 @@ export function _kartChipLabel(o) {
 // gösterilen "Kullanılabilir: ..." değerinin ta kendisini (formatlanmamış sayı) döndürür.
 
 export function _kartChipValue(o) {
-  const kart = (typeof DB !== 'undefined' && DB.kartlar || []).find(k => k.id === o.value);
+  const kart = (typeof _coreState.DB !== 'undefined' && _coreState.DB.kartlar || []).find(k => k.id === o.value);
   if (!kart || typeof getKartToplamLimit !== 'function') return 0;
   const limit = getKartToplamLimit(kart.id) || 0;
   const kull = kart.ortakLimitGrupId && typeof getOrtakGrupKullanim === 'function'
@@ -696,11 +698,11 @@ document.addEventListener('change', (e) => {
 });
 
 
-// DB.kartAltyapilari'ndan kod bilgisini çeker; kod CSS data attribute'una yazılır.
+// _coreState.DB.kartAltyapilari'ndan kod bilgisini çeker; kod CSS data attribute'una yazılır.
 
 // ═══════════════════════════════════════════════════════════
 // KART ALTYAPI LOGO SİSTEMİ
-// Hazır SVG logolar — tanımlamada seçilip DB'ye kaydedilir
+// Hazır SVG logolar — tanımlamada seçilip _coreState.DB'ye kaydedilir
 // ═══════════════════════════════════════════════════════════
 export const ALTYAPI_LOGOLAR = [
   {
@@ -847,7 +849,7 @@ export function kartAltyapiLogoHtml(altyapi) {
 
 export function _altyapiChipHtml(o) {
   const id = o.value;
-  const altyapi = (typeof DB !== 'undefined' && DB.kartAltyapilari || []).find(a => a.id === id);
+  const altyapi = (typeof _coreState.DB !== 'undefined' && _coreState.DB.kartAltyapilari || []).find(a => a.id === id);
   const ad  = altyapi ? altyapi.ad  : o.text.trim();
   const logoSvg = altyapi && altyapi.logo ? altyapi.logo : '';
   const logoHtml = logoSvg
@@ -857,7 +859,7 @@ export function _altyapiChipHtml(o) {
 }
 
 export function _altyapiChipLabel(o) {
-  const altyapi = (typeof DB !== 'undefined' && DB.kartAltyapilari || []).find(a => a.id === o.value);
+  const altyapi = (typeof _coreState.DB !== 'undefined' && _coreState.DB.kartAltyapilari || []).find(a => a.id === o.value);
   return altyapi ? altyapi.ad : o.text.trim();
 }
 
@@ -865,7 +867,7 @@ export function _altyapiChipLabel(o) {
 
 export function _bankaChipHtml(o) {
   const id = o.value;
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === id);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === id);
   const ad = banka ? banka.kisa : o.text.trim();
   const ikon = banka ? bankaIkonObj(banka) : null;
   const ikonHtml = ikon && ikon.svg
@@ -875,7 +877,7 @@ export function _bankaChipHtml(o) {
 }
 
 export function _bankaChipLabel(o) {
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === o.value);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === o.value);
   return banka ? banka.kisa : o.text.trim();
 }
 
@@ -887,7 +889,7 @@ export function _hesapChipHtml(o) {
   const val = o.value || '';
   if (val.indexOf('nakit:') === 0) {
     const code = val.slice(6);
-    const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[code]) || {};
+    const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[code]) || {};
     const flag = cfg.flag || '💵';
     return `<span class="bank-icon">${flag}</span>`
          + `<span class="hc-main"><span class="hc-name">Nakit</span><span class="hc-sub">${code}</span></span>`;
@@ -897,18 +899,18 @@ export function _hesapChipHtml(o) {
   // isim + bakiye) için burada da bir chip üretiyoruz.
   if (!val && o && o.pb) {
     const pb = o.pb;
-    const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[pb]) || {};
+    const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[pb]) || {};
     const flag = cfg.flag || '💵';
-    const bakiyeVal = (typeof DB !== 'undefined' && DB._nakitBakiye || {})[pb] || 0;
-    const bakiyeStr = typeof fmtCur === 'function' ? fmtCur(bakiyeVal, pb) : `${bakiyeVal} ${pb}`;
+    const bakiyeVal = (typeof _coreState.DB !== 'undefined' && _coreState.DB._nakitBakiye || {})[pb] || 0;
+    const bakiyeStr = typeof fmtCur === 'function' ? _format.fmtCur(bakiyeVal, pb) : `${bakiyeVal} ${pb}`;
     const bakiyeCls = bakiyeVal < 0 ? 'hc-neg' : 'hc-pos';
     return `<span class="bank-icon">${flag}</span>`
          + `<span class="hc-main"><span class="hc-name">Nakit (Nakit Bakiyesi)</span>`
          + `<span class="hc-sub"><span class="${bakiyeCls}">Bakiye: ${bakiyeStr}</span></span></span>`;
   }
-  const h = (typeof DB !== 'undefined' && DB.hesaplar || []).find(x => x.id === val);
+  const h = (typeof _coreState.DB !== 'undefined' && _coreState.DB.hesaplar || []).find(x => x.id === val);
   if (!h) return `<span class="hc-main"><span class="hc-name">${o.text.trim()}</span></span>`;
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === h.banka);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === h.banka);
   const ikon = banka ? bankaIkonObj(banka) : null;
   const ikonHtml = ikon && ikon.svg
     ? `<span class="bank-logo">${ikon.svg}</span>`
@@ -916,13 +918,13 @@ export function _hesapChipHtml(o) {
   const pb = h.paraBirimi || 'TRY';
   const bakiyeVal = h.bakiye || 0;
   const kmhLimit = h.kmhLimit || 0;
-  const bakiyeStr = typeof fmtCur === 'function' ? fmtCur(bakiyeVal, pb) : `${bakiyeVal} ${pb}`;
+  const bakiyeStr = typeof fmtCur === 'function' ? _format.fmtCur(bakiyeVal, pb) : `${bakiyeVal} ${pb}`;
   const bakiyeCls = bakiyeVal < 0 ? 'hc-neg' : 'hc-pos';
   let bakiyeGosterim = `Bakiye: ${bakiyeStr}`;
   let subTitleGosterim = bakiyeGosterim;
   if (kmhLimit > 0) {
     const kullanilabilirVal = bakiyeVal + kmhLimit;
-    const kullanilabilirStr = typeof fmtCur === 'function' ? fmtCur(kullanilabilirVal, pb) : `${kullanilabilirVal} ${pb}`;
+    const kullanilabilirStr = typeof fmtCur === 'function' ? _format.fmtCur(kullanilabilirVal, pb) : `${kullanilabilirVal} ${pb}`;
     // "Kullanılabilir" ayrı bir span'e sarılıyor: dar (cols-2) mobil satırlarda
     // bu kısım CSS ile gizlenip sadece Bakiye gösteriliyor (bkz. .hc-avail kuralı),
     // tam metin popup listesinde ve title tooltip'inde her zaman görünür kalıyor.
@@ -944,9 +946,9 @@ export function _hesapChipLabel(o) {
   const val = o.value || '';
   if (val.indexOf('nakit:') === 0) return 'Nakit ' + val.slice(6);
   if (!val && o && o.pb) return 'Nakit (Nakit Bakiyesi) ' + o.pb;
-  const h = (typeof DB !== 'undefined' && DB.hesaplar || []).find(x => x.id === val);
+  const h = (typeof _coreState.DB !== 'undefined' && _coreState.DB.hesaplar || []).find(x => x.id === val);
   if (!h) return o.text.trim();
-  const banka = (typeof DB !== 'undefined' && DB.bankalar || []).find(b => b.id === h.banka);
+  const banka = (typeof _coreState.DB !== 'undefined' && _coreState.DB.bankalar || []).find(b => b.id === h.banka);
   return [banka ? banka.kisa : '', h.ad || '', h.iban || ''].filter(Boolean).join(' ');
 }
 // Hesap popup'larında "Bakiyeye Göre Sırala" özelliği için — chip'te gösterilen
@@ -956,12 +958,12 @@ export function _hesapChipValue(o) {
   const val = o.value || '';
   if (val.indexOf('nakit:') === 0) {
     const code = val.slice(6);
-    return (typeof DB !== 'undefined' && DB._nakitBakiye || {})[code] || 0;
+    return (typeof _coreState.DB !== 'undefined' && _coreState.DB._nakitBakiye || {})[code] || 0;
   }
   if (!val && o && o.pb) {
-    return (typeof DB !== 'undefined' && DB._nakitBakiye || {})[o.pb] || 0;
+    return (typeof _coreState.DB !== 'undefined' && _coreState.DB._nakitBakiye || {})[o.pb] || 0;
   }
-  const h = (typeof DB !== 'undefined' && DB.hesaplar || []).find(x => x.id === val);
+  const h = (typeof _coreState.DB !== 'undefined' && _coreState.DB.hesaplar || []).find(x => x.id === val);
   return h ? (h.bakiye || 0) : 0;
 }
 
@@ -1190,9 +1192,9 @@ export function wireAllMoneyCurButtons() {
 // tamamlanmasına yetecek kadar bekliyoruz; aksi hâlde chip render sırasında
 // seçenekler henüz gelmemiş (boş state) olabiliyor.
 (function patchOpenModal() {
-  const _orig = get('openModal');
+  const _orig = _wrapRegistry.get('openModal');
   if (typeof _orig !== 'function') { setTimeout(patchOpenModal, 50); return; }
-  register('openModal', function(id) {
+  _wrapRegistry.register('openModal', function(id) {
     _orig.apply(this, arguments);
     const modal = document.getElementById(id);
     if (modal) setTimeout(() => { applyChipsToContainer(modal); wireAllMoneyCurButtons(); }, 80);
@@ -1208,3 +1210,27 @@ export function wireAllMoneyCurButtons() {
    görünmüyor. Çözüm: sidebar'ı mobil açılışta body'nin doğrudan çocuğu yap
    (root context'e taşı), kapanışta orijinal yerine geri koy. */
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.selectToChips — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.selectToChips', {
+  selectToChips,
+  get _scPopupState() { return _scPopupState; },
+  get _scPopupOwnsBodyLock() { return _scPopupOwnsBodyLock; },
+  get _scPopupFocusIdx() { return _scPopupFocusIdx; },
+  get _scPopupRenderList() { return _scPopupRenderList; },
+  _SC_SORT_CYCLE, _SC_SORT_ICONS, _SC_SORT_TITLES,
+  _scGetSortMode, _scSetSortMode, _scUpdateSortBtn, _scSortList,
+  _ensureScPopupEl, _scHighlight, _renderScSearchPopupList,
+  _scPopupSetFocus, _scPopupMoveFocus, _scPopupSelectFocused,
+  _scLockBodyScroll, _scUnlockBodyScroll, _openScSearchPopup, _closeScSearchPopup,
+  _currencyChipHtml, _currencyChipLabel, _renkChipHtml, _renkChipLabel,
+  _kartVisualHtml, _kartChipHtml, _kartChipLabel, _kartChipValue,
+  _ikonChipHtml, _ikonChipLabel, ALTYAPI_LOGOLAR, _renderAltyapiLogoPicker,
+  _pickAltyapiLogo, _selectAltyapiLogo, kartAltyapiLogoHtml,
+  _altyapiChipHtml, _altyapiChipLabel, _bankaChipHtml, _bankaChipLabel,
+  _hesapChipHtml, _hesapChipLabel, _hesapChipValue, applyChipsToContainer,
+  applyHesapAksiyonChips, _wireMoneyCurButton, wireAllMoneyCurButtons,
+});

@@ -125,4 +125,10 @@ export var IBAN_BANKA_MAP = {
   '0807': 'PTT',
 };
 
+// ============================================================
+// [DI-MIGRATION] domain.bankaVerisi — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.bankaVerisi', { BANK_ICON_MAP, BANKA_LOGOLAR, IBAN_BANKA_MAP });
+
 

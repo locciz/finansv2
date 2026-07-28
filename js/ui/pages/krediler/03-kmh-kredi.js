@@ -1,18 +1,18 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { tblFiltreMultiToggle, tblFiltreOkuMulti } from '../../../core/app-core.js';
-import { fmt, fmtCur, fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _krediMetrik, getBsmvOrani, getKkdfOrani, getKmhFaizOrani, getKrediKalanBorc, hesaplaKrediOnizleme } from '../../../domain/hesaplamalar.js';
-import { _markFieldError, phSet, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { gecmisListesiRenderEt, swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { bindTblFiltreChips, tblFiltreChipsMultiHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '../../components/tablo-filtre-sirala.js';
-import { editHesapId } from '../hesaplar/04-hesap-liste-render.js';
-import { KMHKREDI_STEP_COUNT, KREDI_DURUM_FILTRE_OPTS, _kmhKrediCurrentStep, editKmhKrediId, setEditKmhKrediId, set_kmhKrediCurrentStep } from './00-state.js';
-import { _krediFiltreBaslikGuncelle, _renderKrediKart, _toggleKrediAccordion, readManuelTaksitler, renderKrediTaksitPlani, renderKrediTaksitPlaniEfektif } from './01-genel-yardimcilar.js';
-import { getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { tblFiltreMultiToggle, tblFiltreOkuMulti } from '@core/app-core.js';
+import { fmt, fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _krediMetrik, getBsmvOrani, getKkdfOrani, getKmhFaizOrani, getKrediKalanBorc, hesaplaKrediOnizleme } from '@domain/hesaplamalar.js';
+import { _markFieldError, phSet, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { gecmisListesiRenderEt, swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { bindTblFiltreChips, tblFiltreChipsMultiHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { editHesapId } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { KMHKREDI_STEP_COUNT, KREDI_DURUM_FILTRE_OPTS, _kmhKrediCurrentStep, editKmhKrediId, setEditKmhKrediId, set_kmhKrediCurrentStep } from '@pages/krediler/00-state.js';
+import { _krediFiltreBaslikGuncelle, _renderKrediKart, _toggleKrediAccordion, readManuelTaksitler, renderKrediTaksitPlani, renderKrediTaksitPlaniEfektif } from '@pages/krediler/01-genel-yardimcilar.js';
+import { getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/krediler/03-kmh-kredi.js
 // KMH kredisi (kredili mevduat hesabı taksitlendirme) akışı

@@ -1,24 +1,24 @@
-import { saveData } from '../../core/app-core-base.js';
-import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '../../core/app-core.js';
-import { isIsBgunu } from '../../core/date-utils.js';
-import { fmtCur, fmtDate, localDateStr, uid } from '../../core/format.js';
-import { DB, defaultCurrency } from '../../core/state.js';
-import { ISLEM_TUR, ODEME_YONTEM, ODEME_DURUM } from '../../core/constants.js';
-import { _fillPbManualSelect } from '../../domain/doviz.js';
-import { hesapKullanilabilirBakiye } from '../../domain/hesaplamalar.js';
-import { formatIbanView } from '../../domain/iban-utils.js';
-import { _ibanKopyalaVeToastGoster, renderIbanPicker } from '../components/iban-ui.js';
-import { _markFieldError, checkManuelKarsiTarafAndSave, phSet, phUpdate, showConfirm, showToast, validateRequiredFields } from '../components/modal-genel.js';
-import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput, updateModalMoneyWraps } from '../components/money-input.js';
-import { swizBakiyeHintGuncelle, swizOzetSatirHtmlKisa, swizUpdateStepIndicator } from '../components/step-wizard.js';
-import { bindTblFiltreChips, tblFiltreChipsHtml, tblFiltreChipsMultiHtml, tblFiltreClearHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '../components/tablo-filtre-sirala.js';
-import { getAktifHesapOptionsByPb } from './hesaplar/01-genel-yardimcilar.js';
-import { openKontratPlan } from '../components/kontrat-plani.js';
-import { odEfektifDurum, odGetDurum, odKiraMaasOverride, odPlanlananTutar, odToggleBtn } from './odeme/01-genel-yardimcilar.js';
-import { ODEME_DURUM_FILTRE_OPTS } from './odeme/08-popup-giris-noktalari.js';
-import { getTatilSet } from './tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal, openModal } from '../components/modal-genel.js';
-import { call, register } from '../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '@core/app-core.js';
+import { isIsBgunu } from '@core/date-utils.js';
+import { fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { ISLEM_TUR, ODEME_YONTEM, ODEME_DURUM } from '@core/constants.js';
+import { _fillPbManualSelect } from '@domain/doviz.js';
+import { hesapKullanilabilirBakiye } from '@domain/hesaplamalar.js';
+import { formatIbanView } from '@domain/iban-utils.js';
+import { _ibanKopyalaVeToastGoster, renderIbanPicker } from '@components/iban-ui.js';
+import { _markFieldError, checkManuelKarsiTarafAndSave, phSet, phUpdate, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput, updateModalMoneyWraps } from '@components/money-input.js';
+import { swizBakiyeHintGuncelle, swizOzetSatirHtmlKisa, swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { bindTblFiltreChips, tblFiltreChipsHtml, tblFiltreChipsMultiHtml, tblFiltreClearHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { getAktifHesapOptionsByPb } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { openKontratPlan } from '@components/kontrat-plani.js';
+import { odEfektifDurum, odGetDurum, odKiraMaasOverride, odPlanlananTutar, odToggleBtn } from '@pages/odeme/01-genel-yardimcilar.js';
+import { ODEME_DURUM_FILTRE_OPTS } from '@pages/odeme/08-popup-giris-noktalari.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { call, register } from '@core/wrap-registry.js';
 // Orijinal 02-core-app-engine.js içinden çıkarıldı. İçerik değiştirilmedi.
 
 // ==== 02-core-app-engine.js'den taşınan modül state'i ====

@@ -1,16 +1,16 @@
-import { tblFiltreMultiToggle, tblFiltreOkuMulti } from '../../../core/app-core.js';
-import { fmt, fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { mevduatDurumHesapla } from '../../../domain/hesaplamalar.js';
-import { bindTblFiltreChips, tblBankaFiltrePopupBtnHtml, tblFiltreChipsMultiHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '../../components/tablo-filtre-sirala.js';
-import { hesapOtomatikGunlukKontrol } from '../hesaplar/01-genel-yardimcilar.js';
-import { MEVDUAT_DURUM_FILTRE_OPTS, _MEV_FILTRE_ETIKET } from './00-state.js';
-import { mevduatOtomatikVadeKontrol } from './04-mevduat-otomasyon.js';
-import { deleteMevduat } from './03-mevduat-yenileme-ve-kapama.js';
-import { editMevduat } from './01-mevduat-form-wizard.js';
-import { bankaIkonObj, getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { openMevduatBankaFiltrePopup } from '../../components/mf-popup.js';
-import { call, register } from '../../../core/wrap-registry.js';
+import { tblFiltreMultiToggle, tblFiltreOkuMulti } from '@core/app-core.js';
+import { fmt, fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { mevduatDurumHesapla } from '@domain/hesaplamalar.js';
+import { bindTblFiltreChips, tblBankaFiltrePopupBtnHtml, tblFiltreChipsMultiHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { hesapOtomatikGunlukKontrol } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { MEVDUAT_DURUM_FILTRE_OPTS, _MEV_FILTRE_ETIKET } from '@pages/mevduat/00-state.js';
+import { mevduatOtomatikVadeKontrol } from '@pages/mevduat/04-mevduat-otomasyon.js';
+import { deleteMevduat } from '@pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
+import { editMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { bankaIkonObj, getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openMevduatBankaFiltrePopup } from '@components/mf-popup.js';
+import { call, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/mevduat/05-mevduat-liste-render.js
 // Mevduat listesi render + filtre/sıralama

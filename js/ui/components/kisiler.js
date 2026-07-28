@@ -1,16 +1,21 @@
-import { saveData } from '../../core/app-core-base.js';
-import { uid } from '../../core/format.js';
-import { DB } from '../../core/state.js';
-import { IBAN_BANKA_MAP } from '../../domain/banka-verisi.js';
-import { formatIbanView, ibanMod97, parseIban } from '../../domain/iban-utils.js';
-import { ensureIbanStatus, renderIbanPicker } from './iban-ui.js';
-import { showConfirm, showToast, validateRequiredFields } from './modal-genel.js';
-import { populateEldenKisiSelect } from '../pages/elden.js';
-import { populateKiraKisiSelects } from '../pages/kira.js';
-import { populateMaasKisiSelects } from '../pages/maas.js';
-import { bankaLogoByKod } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { populateKategoriSelects } from '../pages/tanimlamalar/03-kategoriler.js';
-import { closeModal, openModal } from './modal-genel.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.format, core.state,
+// domain.bankaVerisi, domain.ibanUtils zaten container'a taşınmış
+// katmanlara ait. iban-ui.js ve modal-genel.js ile üçlü dairesel bağımlılık
+// var (bkz. iban-ui.js'teki aynı yorum) — inject() ile güvenle çözülüyor.
+// @pages/* importları o katman henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _bankaVerisi = inject('domain.bankaVerisi');
+const _ibanUtils = inject('domain.ibanUtils');
+const _ibanUi = inject('ui.components.ibanUi');
+const _modalGenel = inject('ui.components.modalGenel');
+import { populateEldenKisiSelect } from '@pages/elden.js';
+import { populateKiraKisiSelects } from '@pages/kira.js';
+import { populateMaasKisiSelects } from '@pages/maas.js';
+import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
 // ============================================================
 // js/ui/components/kisiler.js — Kişiler/Karşı Taraflar yönetimi
 // (Kişiler sayfası modalı + formlarda kullanılan Mini Kişi Popup'ı)
@@ -28,7 +33,7 @@ export function openKisiModal(id=null) {
   editKisiId = id;
   _kisiIbanlar = [];
   if(id) {
-    const k = (DB.kisiler||[]).find(x=>x.id===id);
+    const k = (_coreState.DB.kisiler||[]).find(x=>x.id===id);
     if(!k) return;
     document.getElementById('kisi-modal-title').textContent = 'Kişi Düzenle';
     document.getElementById('kisi-ad').value = k.ad||'';
@@ -44,14 +49,14 @@ export function openKisiModal(id=null) {
   document.getElementById('kisi-yeni-iban').value = '';
   document.getElementById('kisi-yeni-iban-etiket').value = '';
   renderKisiIbanList();
-  openModal('modal-kisi');
+  _modalGenel.openModal('modal-kisi');
 }
 
 export function _kisiIbanBankaBilgi(iban) {
-  const parsed = (typeof parseIban === 'function') ? parseIban(iban) : null;
+  const parsed = (typeof parseIban === 'function') ? _ibanUtils.parseIban(iban) : null;
   if(!parsed) return null;
-  const dbMatch = (DB.bankalar||[]).find(b => b.ibanKod === parsed.bankaKodu);
-  const ad = dbMatch ? (dbMatch.kisa || dbMatch.tam || '') : ((typeof IBAN_BANKA_MAP !== 'undefined' && IBAN_BANKA_MAP[parsed.bankaKodu]) || '');
+  const dbMatch = (_coreState.DB.bankalar||[]).find(b => b.ibanKod === parsed.bankaKodu);
+  const ad = dbMatch ? (dbMatch.kisa || dbMatch.tam || '') : ((typeof _bankaVerisi.IBAN_BANKA_MAP !== 'undefined' && _bankaVerisi.IBAN_BANKA_MAP[parsed.bankaKodu]) || '');
   const logo = (dbMatch && dbMatch.logo) || (typeof bankaLogoByKod === 'function' ? bankaLogoByKod(parsed.bankaKodu) : '') || '';
   if(!ad && !logo) return null;
   return { ad, logo };
@@ -68,7 +73,7 @@ export function kisiIbanEkle() {
     ibanEl.focus();
     return;
   }
-  if(!/^TR\d{24}$/.test(raw) || !ibanMod97(raw)) {
+  if(!/^TR\d{24}$/.test(raw) || !_ibanUtils.ibanMod97(raw)) {
     statusEl.innerHTML = '<span style="color:var(--danger)">⚠ Geçersiz IBAN — lütfen kontrol edin</span>';
     ibanEl.style.borderColor = 'var(--rose)';
     ibanEl.focus();
@@ -159,7 +164,7 @@ export function closeMiniKisiPopup() {
 
 export function mkpRenderList() {
   const list = document.getElementById('mkp-list');
-  const allKisiler = DB.kisiler || [];
+  const allKisiler = _coreState.DB.kisiler || [];
   const currentVal = _mkpTargetSelectId ? (document.getElementById(_mkpTargetSelectId)||{}).value : '';
 
   const q = (_mkpSearchQ || '').toLocaleLowerCase('tr').trim();
@@ -296,7 +301,7 @@ export function mkpAddIban(kisiId) {
   const valEl = document.getElementById('mkp-iban-val-' + kisiId);
   const lblEl = document.getElementById('mkp-iban-lbl-' + kisiId);
   if (!valEl) return;
-  const statusEl = ensureIbanStatus(valEl);
+  const statusEl = _ibanUi.ensureIbanStatus(valEl);
   const errIcon = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
   const raw = valEl.value.replace(/\s+/g,'').toUpperCase();
 
@@ -306,14 +311,14 @@ export function mkpAddIban(kisiId) {
     valEl.focus();
     return;
   }
-  const parsed = parseIban(raw);
+  const parsed = _ibanUtils.parseIban(raw);
   if (!parsed) {
     statusEl.innerHTML = `<span class="iban-status iban-err">${errIcon} Geçersiz IBAN — lütfen kontrol edin</span>`;
     valEl.style.borderColor = 'var(--rose)';
     valEl.focus();
     return;
   }
-  const k = (DB.kisiler||[]).find(x=>x.id===kisiId);
+  const k = (_coreState.DB.kisiler||[]).find(x=>x.id===kisiId);
   if (!k) return;
   if (!k.ibanlar) k.ibanlar = [];
   if (k.ibanlar.some(x=>x.iban===raw)) {
@@ -324,7 +329,7 @@ export function mkpAddIban(kisiId) {
 
   const lbl = lblEl ? lblEl.value.trim() : '';
   k.ibanlar.push({ iban: raw, etiket: lbl });
-  saveData();
+  _appCoreBase.saveData();
   populateEldenKisiSelect();
   try { renderKisilerGrid(); } catch(e) {}
   mkpRenderList();
@@ -334,14 +339,14 @@ export function mkpAddIban(kisiId) {
     const inp = document.getElementById('mkp-iban-val-' + kisiId);
     if (inp) inp.focus();
   }, 30);
-  showToast('IBAN eklendi ✓');
+  _modalGenel.showToast('IBAN eklendi ✓');
 }
 
 export function mkpDeleteIban(kisiId, idx) {
-  const k = (DB.kisiler||[]).find(x=>x.id===kisiId);
+  const k = (_coreState.DB.kisiler||[]).find(x=>x.id===kisiId);
   if (!k || !k.ibanlar) return;
   k.ibanlar.splice(idx, 1);
-  saveData();
+  _appCoreBase.saveData();
   populateEldenKisiSelect();
   try { renderKisilerGrid(); } catch(e) {}
   _mkpExpanded[kisiId] = true;
@@ -350,8 +355,8 @@ export function mkpDeleteIban(kisiId, idx) {
 
 export function mkpCopyIban(iban) {
   navigator.clipboard.writeText(iban)
-    .then(()=>showToast('IBAN kopyalandı ✓'))
-    .catch(()=>showToast('Kopyalanamadı', 'error'));
+    .then(()=>_modalGenel.showToast('IBAN kopyalandı ✓'))
+    .catch(()=>_modalGenel.showToast('Kopyalanamadı', 'error'));
 }
 
 export function mkpSelectKisi(id) {
@@ -361,7 +366,7 @@ export function mkpSelectKisi(id) {
   sel.value = id;
   sel.dispatchEvent(new Event('change'));
   // Kişinin IBAN sayısını kontrol et — birden fazlaysa popup'ı kapatmadan seçtir
-  const kisi = (DB.kisiler||[]).find(k=>k.id===id);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===id);
   if (kisi && kisi.ibanlar && kisi.ibanlar.length > 1) {
     // Popup'ı açık bırak, IBAN bölümünü aç
     _mkpExpanded[id] = true;
@@ -371,7 +376,7 @@ export function mkpSelectKisi(id) {
       const wrap = document.querySelector('.mkp-item-wrap.selected');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 50);
-    showToast('IBAN seçin ↓', 'info');
+    _modalGenel.showToast('IBAN seçin ↓', 'info');
     return;
   }
   closeMiniKisiPopup();
@@ -387,17 +392,17 @@ export function mkpSelectIbanToForm(kisiId, iban) {
   const raw = iban.replace(/\s+/g,'').toUpperCase();
   if (ibanInput) {
     ibanInput.value = raw;
-    if (typeof formatIbanView === 'function') formatIbanView(ibanInput);
+    if (typeof formatIbanView === 'function') _ibanUtils.formatIbanView(ibanInput);
   }
   // Kisi zaten seçili, IBAN chip'lerini güncelle
-  const kisi = (DB.kisiler||[]).find(k=>k.id===kisiId);
+  const kisi = (_coreState.DB.kisiler||[]).find(k=>k.id===kisiId);
   if (kisi) {
     const pickerWrapId = prefix + '-iban-picker';
     const chipsId = prefix + '-iban-chips';
-    renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId);
+    _ibanUi.renderIbanPicker(kisiId, pickerWrapId, chipsId, ibanInputId);
   }
   closeMiniKisiPopup();
-  showToast('IBAN seçildi ✓');
+  _modalGenel.showToast('IBAN seçildi ✓');
 }
 
 export function mkpToggleAddForm() {
@@ -416,7 +421,7 @@ export function mkpToggleAddForm() {
 }
 
 export function mkpEditKisi(id) {
-  const k = (DB.kisiler||[]).find(x=>x.id===id);
+  const k = (_coreState.DB.kisiler||[]).find(x=>x.id===id);
   if (!k) return;
   _mkpEditId = id;
   const form = document.getElementById('mkp-add-form');
@@ -430,27 +435,27 @@ export function mkpEditKisi(id) {
 export function mkpSaveKisi() {
   const ad = document.getElementById('mkp-ad').value.trim();
   if (!ad) { document.getElementById('mkp-ad').classList.add('field-error'); setTimeout(()=>document.getElementById('mkp-ad').classList.remove('field-error'),1500); return; }
-  if (!DB.kisiler) DB.kisiler = [];
+  if (!_coreState.DB.kisiler) _coreState.DB.kisiler = [];
 
   if (_mkpEditId) {
-    const idx = DB.kisiler.findIndex(x=>x.id===_mkpEditId);
+    const idx = _coreState.DB.kisiler.findIndex(x=>x.id===_mkpEditId);
     if (idx >= 0) {
-      DB.kisiler[idx] = { ...DB.kisiler[idx], ad,
+      _coreState.DB.kisiler[idx] = { ..._coreState.DB.kisiler[idx], ad,
         tel: document.getElementById('mkp-tel').value.trim(),
         not: document.getElementById('mkp-not').value.trim()
       };
     }
     _mkpEditId = null;
   } else {
-    DB.kisiler.push({
-      id: uid(), ad,
+    _coreState.DB.kisiler.push({
+      id: _format.uid(), ad,
       tel: document.getElementById('mkp-tel').value.trim(),
       not: document.getElementById('mkp-not').value.trim(),
       ibanlar: []
     });
   }
 
-  saveData();
+  _appCoreBase.saveData();
   // Tüm kişi select'lerini güncelle
   populateEldenKisiSelect();
   if (typeof populateKiraKisiSelects === 'function') populateKiraKisiSelects();
@@ -464,19 +469,19 @@ export function mkpSaveKisi() {
   document.getElementById('mkp-not').value = '';
   document.getElementById('mkp-add-form').classList.remove('open');
   mkpRenderList();
-  showToast('Kişi kaydedildi ✓');
+  _modalGenel.showToast('Kişi kaydedildi ✓');
 }
 
 export function mkpDeleteKisi(id) {
-  showConfirm('Bu kişiyi silmek istiyor musunuz?', () => {
-    DB.kisiler = (DB.kisiler||[]).filter(x=>x.id!==id);
-    saveData();
+  _modalGenel.showConfirm('Bu kişiyi silmek istiyor musunuz?', () => {
+    _coreState.DB.kisiler = (_coreState.DB.kisiler||[]).filter(x=>x.id!==id);
+    _appCoreBase.saveData();
     populateEldenKisiSelect();
     try { populateKiraKisiSelects(); } catch(e) {}
     try { populateMaasKisiSelects(); } catch(e) {}
     renderKisilerGrid();
     mkpRenderList();
-    showToast('Kişi silindi');
+    _modalGenel.showToast('Kişi silindi');
   });
 }
 
@@ -522,7 +527,7 @@ export function renderKisiIbanList() {
   // dizinin kendisi (index değil) tutuluyor, böylece sonraki render'larda index kayması sorun olmaz.
   el.querySelectorAll('.kisi-iban-copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      navigator.clipboard.writeText(btn.dataset.iban).then(() => showToast('IBAN kopyalandı ✓'));
+      navigator.clipboard.writeText(btn.dataset.iban).then(() => _modalGenel.showToast('IBAN kopyalandı ✓'));
     });
   });
   el.querySelectorAll('.kisi-iban-del-btn').forEach(btn => {
@@ -535,40 +540,40 @@ export function renderKisiIbanList() {
 
 export function saveKisi() {
   const ad = document.getElementById('kisi-ad').value.trim();
-  if(!validateRequiredFields([{id:'kisi-ad',msg:'Ad zorunlu'}])) return;
-  if(!DB.kisiler) DB.kisiler = [];
+  if(!_modalGenel.validateRequiredFields([{id:'kisi-ad',msg:'Ad zorunlu'}])) return;
+  if(!_coreState.DB.kisiler) _coreState.DB.kisiler = [];
   const isYeni = !editKisiId;
   const kisi = {
-    id: editKisiId || uid(),
+    id: editKisiId || _format.uid(),
     ad,
     tel: document.getElementById('kisi-tel').value.trim(),
     not: document.getElementById('kisi-not').value.trim(),
     ibanlar: _kisiIbanlar
   };
   if(editKisiId) {
-    const idx = DB.kisiler.findIndex(x=>x.id===editKisiId);
-    if(idx>=0) DB.kisiler[idx]=kisi;
+    const idx = _coreState.DB.kisiler.findIndex(x=>x.id===editKisiId);
+    if(idx>=0) _coreState.DB.kisiler[idx]=kisi;
   } else {
-    DB.kisiler.push(kisi);
+    _coreState.DB.kisiler.push(kisi);
   }
   editKisiId = null;
   _kisiIbanlar = [];
-  saveData();
-  closeModal('modal-kisi');
+  _appCoreBase.saveData();
+  _modalGenel.closeModal('modal-kisi');
   renderKisilerGrid();
   populateEldenKisiSelect();
   const ibanAdet = kisi.ibanlar.length;
   if(isYeni) {
-    showToast(ibanAdet ? `Kişi eklendi · ${ibanAdet} IBAN kaydedildi ✓` : 'Kişi eklendi ✓');
+    _modalGenel.showToast(ibanAdet ? `Kişi eklendi · ${ibanAdet} IBAN kaydedildi ✓` : 'Kişi eklendi ✓');
   } else {
-    showToast(ibanAdet ? `Kişi güncellendi · ${ibanAdet} IBAN ✓` : 'Kişi güncellendi ✓');
+    _modalGenel.showToast(ibanAdet ? `Kişi güncellendi · ${ibanAdet} IBAN ✓` : 'Kişi güncellendi ✓');
   }
 }
 
 export function deleteKisi(id) {
-  showConfirm('Bu kişiyi silmek istiyor musunuz?', () => {
-    DB.kisiler = (DB.kisiler||[]).filter(x=>x.id!==id);
-    saveData();
+  _modalGenel.showConfirm('Bu kişiyi silmek istiyor musunuz?', () => {
+    _coreState.DB.kisiler = (_coreState.DB.kisiler||[]).filter(x=>x.id!==id);
+    _appCoreBase.saveData();
     renderKisilerGrid();
     populateEldenKisiSelect();
   });
@@ -577,7 +582,7 @@ export function deleteKisi(id) {
 export function renderKisilerGrid() {
   const grid = document.getElementById('kisiler-grid');
   if(!grid) return;
-  const kisiler = DB.kisiler||[];
+  const kisiler = _coreState.DB.kisiler||[];
   if(!kisiler.length) {
     grid.innerHTML = '<div style="color:var(--text3);padding:20px;grid-column:1/-1;text-align:center">Henüz kişi eklenmedi. "+ Kişi Ekle" butonuna tıklayın.</div>';
     return;
@@ -609,7 +614,7 @@ export function renderKisilerGrid() {
   // onclick="deleteKisi(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
   grid.querySelectorAll('.kisi-grid-iban-copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      navigator.clipboard.writeText(btn.dataset.iban).then(() => showToast('IBAN kopyalandı ✓'));
+      navigator.clipboard.writeText(btn.dataset.iban).then(() => _modalGenel.showToast('IBAN kopyalandı ✓'));
     });
   });
   grid.querySelectorAll('.kisi-grid-edit-btn').forEach(btn => {
@@ -652,3 +657,21 @@ export function toggleKtMode(prefix) {
 }
 
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.kisiler — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.kisiler', {
+  get editKisiId() { return editKisiId; },
+  get _kisiIbanlar() { return _kisiIbanlar; },
+  get _mkpTargetSelectId() { return _mkpTargetSelectId; },
+  get _mkpEditId() { return _mkpEditId; },
+  get _mkpSearchQ() { return _mkpSearchQ; },
+  get _mkpExpanded() { return _mkpExpanded; },
+  openKisiModal, _kisiIbanBankaBilgi, kisiIbanEkle, mkpFilterList,
+  openMiniKisiPopup, closeMiniKisiPopup, mkpRenderList, mkpToggleIban,
+  mkpAddIban, mkpDeleteIban, mkpCopyIban, mkpSelectKisi, mkpSelectIbanToForm,
+  mkpToggleAddForm, mkpEditKisi, mkpSaveKisi, mkpDeleteKisi,
+  renderKisiIbanList, saveKisi, deleteKisi, renderKisilerGrid, toggleKtMode,
+});

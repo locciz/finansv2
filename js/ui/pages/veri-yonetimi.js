@@ -1,13 +1,14 @@
-import { applyMigrations, saveData } from '../../core/app-core-base.js';
-import { localDateStr, uid } from '../../core/format.js';
-import { DB, replaceObjectContents } from '../../core/state.js';
-import { showConfirm, showToast } from '../components/modal-genel.js';
-import { bankaLogoByKod } from './tanimlamalar/01-genel-yardimcilar.js';
-import { renderTanimlamalar } from './tanimlamalar/02-ana-sayfa.js';
-import { _katKey, populateKategoriSelects, renderKategoriGrid } from './tanimlamalar/03-kategoriler.js';
-import { closeModal, openModal } from '../components/modal-genel.js';
-import { _gDriveOnizlemeData } from '../../services/gdrive.js';
-import { call } from '../../core/wrap-registry.js';
+import { applyMigrations, saveData } from '@core/app-core-base.js';
+import { localDateStr, uid } from '@core/format.js';
+import { DB, replaceObjectContents } from '@core/state.js';
+import { showConfirm, showToast } from '@components/modal-genel.js';
+import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { _katKey, populateKategoriSelects, renderKategoriGrid } from '@pages/tanimlamalar/03-kategoriler.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { inject } from '@core/container.js';
+const _gdrive = inject('services.gdrive');
+import { call } from '@core/wrap-registry.js';
 // Orijinal 02-core-app-engine.js içinden çıkarıldı. İçerik değiştirilmedi.
 
 // ==== 02-core-app-engine.js'den taşınan modül state'i ====
@@ -548,7 +549,7 @@ export function renderYerelYedekDurumu() {
 }
 
 export function vyRevSecAlan(key) {
-  const data = _gDriveOnizlemeData;
+  const data = _gdrive._gDriveOnizlemeData;
   if (!data) return;
   const secim = document.getElementById('vy-rev-onizleme-secim');
   if (secim) secim.value = key;

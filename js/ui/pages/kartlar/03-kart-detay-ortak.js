@@ -1,14 +1,14 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { _pushHashState } from '../../../core/init.js';
-import { DB } from '../../../core/state.js';
-import { _restoreKdIslemSiralamaFromDB } from '../../components/tablo-filtre-sirala.js';
-import { _kd2AcikExtreDonem, _kd2IslemArama, _kd2IslemKatFiltre, _kdIslemArama, _kdIslemKatFiltre, set_kd2AcikExtreDonem, set_kd2IslemArama, set_kd2IslemKatFiltre, set_kdIslemArama, set_kdIslemKatFiltre } from './00-state.js';
-import { editKart, getKart, getKartRenk } from './01-kart-data.js';
-import { kdSwitchTab } from './04-kart-detay-v1.js';
-import { kd2RenderOzetBanner, kd2SwitchTab } from './05-kart-detay-v2.js';
-import { _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2KartId, set_kdKartId } from './09-kart-altyapi.js';
-import { getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { _pushHashState } from '@core/init.js';
+import { DB } from '@core/state.js';
+import { _restoreKdIslemSiralamaFromDB } from '@components/tablo-filtre-sirala.js';
+import { _kd2AcikExtreDonem, _kd2IslemArama, _kd2IslemKatFiltre, _kdIslemArama, _kdIslemKatFiltre, set_kd2AcikExtreDonem, set_kd2IslemArama, set_kd2IslemKatFiltre, set_kdIslemArama, set_kdIslemKatFiltre } from '@pages/kartlar/00-state.js';
+import { editKart, getKart, getKartRenk } from '@pages/kartlar/01-kart-data.js';
+import { kdSwitchTab } from '@pages/kartlar/04-kart-detay-v1.js';
+import { kd2RenderOzetBanner, kd2SwitchTab } from '@pages/kartlar/05-kart-detay-v2.js';
+import { _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2KartId, set_kdKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/kartlar/03-kart-detay-ortak.js
 // Kart Detay sayfası — v1/v2 ortak navigasyon ve tab yardımcıları

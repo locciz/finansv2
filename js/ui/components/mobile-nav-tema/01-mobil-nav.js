@@ -1,6 +1,10 @@
-import { NAV_BTN_ID_BY_PAGE, saveData, getShowPage, setShowPage } from '../../../core/app-core-base.js';
-import { DB } from '../../../core/state.js';
-import { call, get } from '../../../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: üç bağımlılık da (core.appCoreBase,
+// core.state, core.wrapRegistry) zaten container'a taşınmış katmanlara
+// ait, bu yüzden inject() ile tembel çözülüyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _coreState = inject('core.state');
+const _wrapRegistry = inject('core.wrapRegistry');
 // ============================================================
 // js/ui/components/mobile-nav-tema/01-mobil-nav.js
 // Mobil alt navigasyon (sekme geçişleri, profil paneli, sidebar)
@@ -90,11 +94,11 @@ document.addEventListener('click', function(e) {
   // sırayla geçilir; bir adımda validasyon başarısız olursa orada durulur
   // ve o adımın kendi hata mesajı gösterilir.
   if (wrap.classList.contains('is-done') || wrap.classList.contains('is-active')) {
-    call('wizardStepGoto:' + modalId, step);
+    _wrapRegistry.call('wizardStepGoto:' + modalId, step);
     return;
   }
-  const getCurrent = get('wizardCurrentStep:' + modalId);
-  const stepNext = get('wizardStepNext:' + modalId);
+  const getCurrent = _wrapRegistry.get('wizardCurrentStep:' + modalId);
+  const stepNext = _wrapRegistry.get('wizardStepNext:' + modalId);
   if (typeof getCurrent !== 'function' || typeof stepNext !== 'function') return;
   let guard = 0;
   while (getCurrent() < step && guard < 50) {
@@ -146,19 +150,19 @@ export let _mobActivePage = 'ozet';
 export const _mobDynSlotTimers = {};
 
 export function mobNavRenderDynSlots(animate) {
-  if(!DB) return;
-  if(!DB.navStats) DB.navStats = {};
+  if(!_coreState.DB) return;
+  if(!_coreState.DB.navStats) _coreState.DB.navStats = {};
 
   // navStats'tan en çok kullanılan 3 eligible sayfayı al.
   // Hiç kullanım verisi yoksa (tüm sayaçlar 0 veya yok) varsayılan sıralamayı kullan.
-  const hasAnyData = MOB_DYNAMIC_ELIGIBLE.some(p => (DB.navStats[p]||0) > 0);
+  const hasAnyData = MOB_DYNAMIC_ELIGIBLE.some(p => (_coreState.DB.navStats[p]||0) > 0);
   let top3;
   if(!hasAnyData) {
     top3 = [...MOB_DYN_DEFAULTS];
   } else {
     const sorted = MOB_DYNAMIC_ELIGIBLE
       .slice()
-      .sort((a, b) => (DB.navStats[b]||0) - (DB.navStats[a]||0));
+      .sort((a, b) => (_coreState.DB.navStats[b]||0) - (_coreState.DB.navStats[a]||0));
     top3 = sorted.slice(0, 3);
   }
 
@@ -201,18 +205,18 @@ export function mobNavRenderDynSlots(animate) {
 
 export function mobNavTrack(pageId) {
   if(pageId === 'ozet') return; // sabit slot, sayılmasın
-  if(!DB.navStats) DB.navStats = {};
+  if(!_coreState.DB.navStats) _coreState.DB.navStats = {};
 
-  const prev = DB.navStats[pageId] || 0;
-  DB.navStats[pageId] = prev + 1;
+  const prev = _coreState.DB.navStats[pageId] || 0;
+  _coreState.DB.navStats[pageId] = prev + 1;
 
   // Drive'a kaydet (debounce zaten saveData içinde var)
-  saveData();
+  _appCoreBase.saveData();
 
   // Top 3 değiştiyse slotları animasyonlu güncelle
   const sorted = MOB_DYNAMIC_ELIGIBLE
     .slice()
-    .sort((a,b) => (DB.navStats[b]||0) - (DB.navStats[a]||0));
+    .sort((a,b) => (_coreState.DB.navStats[b]||0) - (_coreState.DB.navStats[a]||0));
   const newTop3 = sorted.slice(0,3);
   const changed = newTop3.some((p,i) => p !== _mobDynPages[i]);
   if(changed) mobNavRenderDynSlots(true);
@@ -285,12 +289,12 @@ function mobNavGo(pageId, btn, icon, label) {
   // Sidebar nav butonunu bul ve showPage'i tetikle
   // [ES module] Eskiden onclick attribute içeriği okunarak bulunuyordu; onclick
   // temizliği sonrası HTML'de bu attribute yok, sabit id haritası kullanılıyor.
-  const navBtnId = NAV_BTN_ID_BY_PAGE[pageId];
+  const navBtnId = _appCoreBase.NAV_BTN_ID_BY_PAGE[pageId];
   const targetBtn = navBtnId ? document.getElementById(navBtnId) : null;
   if (targetBtn) {
-    getShowPage()(pageId, targetBtn);
+    _appCoreBase.getShowPage()(pageId, targetBtn);
   } else {
-    getShowPage()(pageId, null);
+    _appCoreBase.getShowPage()(pageId, null);
   }
 
   // Ziyareti kaydet → Drive'a gider, slot gerekirse güncellenir
@@ -304,7 +308,7 @@ function mobNavGo(pageId, btn, icon, label) {
 // Sidebar nav tıklamalarını alt nav ile senkronla.
 // [ES module] Eskiden window.showPage'i okuyup üstüne window.showPage = wrapped
 // yazarak "patch" ediliyordu. ES export'ları immutable binding olduğu için
-// aynısı artık getShowPage()/setShowPage() mutable pointer çifti üzerinden
+// aynısı artık _appCoreBase.getShowPage()/_appCoreBase.setShowPage() mutable pointer çifti üzerinden
 // yapılıyor (bkz. app-core-base.js).
 // NOT: Bu fonksiyon artık modül yüklenirken hemen (IIFE olarak) değil,
 // init.js içinden DOMContentLoaded sonrasında çağrılıyor. Sebep: bu dosya
@@ -315,8 +319,8 @@ function mobNavGo(pageId, btn, icon, label) {
 // initialization" hatası. Çağrıyı DOMContentLoaded'a ertelemek, tüm
 // modüllerin tam olarak initialize olmasını garanti eder.
 export function installMobNavShowPageWrap() {
-  const orig = getShowPage();
-  setShowPage(function (pageId, btn) {
+  const orig = _appCoreBase.getShowPage();
+  _appCoreBase.setShowPage(function (pageId, btn) {
     orig(pageId, btn);
     mobNavSyncActive(pageId);
     mobNavTrack(pageId);
@@ -325,7 +329,7 @@ export function installMobNavShowPageWrap() {
 }
 
 // Sayfa yüklendiğinde dinamik slotları hemen kur (Drive verisi hazır olunca applyMigrations
-// zaten DB.navStats'ı geri yükleyecek, ardından renderAll → mobNavRenderDynSlots çağrılır)
+// zaten _coreState.DB.navStats'ı geri yükleyecek, ardından renderAll → mobNavRenderDynSlots çağrılır)
 document.addEventListener('DOMContentLoaded', function() {
   mobNavRenderDynSlots(false);
 });
@@ -367,3 +371,18 @@ document.addEventListener('touchstart', function(e) {
   if (t && !el.hasAttribute('aria-label')) el.setAttribute('aria-label', t);
   el.removeAttribute('title');
 }, { capture: true, passive: true });
+
+// ============================================================
+// [DI-MIGRATION] ui.components.mobilNav — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.mobilNav', {
+  placeMobProfilePanel, toggleMobProfile,
+  get _mobProfileResizeT() { return _mobProfileResizeT; },
+  WIZARD_STEP_GOTO_MAP, MOB_ALL_PAGES, MOB_DYNAMIC_ELIGIBLE, MOB_DYN_DEFAULTS,
+  get _mobDynPages() { return _mobDynPages; },
+  get _mobActivePage() { return _mobActivePage; },
+  _mobDynSlotTimers, mobNavRenderDynSlots, mobNavTrack, mobNavSyncActive,
+  toggleMobileSidebar, closeMobileSidebar, toggleMobMore, closeMobMore,
+  installMobNavShowPageWrap,
+});

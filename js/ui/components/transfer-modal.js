@@ -1,18 +1,24 @@
-import { saveData } from '../../core/app-core-base.js';
-import { tblFiltreOkuMulti } from '../../core/app-core.js';
-import { fmtCur, fmtDate, localDateStr } from '../../core/format.js';
-import { ALL_CURRENCIES, CURRENCY_CONFIG, DB } from '../../core/state.js';
-import { rebuildAllCurrencies } from '../../domain/doviz.js';
-import { _updateTopbarBakiye } from '../../domain/hesap-entegrasyon-motoru.js';
-import { _markFieldError, phSet, showToast } from './modal-genel.js';
-import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput } from './money-input.js';
-import { swizBakiyeHintGuncelle, swizOzetSatirHtmlKisa, swizUpdateStepIndicator } from './step-wizard.js';
-import { hesapOptionMetin } from '../pages/hesaplar/01-genel-yardimcilar.js';
-import { register, call } from '../../core/wrap-registry.js';
-import { bankaIkonObj } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { renderOzet } from '../pages/ozet.js';
-import { closeModal, openModal } from './modal-genel.js';
-import { renderHesaplar } from '../pages/hesaplar/04-hesap-liste-render.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: dokuz bağımlılık da (core.appCoreBase,
+// core.appCore, core.format, core.state, domain.doviz,
+// domain.hesapEntegrasyonMotoru, ui.components.modalGenel,
+// ui.components.moneyInput, ui.components.stepWizard, core.wrapRegistry)
+// zaten container'a taşınmış katmanlara ait. @pages/* importları o katman
+// henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _appCore = inject('core.appCore');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _doviz = inject('domain.doviz');
+const _hesapEntegrasyonMotoru = inject('domain.hesapEntegrasyonMotoru');
+const _modalGenel = inject('ui.components.modalGenel');
+const _moneyInput = inject('ui.components.moneyInput');
+const _stepWizard = inject('ui.components.stepWizard');
+const _wrapRegistry = inject('core.wrapRegistry');
+import { hesapOptionMetin } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { bankaIkonObj } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderOzet } from '@pages/ozet.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 // ============================================================
 // js/ui/components/transfer-modal.js — Hesaplar arası / nakit
 // transfer sihirbazı (3 adım: seçim → tutar → özet+kaydet) ve
@@ -21,12 +27,12 @@ import { renderHesaplar } from '../pages/hesaplar/04-hesap-liste-render.js';
 
 export function openTransferModal(kaynakHesapId) {
   // Kaynak olarak kullanılabilecek (bakiyesi > 0) hesap/nakit var mı kontrol et
-  const aktifHesaplar = (DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
+  const aktifHesaplar = (_coreState.DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
   const varKaynakHesap = aktifHesaplar.some(h => (h.bakiye || 0) + (h.kmhLimit || 0) > 0);
-  const nakitBakiyeler = DB._nakitBakiye || {};
+  const nakitBakiyeler = _coreState.DB._nakitBakiye || {};
   const varKaynakNakit = Object.values(nakitBakiyeler).some(b => b > 0);
   if (!varKaynakHesap && !varKaynakNakit) {
-    showToast('Transfer yapılabilecek bakiyesi olan hesap bulunamadı', 'error');
+    _modalGenel.showToast('Transfer yapılabilecek bakiyesi olan hesap bulunamadı', 'error');
     return;
   }
 
@@ -34,13 +40,13 @@ export function openTransferModal(kaynakHesapId) {
   if (kaynakHesapId) {
     const kh = aktifHesaplar.find(h => h.id === kaynakHesapId);
     if (!kh || ((kh.bakiye || 0) + (kh.kmhLimit || 0)) <= 0) {
-      showToast('Bu hesabın gönderilebilecek (KMH dahil) bakiyesi yok', 'error');
+      _modalGenel.showToast('Bu hesabın gönderilebilecek (KMH dahil) bakiyesi yok', 'error');
       return;
     }
   }
 
   transferStepGoto(1);
-  setDateInputValue('transfer-tarih', localDateStr(new Date()));
+  _moneyInput.setDateInputValue('transfer-tarih', _format.localDateStr(new Date()));
   document.getElementById('transfer-kaynak-bilgi').innerHTML = '';
   document.getElementById('transfer-hedef-bilgi').innerHTML = '';
   document.getElementById('transfer-kaynak').innerHTML = '<option value="" disabled selected hidden>— Hesap Seçin —</option>';
@@ -55,9 +61,9 @@ export function openTransferModal(kaynakHesapId) {
     }
   }
   _checkNakitNakit();
-  call('renderTransferLog');
-  openModal('modal-transfer');
-  setTimeout(() => bindMoneyInputs(document.getElementById('modal-transfer')), 20);
+  _wrapRegistry.call('renderTransferLog');
+  _modalGenel.openModal('modal-transfer');
+  setTimeout(() => _moneyInput.bindMoneyInputs(document.getElementById('modal-transfer')), 20);
 }
 
 // ── Hesap/Nakit seçim yardımcıları ────────────────────────────
@@ -71,17 +77,17 @@ export function _parseTransferSel(val) {
 
 // ── Nakit için gösterilecek para birimi listesi ───────────────
 export function _nakitCurrencyList() {
-  if (typeof ALL_CURRENCIES === 'undefined' || !ALL_CURRENCIES.length) {
-    if (typeof rebuildAllCurrencies === 'function') rebuildAllCurrencies();
+  if (typeof _coreState.ALL_CURRENCIES === 'undefined' || !_coreState.ALL_CURRENCIES.length) {
+    if (typeof rebuildAllCurrencies === 'function') _doviz.rebuildAllCurrencies();
   }
-  return (typeof ALL_CURRENCIES !== 'undefined' && ALL_CURRENCIES.length)
-    ? ALL_CURRENCIES
+  return (typeof _coreState.ALL_CURRENCIES !== 'undefined' && _coreState.ALL_CURRENCIES.length)
+    ? _coreState.ALL_CURRENCIES
     : [{ code: 'TRY', symbol: '₺', flag: '🇹🇷' }];
 }
 
 // ── Hesap + Nakit listelerini doldur (tek dropdown) ───────────
 export function _populateTransferHesaplar() {
-  const hesaplar = (DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
+  const hesaplar = (_coreState.DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
   const curList  = _nakitCurrencyList();
 
   const kVal = document.getElementById('transfer-kaynak').value;
@@ -110,8 +116,8 @@ export function _populateTransferHesaplar() {
     const nakitOpts = curList
       .filter(c => `nakit:${c.code}` !== excludeVal)
       .filter(c => !filterPb || c.code === filterPb)
-      .filter(c => ((DB._nakitBakiye || {})[c.code] || 0) > 0)
-      .map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code} - Bakiye: ${fmtCur((DB._nakitBakiye || {})[c.code] || 0, c.code)}</option>`).join('');
+      .filter(c => ((_coreState.DB._nakitBakiye || {})[c.code] || 0) > 0)
+      .map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code} - Bakiye: ${_format.fmtCur((_coreState.DB._nakitBakiye || {})[c.code] || 0, c.code)}</option>`).join('');
     return (hesapOpts ? `<optgroup label="🏛️ Hesaplar">${hesapOpts}</optgroup>` : '')
       + (nakitOpts ? `<optgroup label="💵 Nakit">${nakitOpts}</optgroup>` : '');
   };
@@ -124,7 +130,7 @@ export function _populateTransferHesaplar() {
     const nakitOpts = curList
       .filter(c => `nakit:${c.code}` !== excludeVal)
       .filter(c => !filterPb || c.code === filterPb)
-      .map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code} - Bakiye: ${fmtCur((DB._nakitBakiye || {})[c.code] || 0, c.code)}</option>`).join('');
+      .map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code} - Bakiye: ${_format.fmtCur((_coreState.DB._nakitBakiye || {})[c.code] || 0, c.code)}</option>`).join('');
     return (hesapOpts ? `<optgroup label="🏛️ Hesaplar">${hesapOpts}</optgroup>` : '')
       + (nakitOpts ? `<optgroup label="💵 Nakit">${nakitOpts}</optgroup>` : '');
   };
@@ -135,13 +141,13 @@ export function _populateTransferHesaplar() {
   if (kSel) {
     const prev = kSel.value;
     kSel.innerHTML = makeKaynakOpts(hVal || '', hedefPb);
-    phSet(kSel, '— Hesap Seçin —', prev, hedefPb ? '— Eşleşen hesap/nakit bulunamadı —' : '— Hesap bulunamadı —');
+    _modalGenel.phSet(kSel, '— Hesap Seçin —', prev, hedefPb ? '— Eşleşen hesap/nakit bulunamadı —' : '— Hesap bulunamadı —');
   }
   // Hedef: kaynak seçiliyse aynı değeri ve (varsa) aynı para biriminden olanları göster
   if (hSel) {
     const prev = hSel.value;
     hSel.innerHTML = makeHedefOpts(kVal || '', kaynakPb);
-    phSet(hSel, '— Hesap Seçin —', prev, kaynakPb ? '— Eşleşen hesap/nakit bulunamadı —' : '— Hesap bulunamadı —');
+    _modalGenel.phSet(hSel, '— Hesap Seçin —', prev, kaynakPb ? '— Eşleşen hesap/nakit bulunamadı —' : '— Hesap bulunamadı —');
   }
 }
 
@@ -154,29 +160,29 @@ export function swapTransferHesaplar() {
   const hVal = hSel.value;
 
   // Kaynak seçili değilse engelle
-  if (!kVal) { showToast('Lütfen önce kaynak hesabı seçin', 'error'); return; }
+  if (!kVal) { _modalGenel.showToast('Lütfen önce kaynak hesabı seçin', 'error'); return; }
 
   // Kaynak hesabın bakiyesini (ek limit dahil) kontrol et
   const kInfo = _parseTransferSel(kVal);
   if (kInfo.tip === 'hesap') {
-    const kHesap = (DB.hesaplar || []).find(h => h.id === kInfo.id);
+    const kHesap = (_coreState.DB.hesaplar || []).find(h => h.id === kInfo.id);
     if (kHesap && ((kHesap.bakiye || 0) + (kHesap.kmhLimit || 0)) <= 0) {
-      showToast('Kaynak hesabın kullanılabilir bakiyesi yetersiz', 'error');
+      _modalGenel.showToast('Kaynak hesabın kullanılabilir bakiyesi yetersiz', 'error');
       return;
     }
   } else if (kInfo.tip === 'nakit') {
-    const nakitBak = (DB._nakitBakiye || {})[kInfo.pb] || 0;
+    const nakitBak = (_coreState.DB._nakitBakiye || {})[kInfo.pb] || 0;
     if (nakitBak <= 0) {
-      showToast('Kaynak nakit bakiyesi yetersiz', 'error');
+      _modalGenel.showToast('Kaynak nakit bakiyesi yetersiz', 'error');
       return;
     }
   }
 
-  if (!kVal && !hVal) { showToast('Değiştirilecek bir seçim yok', 'error'); return; }
+  if (!kVal && !hVal) { _modalGenel.showToast('Değiştirilecek bir seçim yok', 'error'); return; }
 
   // Her iki select'i de karşılıklı filtre/exclude uygulamadan tüm seçeneklerle yeniden oluştur,
   // böylece karşı tarafın eski değeri her iki select'te de geçerli bir seçenek olur.
-  const hesaplar = (DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
+  const hesaplar = (_coreState.DB.hesaplar || []).filter(h => h.durum === 'aktif' && h.tur !== 'vadeli');
   const curList  = _nakitCurrencyList();
 
   // Swap sonrası yeni kaynak (eski hedef) bakiye kontrolü
@@ -184,13 +190,13 @@ export function swapTransferHesaplar() {
   if (hInfo.tip === 'hesap') {
     const hHesap = hesaplar.find(h => h.id === hInfo.id);
     if (hHesap && ((hHesap.bakiye || 0) + (hHesap.kmhLimit || 0)) <= 0) {
-      showToast('Hedef hesabın kullanılabilir bakiyesi yetersiz — tersine çevrilemez', 'error');
+      _modalGenel.showToast('Hedef hesabın kullanılabilir bakiyesi yetersiz — tersine çevrilemez', 'error');
       return;
     }
   } else if (hInfo.tip === 'nakit') {
-    const hBak = (DB._nakitBakiye || {})[hInfo.pb] || 0;
+    const hBak = (_coreState.DB._nakitBakiye || {})[hInfo.pb] || 0;
     if (hBak <= 0) {
-      showToast('Hedef nakit bakiyesi yetersiz — tersine çevrilemez', 'error');
+      _modalGenel.showToast('Hedef nakit bakiyesi yetersiz — tersine çevrilemez', 'error');
       return;
     }
   }
@@ -199,7 +205,7 @@ export function swapTransferHesaplar() {
   const kaynakFullOpts = () => {
     const ph = '<option value="" disabled selected hidden>— Hesap Seçin —</option>';
     const hesapOpts = hesaplar.filter(h => ((h.bakiye||0)+(h.kmhLimit||0)) > 0).map(h => `<option value="${h.id}">${hesapOptionMetin(h)}</option>`).join('');
-    const nakitOpts = curList.filter(c => ((DB._nakitBakiye||{})[c.code]||0) > 0).map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code}</option>`).join('');
+    const nakitOpts = curList.filter(c => ((_coreState.DB._nakitBakiye||{})[c.code]||0) > 0).map(c => `<option value="nakit:${c.code}">💵 Nakit — ${c.code}</option>`).join('');
     return ph
       + (hesapOpts ? `<optgroup label="🏛️ Hesaplar">${hesapOpts}</optgroup>` : '')
       + (nakitOpts ? `<optgroup label="💵 Nakit">${nakitOpts}</optgroup>` : '');
@@ -240,8 +246,8 @@ export function _checkNakitNakit() {
     sub.textContent = '⚠️ İki nakit arasında transfer yapılamaz'; sub.style.color = 'var(--danger)';
   } else if (k.tip === 'hesap' && h.tip === 'hesap') {
     // Para birimi uyumu kontrolü
-    const kH = (DB.hesaplar || []).find(x => x.id === k.id);
-    const hH = (DB.hesaplar || []).find(x => x.id === h.id);
+    const kH = (_coreState.DB.hesaplar || []).find(x => x.id === k.id);
+    const hH = (_coreState.DB.hesaplar || []).find(x => x.id === h.id);
     if (kH && hH && (kH.paraBirimi || 'TRY') !== (hH.paraBirimi || 'TRY')) {
       sub.textContent = `⚠️ Para birimi uyuşmuyor: ${kH.paraBirimi||'TRY'} ↔ ${hH.paraBirimi||'TRY'}`;
       sub.style.color = 'var(--danger)';
@@ -264,7 +270,7 @@ export function onTransferKaynakChange() {
   infoEl.innerHTML = '';
   let pb = null;
   if (info.tip === 'hesap') {
-    const hesap = (DB.hesaplar || []).find(h => h.id === info.id);
+    const hesap = (_coreState.DB.hesaplar || []).find(h => h.id === info.id);
     if (hesap) pb = hesap.paraBirimi || 'TRY';
   } else if (info.tip === 'nakit') {
     pb = info.pb;
@@ -301,7 +307,7 @@ export function transferStepGoto(step) {
   const modal = document.getElementById('modal-transfer');
   if (!modal) return;
   // ---- Saf DOM güncelleme: js/ui/components/step-wizard.js:swizUpdateStepIndicator ----
-  swizUpdateStepIndicator(modal, step);
+  _stepWizard.swizUpdateStepIndicator(modal, step);
   const backBtn = document.getElementById('transfer-step-back-btn');
   const nextBtn = document.getElementById('transfer-step-next-btn');
   const saveBtn = document.getElementById('transfer-step-save-btn');
@@ -311,24 +317,24 @@ export function transferStepGoto(step) {
   const body = modal.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
   if (step === 2) _updateTransferTutarTumBtn();
-  if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); call('renderTransferLog'); }
+  if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); _wrapRegistry.call('renderTransferLog'); }
 }
-register('wizardStepGoto:modal-transfer', transferStepGoto);
-register('wizardCurrentStep:modal-transfer', () => _transferCurrentStep);
+_wrapRegistry.register('wizardStepGoto:modal-transfer', transferStepGoto);
+_wrapRegistry.register('wizardCurrentStep:modal-transfer', () => _transferCurrentStep);
 
 // ── Seçili kaynağın kullanılabilir bakiyesini döndürür (hesap: bakiye + KMH, nakit: nakit bakiyesi) ──
 export function _transferKaynakKullanilabilirBakiye() {
   const kVal = (document.getElementById('transfer-kaynak')||{}).value || '';
   const info = _parseTransferSel(kVal);
   if (info.tip === 'hesap') {
-    const hesap = (DB.hesaplar || []).find(h => h.id === info.id);
+    const hesap = (_coreState.DB.hesaplar || []).find(h => h.id === info.id);
     if (!hesap) return null;
     const pb = hesap.paraBirimi || 'TRY';
     return { tutar: (hesap.bakiye || 0) + (hesap.kmhLimit || 0), pb };
   }
   if (info.tip === 'nakit') {
     const pb = info.pb;
-    return { tutar: (DB._nakitBakiye || {})[pb] || 0, pb };
+    return { tutar: (_coreState.DB._nakitBakiye || {})[pb] || 0, pb };
   }
   return null;
 }
@@ -336,9 +342,9 @@ export function _transferKaynakKullanilabilirBakiye() {
 // "Bakiyenin Tümünü Kullan" butonu — seçili kaynağın tüm kullanılabilir bakiyesini tutara yazar
 export function transferTutarTumunuKullan() {
   const kb = _transferKaynakKullanilabilirBakiye();
-  if (!kb) { showToast('Önce kaynak hesap veya nakit seçin', 'error'); return; }
-  if (!(kb.tutar > 0)) { showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
-  setMoneyInput('transfer-tutar', kb.tutar);
+  if (!kb) { _modalGenel.showToast('Önce kaynak hesap veya nakit seçin', 'error'); return; }
+  if (!(kb.tutar > 0)) { _modalGenel.showToast('Kullanılabilir bakiye 0 veya negatif', 'error'); return; }
+  _moneyInput.setMoneyInput('transfer-tutar', kb.tutar);
   _updateTransferTutarHint();
 }
 
@@ -359,25 +365,25 @@ export function _updateTransferTutarHint() {
   const kb = _transferKaynakKullanilabilirBakiye();
   if (!kb) { hint.style.display = 'none'; return; }
   hint.style.display = 'block';
-  const tutar = getMoneyInput('transfer-tutar') || 0;
+  const tutar = _moneyInput.getMoneyInput('transfer-tutar') || 0;
   // ---- Saf DOM güncelleme: js/ui/components/step-wizard.js:swizBakiyeHintGuncelle ----
-  swizBakiyeHintGuncelle(hint, tutar, kb);
+  _stepWizard.swizBakiyeHintGuncelle(hint, tutar, kb);
 }
 
 export function _transferValidateStep(step) {
   if (step === 1) {
     const kaynak = (document.getElementById('transfer-kaynak')||{}).value || '';
     const hedef  = (document.getElementById('transfer-hedef')||{}).value  || '';
-    if (!kaynak) { showToast('Kaynak hesap seçiniz', 'error'); _markFieldError('transfer-kaynak'); return false; }
-    if (!hedef)  { showToast('Hedef hesap seçiniz', 'error'); _markFieldError('transfer-hedef');  return false; }
-    if (kaynak === hedef) { showToast('Kaynak ve hedef aynı olamaz', 'error'); return false; }
+    if (!kaynak) { _modalGenel.showToast('Kaynak hesap seçiniz', 'error'); _modalGenel._markFieldError('transfer-kaynak'); return false; }
+    if (!hedef)  { _modalGenel.showToast('Hedef hesap seçiniz', 'error'); _modalGenel._markFieldError('transfer-hedef');  return false; }
+    if (kaynak === hedef) { _modalGenel.showToast('Kaynak ve hedef aynı olamaz', 'error'); return false; }
     return true;
   }
   if (step === 2) {
-    const tutar = getMoneyInput('transfer-tutar') || 0;
-    if (!tutar || tutar <= 0) { showToast('Geçerli bir tutar giriniz', 'error'); _markFieldError('transfer-tutar'); return false; }
+    const tutar = _moneyInput.getMoneyInput('transfer-tutar') || 0;
+    if (!tutar || tutar <= 0) { _modalGenel.showToast('Geçerli bir tutar giriniz', 'error'); _modalGenel._markFieldError('transfer-tutar'); return false; }
     const tarih = (document.getElementById('transfer-tarih')||{}).value || '';
-    if (!tarih) { showToast('Tarih giriniz', 'error'); _markFieldError('transfer-tarih'); return false; }
+    if (!tarih) { _modalGenel.showToast('Tarih giriniz', 'error'); _modalGenel._markFieldError('transfer-tarih'); return false; }
     return true;
   }
   return true;
@@ -388,7 +394,7 @@ export function transferStepNext() {
   transferStepGoto(_transferCurrentStep + 1);
 }
 
-register('wizardStepNext:modal-transfer', transferStepNext);
+_wrapRegistry.register('wizardStepNext:modal-transfer', transferStepNext);
 
 
 export function transferStepBack() {
@@ -404,7 +410,7 @@ export function _transferOzetHesapKarti(val, baslik) {
   // Nakit
   if (val.startsWith('nakit:')) {
     const pb = val.slice(6);
-    const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[pb]) || {};
+    const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[pb]) || {};
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:10px">
       <span style="width:32px;height:32px;border-radius:8px;background:var(--surface4);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💵</span>
       <div style="min-width:0">
@@ -415,9 +421,9 @@ export function _transferOzetHesapKarti(val, baslik) {
   }
 
   // Hesap
-  const h = (DB.hesaplar||[]).find(x=>x.id===val);
+  const h = (_coreState.DB.hesaplar||[]).find(x=>x.id===val);
   if (!h) return bosKart;
-  const bankaObj = (DB.bankalar||[]).find(b=>b.id===h.banka) || null;
+  const bankaObj = (_coreState.DB.bankalar||[]).find(b=>b.id===h.banka) || null;
   const ikon = bankaIkonObj(bankaObj);
   const logoHtml = ikon.svg
     ? `<span class="bank-logo bank-logo-square">${ikon.svg}</span>`
@@ -425,7 +431,7 @@ export function _transferOzetHesapKarti(val, baslik) {
   const ibanTemiz = (h.iban||'').replace(/\s+/g,'');
   const ibanSon = ibanTemiz.length >= 4 ? '····' + ibanTemiz.slice(-4) : null;
   const pb = h.paraBirimi || 'TRY';
-  const bakiye = typeof fmtCur === 'function' ? fmtCur(h.bakiye||0, pb) : `${h.bakiye||0} ${pb}`;
+  const bakiye = typeof fmtCur === 'function' ? _format.fmtCur(h.bakiye||0, pb) : `${h.bakiye||0} ${pb}`;
   return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:10px">
     ${logoHtml}
     <div style="min-width:0;flex:1">
@@ -442,19 +448,19 @@ export function _transferOzetHesapKarti(val, baslik) {
 export function _transferOzetDoldur() {
   const kaynakVal = (document.getElementById('transfer-kaynak')||{}).value || '';
   const hedefVal  = (document.getElementById('transfer-hedef')||{}).value  || '';
-  const tutar = getMoneyInput('transfer-tutar') || 0;
+  const tutar = _moneyInput.getMoneyInput('transfer-tutar') || 0;
   const tarih = (document.getElementById('transfer-tarih')||{}).value || '';
   const aciklama = (document.getElementById('transfer-aciklama')||{}).value.trim() || '—';
 
   const getPb = (val) => {
     if (!val) return 'TRY';
     if (val.startsWith('nakit:')) return val.slice(6);
-    const h = (DB.hesaplar||[]).find(x=>x.id===val);
+    const h = (_coreState.DB.hesaplar||[]).find(x=>x.id===val);
     return h ? (h.paraBirimi||'TRY') : 'TRY';
   };
 
   const pb = getPb(kaynakVal);
-  const satir = swizOzetSatirHtmlKisa;
+  const satir = _stepWizard.swizOzetSatirHtmlKisa;
 
   const el = document.getElementById('transfer-ozet-icerik');
   if (!el) return;
@@ -471,77 +477,77 @@ export function _transferOzetDoldur() {
       </div>
     </div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px">
-      ${satir('Tutar', fmtCur(tutar, pb))}
-      ${satir('Tarih', typeof fmtDate === 'function' ? fmtDate(tarih) : tarih)}
+      ${satir('Tutar', _format.fmtCur(tutar, pb))}
+      ${satir('Tarih', typeof fmtDate === 'function' ? _format.fmtDate(tarih) : tarih)}
       ${aciklama !== '—' ? satir('Açıklama', `<span style="font-family:inherit">${aciklama}</span>`) : ''}
     </div>`;
 }
 
 function saveTransfer() {
-  const tutar    = getMoneyInput('transfer-tutar');
+  const tutar    = _moneyInput.getMoneyInput('transfer-tutar');
   const tarih    = document.getElementById('transfer-tarih').value;
   const aciklama = (document.getElementById('transfer-aciklama').value || '').trim();
 
-  if (!tarih) { showToast('Tarih seçimi zorunludur', 'error'); return; }
+  if (!tarih) { _modalGenel.showToast('Tarih seçimi zorunludur', 'error'); return; }
 
   const kInfo = _parseTransferSel(document.getElementById('transfer-kaynak').value);
   const hInfo = _parseTransferSel(document.getElementById('transfer-hedef').value);
   const kTip = kInfo.tip, hTip = hInfo.tip;
 
-  if (!kTip) { showToast('Kaynak seçin', 'error'); return; }
-  if (!hTip) { showToast('Hedef seçin', 'error'); return; }
-  if (!tutar || tutar <= 0) { showToast('Geçerli bir tutar girin', 'error'); return; }
-  if (kTip === 'nakit' && hTip === 'nakit') { showToast('İki nakit arasında transfer yapılamaz', 'error'); return; }
+  if (!kTip) { _modalGenel.showToast('Kaynak seçin', 'error'); return; }
+  if (!hTip) { _modalGenel.showToast('Hedef seçin', 'error'); return; }
+  if (!tutar || tutar <= 0) { _modalGenel.showToast('Geçerli bir tutar girin', 'error'); return; }
+  if (kTip === 'nakit' && hTip === 'nakit') { _modalGenel.showToast('İki nakit arasında transfer yapılamaz', 'error'); return; }
 
   // ── Para birimi uyumu kontrolü ──
   {
     let _kPb = 'TRY', _hPb = 'TRY';
     if (kTip === 'hesap') {
-      const _kHesap = (DB.hesaplar || []).find(h => h.id === kInfo.id);
+      const _kHesap = (_coreState.DB.hesaplar || []).find(h => h.id === kInfo.id);
       if (_kHesap) _kPb = _kHesap.paraBirimi || 'TRY';
     } else {
       _kPb = kInfo.pb || 'TRY';
     }
     if (hTip === 'hesap') {
-      const _hHesap = (DB.hesaplar || []).find(h => h.id === hInfo.id);
+      const _hHesap = (_coreState.DB.hesaplar || []).find(h => h.id === hInfo.id);
       if (_hHesap) _hPb = _hHesap.paraBirimi || 'TRY';
     } else {
       _hPb = hInfo.pb || 'TRY';
     }
     if (_kPb !== _hPb) {
-      showToast(`⚠️ Para birimi uyuşmuyor: ${_kPb} → ${_hPb}. Sadece aynı para birimleri arasında transfer yapılabilir.`, 'error');
+      _modalGenel.showToast(`⚠️ Para birimi uyuşmuyor: ${_kPb} → ${_hPb}. Sadece aynı para birimleri arasında transfer yapılabilir.`, 'error');
       return;
     }
   }
 
-  if (!DB.transferler) DB.transferler = [];
+  if (!_coreState.DB.transferler) _coreState.DB.transferler = [];
 
   // ── Kaynak bilgisi ──
   let kaynakHesap = null, kaynakPb = 'TRY';
   if (kTip === 'hesap') {
-    if (!kInfo.id) { showToast('Kaynak hesap seçin', 'error'); return; }
-    kaynakHesap = (DB.hesaplar || []).find(h => h.id === kInfo.id);
-    if (!kaynakHesap) { showToast('Kaynak hesap bulunamadı', 'error'); return; }
+    if (!kInfo.id) { _modalGenel.showToast('Kaynak hesap seçin', 'error'); return; }
+    kaynakHesap = (_coreState.DB.hesaplar || []).find(h => h.id === kInfo.id);
+    if (!kaynakHesap) { _modalGenel.showToast('Kaynak hesap bulunamadı', 'error'); return; }
     kaynakPb = kaynakHesap.paraBirimi || 'TRY';
     const kaynakKullanilabilir = (kaynakHesap.bakiye || 0) + (kaynakHesap.kmhLimit || 0);
     if (kaynakKullanilabilir < tutar) {
-      const kmhStr = kaynakHesap.kmhLimit > 0 ? ` (KMH dahil kullanılabilir: ${fmtCur(kaynakKullanilabilir, kaynakPb)})` : '';
-      showToast(`Yetersiz bakiye! ${kaynakHesap.ad}: ${fmtCur(kaynakHesap.bakiye || 0, kaynakPb)}${kmhStr}`, 'error'); return;
+      const kmhStr = kaynakHesap.kmhLimit > 0 ? ` (KMH dahil kullanılabilir: ${_format.fmtCur(kaynakKullanilabilir, kaynakPb)})` : '';
+      _modalGenel.showToast(`Yetersiz bakiye! ${kaynakHesap.ad}: ${_format.fmtCur(kaynakHesap.bakiye || 0, kaynakPb)}${kmhStr}`, 'error'); return;
     }
   } else {
     kaynakPb = kInfo.pb || 'TRY';
-    const nakitBak = (DB._nakitBakiye || {})[kaynakPb] || 0;
+    const nakitBak = (_coreState.DB._nakitBakiye || {})[kaynakPb] || 0;
     if (nakitBak < tutar) {
-      showToast(`Yetersiz nakit! ${kaynakPb} bakiye: ${fmtCur(nakitBak, kaynakPb)}`, 'error'); return;
+      _modalGenel.showToast(`Yetersiz nakit! ${kaynakPb} bakiye: ${_format.fmtCur(nakitBak, kaynakPb)}`, 'error'); return;
     }
   }
 
   // ── Hedef bilgisi ──
   let hedefHesap = null, hedefPb = 'TRY';
   if (hTip === 'hesap') {
-    if (!hInfo.id) { showToast('Hedef hesap seçin', 'error'); return; }
-    hedefHesap = (DB.hesaplar || []).find(h => h.id === hInfo.id);
-    if (!hedefHesap) { showToast('Hedef hesap bulunamadı', 'error'); return; }
+    if (!hInfo.id) { _modalGenel.showToast('Hedef hesap seçin', 'error'); return; }
+    hedefHesap = (_coreState.DB.hesaplar || []).find(h => h.id === hInfo.id);
+    if (!hedefHesap) { _modalGenel.showToast('Hedef hesap bulunamadı', 'error'); return; }
     hedefPb = hedefHesap.paraBirimi || 'TRY';
   } else {
     hedefPb = hInfo.pb || 'TRY';
@@ -549,15 +555,15 @@ function saveTransfer() {
 
   // ── Bakiye güncelle ──
   if (kTip === 'hesap') kaynakHesap.bakiye = (kaynakHesap.bakiye || 0) - tutar;
-  else { if (!DB._nakitBakiye) DB._nakitBakiye = {}; DB._nakitBakiye[kaynakPb] = (DB._nakitBakiye[kaynakPb] || 0) - tutar; }
+  else { if (!_coreState.DB._nakitBakiye) _coreState.DB._nakitBakiye = {}; _coreState.DB._nakitBakiye[kaynakPb] = (_coreState.DB._nakitBakiye[kaynakPb] || 0) - tutar; }
 
   if (hTip === 'hesap') hedefHesap.bakiye = (hedefHesap.bakiye || 0) + tutar;
-  else { if (!DB._nakitBakiye) DB._nakitBakiye = {}; DB._nakitBakiye[hedefPb] = (DB._nakitBakiye[hedefPb] || 0) + tutar; }
+  else { if (!_coreState.DB._nakitBakiye) _coreState.DB._nakitBakiye = {}; _coreState.DB._nakitBakiye[hedefPb] = (_coreState.DB._nakitBakiye[hedefPb] || 0) + tutar; }
 
   // ── Log kaydı ──
   const kaynakLabel = kTip === 'nakit' ? `Nakit (${kaynakPb})` : kaynakHesap.ad;
   const hedefLabel  = hTip === 'nakit' ? `Nakit (${hedefPb})`  : hedefHesap.ad;
-  DB.transferler.push({
+  _coreState.DB.transferler.push({
     id: 'tr_' + Date.now(),
     tarih,
     kTip, hTip,
@@ -568,20 +574,20 @@ function saveTransfer() {
     aciklama: aciklama || `${kaynakLabel} → ${hedefLabel}`,
   });
 
-  saveData();
-  closeModal('modal-transfer');
-  try { showToast(`✅ ${fmtCur(tutar, kaynakPb)} transfer edildi`, 'success'); } catch(e) {}
-  try { call('renderTransferLog'); } catch(e) {}
+  _appCoreBase.saveData();
+  _modalGenel.closeModal('modal-transfer');
+  try { _modalGenel.showToast(`✅ ${_format.fmtCur(tutar, kaynakPb)} transfer edildi`, 'success'); } catch(e) {}
+  try { _wrapRegistry.call('renderTransferLog'); } catch(e) {}
   try { if (typeof renderHesaplar === 'function') renderHesaplar(); } catch(e) {}
   try { if (typeof renderOzet === 'function') renderOzet(); } catch(e) {}
-  try { _updateTopbarBakiye(); } catch(e) {}
+  try { _hesapEntegrasyonMotoru._updateTopbarBakiye(); } catch(e) {}
 }
 // [KALDIRILDI] "export { saveTransfer as saveTransfer__transfer_modal }" hiçbir
 // dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07). Fonksiyonun
-// kendisi ve register('saveTransfer', ...) çağrısı hâlâ kullanımda.
+// kendisi ve _wrapRegistry.register('saveTransfer', ...) çağrısı hâlâ kullanımda.
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
-register('saveTransfer', saveTransfer);
+_wrapRegistry.register('saveTransfer', saveTransfer);
 
 // ── Transfer Logu ────────────────────────────────────────────
 // [KALDIRILDI] Bu bölümde eskiden _transferLogFiltreLabelGuncelle() ve
@@ -592,9 +598,9 @@ register('saveTransfer', saveTransfer);
 
 // ── Bir önceki transferi tekrarla: kaynak/hedef/tutar/açıklamayı forma doldurur ──
 export function tekrarlaTransfer(id) {
-  if (!DB.transferler) return;
-  const t = DB.transferler.find(x => x.id === id);
-  if (!t) { showToast('Transfer kaydı bulunamadı', 'error'); return; }
+  if (!_coreState.DB.transferler) return;
+  const t = _coreState.DB.transferler.find(x => x.id === id);
+  if (!t) { _modalGenel.showToast('Transfer kaydı bulunamadı', 'error'); return; }
 
   const kVal = t.kTip === 'nakit' ? `nakit:${t.kaynakPb}` : (t.kaynakId || '');
   const hVal = t.hTip === 'nakit' ? `nakit:${t.hedefPb}`  : (t.hedefId  || '');
@@ -612,21 +618,37 @@ export function tekrarlaTransfer(id) {
   onTransferKaynakChange();
   onTransferHedefChange();
 
-  setMoneyInput('transfer-tutar', t.tutar);
+  _moneyInput.setMoneyInput('transfer-tutar', t.tutar);
   document.getElementById('transfer-aciklama').value = t.aciklama || '';
-  setDateInputValue('transfer-tarih', localDateStr(new Date()));
+  _moneyInput.setDateInputValue('transfer-tarih', _format.localDateStr(new Date()));
   _updateTransferTutarTumBtn();
   _updateTransferTutarHint();
 
   if (!kOk || !hOk) {
-    showToast('Kaynak/hedeften biri artık uygun değil (bakiye/durum) — lütfen yeniden seçin', 'error');
+    _modalGenel.showToast('Kaynak/hedeften biri artık uygun değil (bakiye/durum) — lütfen yeniden seçin', 'error');
   }
 }
 
 export function deleteTransfer(id) {
-  if (!DB.transferler) return;
-  DB.transferler = DB.transferler.filter(t => t.id !== id);
-  saveData();
-  call('renderTransferLog');
+  if (!_coreState.DB.transferler) return;
+  _coreState.DB.transferler = _coreState.DB.transferler.filter(t => t.id !== id);
+  _appCoreBase.saveData();
+  _wrapRegistry.call('renderTransferLog');
 }
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.transferModal — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.transferModal', {
+  openTransferModal, _parseTransferSel, _nakitCurrencyList,
+  _populateTransferHesaplar, swapTransferHesaplar, _checkNakitNakit,
+  onTransferKaynakChange, onTransferHedefChange,
+  get _transferCurrentStep() { return _transferCurrentStep; },
+  TRANSFER_STEP_COUNT, transferStepGoto, _transferKaynakKullanilabilirBakiye,
+  transferTutarTumunuKullan, _updateTransferTutarTumBtn,
+  _updateTransferTutarHint, _transferValidateStep, transferStepNext,
+  transferStepBack, _transferOzetHesapKarti, _transferOzetDoldur,
+  tekrarlaTransfer, deleteTransfer,
+});

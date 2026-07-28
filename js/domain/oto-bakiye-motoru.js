@@ -1,9 +1,12 @@
-import { saveData } from '../core/app-core-base.js';
-import { DB, defaultCurrency } from '../core/state.js';
-import { renderOzetBakiyeUyarilar } from '../ui/components/mobile-nav-tema/03-bakiye-izleme-paneli.js';
-import { showToast } from '../ui/components/modal-genel.js';
-import { renderHesaplar } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { register } from '../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _wrapRegistry = inject('core.wrapRegistry');
+// core.appCoreBase container'da kayıtlı (Tur 4) — bu turda çevrildi (madde 5).
+const _appCoreBase = inject('core.appCoreBase');
+const saveData = (...a) => _appCoreBase.saveData(...a);
+import { renderOzetBakiyeUyarilar } from '@components/mobile-nav-tema/03-bakiye-izleme-paneli.js';
+import { showToast } from '@components/modal-genel.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 // ============================================================
 // js/domain/oto-bakiye-motoru.js
 // İş mantığı: otomatik bakiye güncelleme log motoru. NOT: "mobile-nav-tema.js" içine gömülüydü, saf hesap/bakiye iş mantığı olduğu için js/domain/'a taşındı.
@@ -14,18 +17,18 @@ export function _otoBakiyeLogKey(tip, id, key) {
 }
 
 export function _otoBakiyeLogGet(logKey) {
-  if(!DB.otoBakiyeLog) DB.otoBakiyeLog = {};
-  return DB.otoBakiyeLog[logKey] || null;
+  if(!_coreState.DB.otoBakiyeLog) _coreState.DB.otoBakiyeLog = {};
+  return _coreState.DB.otoBakiyeLog[logKey] || null;
 }
 
 export function _otoBakiyeLogSet(logKey, tutar) {
-  if(!DB.otoBakiyeLog) DB.otoBakiyeLog = {};
-  DB.otoBakiyeLog[logKey] = tutar;
+  if(!_coreState.DB.otoBakiyeLog) _coreState.DB.otoBakiyeLog = {};
+  _coreState.DB.otoBakiyeLog[logKey] = tutar;
 }
 
 export function _otoBakiyeLogDel(logKey) {
-  if(!DB.otoBakiyeLog) DB.otoBakiyeLog = {};
-  delete DB.otoBakiyeLog[logKey];
+  if(!_coreState.DB.otoBakiyeLog) _coreState.DB.otoBakiyeLog = {};
+  delete _coreState.DB.otoBakiyeLog[logKey];
 }
 
 /**
@@ -86,13 +89,13 @@ function _otoBakiyeGuncelle(tip, id, key, durum, newTutar) {
 }
 // [KALDIRILDI] "export { _otoBakiyeGuncelle as _otoBakiyeGuncelle__oto_bakiye_motoru }"
 // hiçbir dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07).
-// Fonksiyonun kendisi ve register() çağrısı hâlâ kullanımda.
+// Fonksiyonun kendisi ve _wrapRegistry.register() çağrısı hâlâ kullanımda.
 // [ES module] eskiden window._otoBakiyeGuncelle = ... ile atanıyordu; artık
 // register ile wrap-registry'ye kaydediliyor. hesap-entegrasyon-motoru.js
-// (script sırasına göre sonra yüklenir) bunu register(...) ile EZER — bu,
+// (script sırasına göre sonra yüklenir) bunu _wrapRegistry.register(...) ile EZER — bu,
 // eski "son yazan kazanır" davranışıyla birebir aynı. abonelik.js ise
 // DOMContentLoaded'da get/register ile bunun üzerine wrap ekler.
-register('_otoBakiyeGuncelle', _otoBakiyeGuncelle);
+_wrapRegistry.register('_otoBakiyeGuncelle', _otoBakiyeGuncelle);
 
 /**
  * Hesap bakiyesine delta uygular. delta > 0 → bakiye artar, < 0 → azalır.
@@ -107,45 +110,45 @@ export function _otoBakiyeUygula(tip, id, key, delta) {
   let kontratTutar = 0; // kira/maas için kontrat yönü (gelir +, gider -)
 
   if(tip === 'kira') {
-    const kira = (DB.kiralar||[]).find(x=>x.id===id);
+    const kira = (_coreState.DB.kiralar||[]).find(x=>x.id===id);
     if(!kira) return false;
     hesapId = kira.hesapId || null;
     isNakit = !hesapId || kira.odemeYontem === 'nakit';
-    pb = kira.paraBirimi || defaultCurrency;
+    pb = kira.paraBirimi || _coreState.defaultCurrency;
     // kira.tutar: gelir ise pozitif, gider ise negatif
     kontratTutar = kira.tutar;
   } else if(tip === 'maas') {
-    const maas = (DB.maaslar||[]).find(x=>x.id===id);
+    const maas = (_coreState.DB.maaslar||[]).find(x=>x.id===id);
     if(!maas) return false;
     hesapId = maas.hesapId || null;
     isNakit = !hesapId || maas.yontem === 'nakit';
-    pb = maas.paraBirimi || defaultCurrency;
+    pb = maas.paraBirimi || _coreState.defaultCurrency;
     kontratTutar = Math.abs(maas.tutar); // maaş daima gelir
   } else if(tip === 'elden') {
-    const elden = (DB.eldenler||[]).find(x=>x.id===id);
+    const elden = (_coreState.DB.eldenler||[]).find(x=>x.id===id);
     if(!elden) return false;
     hesapId = elden.hesapId || null;
     isNakit = !hesapId || elden.yontem === 'nakit';
-    pb = elden.paraBirimi || defaultCurrency;
+    pb = elden.paraBirimi || _coreState.defaultCurrency;
     kontratTutar = elden.tutar; // elden: gelir pozitif, gider negatif
   } else if(tip === 'depozito') {
     // Depozito: kira kontratına bağlı — hesap/para birimi/yön kontratın kendisinden gelir.
     // key='odeme' → depozito ödendiğinde/alındığında kontrat yönünde;
     // key='iade'  → depozito geri alındığında/verildiğinde ters yönde uygulanır.
-    const kiraD = (DB.kiralar||[]).find(x=>x.id===id);
+    const kiraD = (_coreState.DB.kiralar||[]).find(x=>x.id===id);
     if(!kiraD) return false;
     hesapId = kiraD.hesapId || null;
     isNakit = !hesapId || kiraD.odemeYontem === 'nakit';
-    pb = (kiraD.depozito && kiraD.depozito.paraBirimi) || kiraD.paraBirimi || defaultCurrency;
+    pb = (kiraD.depozito && kiraD.depozito.paraBirimi) || kiraD.paraBirimi || _coreState.defaultCurrency;
     kontratTutar = kiraD.tutar;
   } else if(tip === 'mevduat') {
-    const mev = (DB.mevduatlar||[]).find(x=>x.id===id);
+    const mev = (_coreState.DB.mevduatlar||[]).find(x=>x.id===id);
     if(!mev) return false;
     // Mevduat ödendi = vade doldu, strateji varsa otomatik uygula
     if(mev.vadesizHesapId) {
       hesapId = mev.vadesizHesapId;
       pb = mev.paraBirimi || 'TRY';
-      const hesap = (DB.hesaplar||[]).find(h=>h.id===hesapId);
+      const hesap = (_coreState.DB.hesaplar||[]).find(h=>h.id===hesapId);
       if(hesap) {
         const strateji = mev.strateji || 'tumu_vadesiz';
         let aktarilacak = 0;
@@ -163,7 +166,7 @@ export function _otoBakiyeUygula(tip, id, key, delta) {
       // Vadeli hesaba nihai tutarı ekle
       hesapId = mev.hesapId;
       pb = mev.paraBirimi || 'TRY';
-      const hesap = (DB.hesaplar||[]).find(h=>h.id===hesapId);
+      const hesap = (_coreState.DB.hesaplar||[]).find(h=>h.id===hesapId);
       if(hesap) {
         hesap.bakiye = (hesap.bakiye||0) + mev.nihai * (delta > 0 ? 1 : -1);
         return true;
@@ -177,14 +180,14 @@ export function _otoBakiyeUygula(tip, id, key, delta) {
     // Yön: kontratTutar'ın işaretiyle belirle (depozito'nun 'iade' bacağı tersine döner)
     let yon = kontratTutar >= 0 ? 1 : -1;
     if(tip === 'depozito' && key === 'iade') yon = -yon;
-    if(!DB._nakitBakiye) DB._nakitBakiye = {};
+    if(!_coreState.DB._nakitBakiye) _coreState.DB._nakitBakiye = {};
     const curKey = pb || 'TRY';
-    DB._nakitBakiye[curKey] = (DB._nakitBakiye[curKey]||0) + (delta * yon);
+    _coreState.DB._nakitBakiye[curKey] = (_coreState.DB._nakitBakiye[curKey]||0) + (delta * yon);
     return true;
   }
 
   if(!hesapId) return false;
-  const hesap = (DB.hesaplar||[]).find(h=>h.id===hesapId);
+  const hesap = (_coreState.DB.hesaplar||[]).find(h=>h.id===hesapId);
   if(!hesap) return false;
 
   // Yön: kira gelir ise +, gider ise -; maaş daima +; elden'in işareti zaten var;
@@ -207,4 +210,13 @@ export function _otoBakiyeUygula(tip, id, key, delta) {
  * Hesap bakiyesi için durum tespiti.
  * Döner: { seviye: 'kritik'|'dusuk'|'normal'|'iyi'|'fazla', renk, ikon, etiket, pct? }
  */
+
+// ============================================================
+// [DI-MIGRATION] domain.otoBakiyeMotoru — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.otoBakiyeMotoru', {
+  _otoBakiyeLogKey, _otoBakiyeLogGet, _otoBakiyeLogSet, _otoBakiyeLogDel,
+  _otoBakiyeUygula,
+});
 

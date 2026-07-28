@@ -1,11 +1,20 @@
-import { isIsBgunu, nextIsBgunu } from '../core/date-utils.js';
-import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr } from '../core/format.js';
-import { DB, FORMAT_CONFIG } from '../core/state.js';
-import { bindMoneyInputs, getMoneyInput } from '../ui/components/money-input.js';
-import { _krediTaksitPlanUygula } from '../ui/pages/krediler/01-genel-yardimcilar.js';
-import { getTatilSet } from '../ui/pages/tanimlamalar/01-genel-yardimcilar.js';
-import { resetIslemTekTaksit } from '../ui/pages/islemler/02-islem-form-degisiklikleri.js';
-import { call, has } from '../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _wrapRegistry = inject('core.wrapRegistry');
+// core.dateUtils ve core.format container'da kayıtlı (Tur 4) —
+// bu turda çevrildi (madde 5).
+const _dateUtils = inject('core.dateUtils');
+const isIsBgunu = (...a) => _dateUtils.isIsBgunu(...a);
+const nextIsBgunu = (...a) => _dateUtils.nextIsBgunu(...a);
+const _coreFormat = inject('core.format');
+const fmt = (...a) => _coreFormat.fmt(...a);
+const fmtMoneyCustom = (...a) => _coreFormat.fmtMoneyCustom(...a);
+const localDateStr = (...a) => _coreFormat.localDateStr(...a);
+const parseTutarStr = (...a) => _coreFormat.parseTutarStr(...a);
+import { bindMoneyInputs, getMoneyInput } from '@components/money-input.js';
+import { _krediTaksitPlanUygula } from '@pages/krediler/01-genel-yardimcilar.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { resetIslemTekTaksit } from '@pages/islemler/02-islem-form-degisiklikleri.js';
 // ============================================================
 // js/domain/hesaplamalar.js — Ekstre/taksit/kredi/mevduat/kontrat
 // hesaplama mantığı (kart ekstresi, kredi taksit planı, gecikme
@@ -185,8 +194,8 @@ export function getBireyselKrediKalan(kr) {
 
 // ── Mevduat durumu hesaplama ──────────────────────────────────
 export function mevduatDurumHesapla(m, todayStr, todayDate) {
-  const lk = has('_lKey') ? call('_lKey', 'mevduat', m.id, null) : null;
-  const aktarimYapildi = has('_lGet') ? call('_lGet', lk) != null : false;
+  const lk = _wrapRegistry.has('_lKey') ? _wrapRegistry.call('_lKey', 'mevduat', m.id, null) : null;
+  const aktarimYapildi = _wrapRegistry.has('_lGet') ? _wrapRegistry.call('_lGet', lk) != null : false;
   const kapandi = !!m._kapatildi || aktarimYapildi;
   const aktifBool = !kapandi && m.bitis >= todayStr;
   const kalanGun = Math.ceil((new Date((m.bitis||'')+'T00:00:00') - todayDate) / 86400000);
@@ -355,11 +364,11 @@ export function hesaplaNakitAvansOnizleme(tutar, taksit, faizYuzde, kkdfYuzde, b
 }
 // herhangi biri, kartın zaten kesinleştirilmiş bir ekstre dönemine düşüyor mu?
 // (bkz. js/ui/pages/ekstreler/01-ekstre-kesinlestirme.js:isEkstreKesinlesmis —
-// aynı DB.ekstreKayitlari sorgusu, domain katmanı UI katmanına bağımlı
+// aynı _coreState.DB.ekstreKayitlari sorgusu, domain katmanı UI katmanına bağımlı
 // olmasın diye burada bağımsız olarak tekrarlanıyor.)
 export function herhangiTaksitKesinlesmisMi(kart, taksitListesi) {
   if(!kart || !taksitListesi || !taksitListesi.length) return false;
-  const ekstreKayitlari = DB.ekstreKayitlari || [];
+  const ekstreKayitlari = _coreState.DB.ekstreKayitlari || [];
   return taksitListesi.some(tak => {
     const donem = getExtreDonemi(kart, tak.ekstreTarih || tak.tarih);
     if(!donem) return false;
@@ -401,15 +410,15 @@ export function _krediMetrik(kr, tip, todayStr) {
 
 
 // ── Bugünkü tarih için oran döndürücü kısayollar ─────────────
-export function getStopajOrani(tarihStr) { return getOranByTarih(DB.stopajOranlari||[], tarihStr||localDateStr(new Date())); }
+export function getStopajOrani(tarihStr) { return getOranByTarih(_coreState.DB.stopajOranlari||[], tarihStr||localDateStr(new Date())); }
 
-export function getKkdfOrani(tarihStr)   { return getOranByTarih(DB.kkdfOranlari||[],   tarihStr||localDateStr(new Date())); }
+export function getKkdfOrani(tarihStr)   { return getOranByTarih(_coreState.DB.kkdfOranlari||[],   tarihStr||localDateStr(new Date())); }
 
-export function getBsmvOrani(tarihStr)   { return getOranByTarih(DB.bsmvOranlari||[],   tarihStr||localDateStr(new Date())); }
+export function getBsmvOrani(tarihStr)   { return getOranByTarih(_coreState.DB.bsmvOranlari||[],   tarihStr||localDateStr(new Date())); }
 
-export function getKmhFaizOrani(tarihStr){ return getOranByTarih(DB.kmhFaizOranlari||[], tarihStr||localDateStr(new Date())); }
+export function getKmhFaizOrani(tarihStr){ return getOranByTarih(_coreState.DB.kmhFaizOranlari||[], tarihStr||localDateStr(new Date())); }
 
-export function getGecikmeFaizOrani(tarihStr){ return getOranByTarih(DB.gecikmeFaizOranlari||[], tarihStr||localDateStr(new Date())); }
+export function getGecikmeFaizOrani(tarihStr){ return getOranByTarih(_coreState.DB.gecikmeFaizOranlari||[], tarihStr||localDateStr(new Date())); }
 
 // _tutarAsiyorMu: "girilen tutar limiti/bakiyeyi aşıyor mu?" kontrolü.
 // Bakiyeler genelde birçok işlemin toplanıp çıkarılmasıyla hesaplandığı için
@@ -428,11 +437,11 @@ export function _tutarAsiyorMu(tutar, limit) {
 // fonksiyonlarının ortak son kısmıydı (md5 ile doğrulandı) — hesap bulma
 // ve bakiye hesaplama mantığı birebir aynıydı. Hangi ön-koşullarda
 // (ödeme yöntemi/tür filtreleri, hangi DOM elementi) çağrılacağına
-// çağıran dosyalar kendi karar verir; bu fonksiyon sadece DB.hesaplar
+// çağıran dosyalar kendi karar verir; bu fonksiyon sadece _coreState.DB.hesaplar
 // üzerinden saf bir hesaplama yapar, DOM'a dokunmaz.
 export function hesapKullanilabilirBakiye(hesapId) {
   if (!hesapId) return null;
-  const hesap = (DB.hesaplar||[]).find(h => h.id === hesapId);
+  const hesap = (_coreState.DB.hesaplar||[]).find(h => h.id === hesapId);
   if (!hesap) return null;
   const pb = hesap.paraBirimi || 'TRY';
   return { tutar: (hesap.bakiye||0) + (hesap.kmhLimit||0), pb };
@@ -443,7 +452,7 @@ export function calcExtreTarihi(kart, year, month) {
   // month 0-indexed
   // Özel ekstre tarihi var mı?
   const ay = `${year}-${String(month+1).padStart(2,'0')}`;
-  const ozel = DB.ozelExtreler && DB.ozelExtreler.find(x=>x.kartId===kart.id&&x.ay===ay);
+  const ozel = _coreState.DB.ozelExtreler && _coreState.DB.ozelExtreler.find(x=>x.kartId===kart.id&&x.ay===ay);
   if(ozel && ozel.tarih) return new Date(ozel.tarih+'T00:00:00');
 
   if(kart.extraTip === 'gun') {
@@ -535,7 +544,7 @@ export function calcTaksit(preserveManuel=false) {
   const rows = taksitData.map((t, i) => {
     const isPast = t.tarih < todayStr;
     const isModified = (Math.abs(t.tutar - aylikStr) > 0.01);
-    const tutarDisplay = fmtMoneyCustom(t.tutar, 2, FORMAT_CONFIG.ondalikAyrac||',', FORMAT_CONFIG.binlikAyrac??'.');
+    const tutarDisplay = fmtMoneyCustom(t.tutar, 2, _coreState.FORMAT_CONFIG.ondalikAyrac||',', _coreState.FORMAT_CONFIG.binlikAyrac??'.');
     return `<div class="tp-row${isPast ? ' tp-past' : ''}">
       <div class="tp-no">${i+1}</div>
       <input type="date" class="tp-input" value="${t.tarih}" data-date-compact="1"
@@ -583,3 +592,20 @@ export function calcIslemTakTarih(ilkTarih, i) {
   dt.setMonth(dt.getMonth()+i);
   return localDateStr(dt);
 }
+
+// ============================================================
+// [DI-MIGRATION] domain.hesaplamalar — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.hesaplamalar', {
+  getOranByTarih, calcOdemeTarihi, calcExtreTarihiOdemeModuyla, getExtreDonemi,
+  calcAylikTaksit, _krediGecikmeFaizi, _krediTaksitKalan, _krediTaksitOdendiMi,
+  getKrediKalanBorc, _krediTaksitPlaniUret, getKrediTaksitler,
+  getBireyselKrediTaksitler, getBireyselKrediKalan, mevduatDurumHesapla,
+  kontratAylariHesapla, getNakitAvansTaksitAnaParalari, getIslemTaksitliste,
+  islemProvizyonEksikMi, hesaplaKrediOnizleme, hesaplaNakitAvansOnizleme,
+  herhangiTaksitKesinlesmisMi, getMaasOdemeGunu, _krediMetrik, getStopajOrani,
+  getKkdfOrani, getBsmvOrani, getKmhFaizOrani, getGecikmeFaizOrani,
+  _tutarAsiyorMu, hesapKullanilabilirBakiye, calcExtreTarihi, calcTaksit,
+  calcIslemTakTarih,
+});

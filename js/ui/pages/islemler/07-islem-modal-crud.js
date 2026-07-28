@@ -1,25 +1,25 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr, uid } from '../../../core/format.js';
-import { DB, FORMAT_CONFIG } from '../../../core/state.js';
-import { populateCurrencySelects } from '../../../domain/doviz.js';
-import { calcTaksit, getIslemTaksitliste, herhangiTaksitKesinlesmisMi } from '../../../domain/hesaplamalar.js';
-import { _sidebarDim, phSet, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { applyToAll } from '../../components/mobile-nav-tema/05-tarih-input-overlay.js';
-import { applyChipsToContainer, wireAllMoneyCurButtons } from '../../components/select-to-chips.js';
-import { _islemProvizyonManuel, set_islemProvizyonManuel, _eeOnSaveHook } from './00-state.js';
-import { renderIslemAciklamaButon } from './01-aciklama-onerileri.js';
-import { onIslemKartChange, onIslemTarihiChange } from './02-islem-form-degisiklikleri.js';
-import { editIslemId, renderIslemler, setEditIslemId } from './03-islem-liste-render.js';
-import { renderIslemKategoriChips } from './06-islem-kategori-secici.js';
-import { getKart, getKartCurrencies, getKartCurrency, getKartDefaultCurrency } from '../kartlar/01-kart-data.js';
-import { kdRenderIslemler } from '../kartlar/04-kart-detay-v1.js';
-import { kd2RenderIslemler } from '../kartlar/05-kart-detay-v2.js';
-import { _kd2KartId, _kdKartId } from '../kartlar/09-kart-altyapi.js';
-import { editNakitAvans } from '../krediler/02-nakit-avans.js';
-import { populateKategoriSelects } from '../tanimlamalar/03-kategoriler.js';
-import { closeModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr, uid } from '@core/format.js';
+import { DB, FORMAT_CONFIG } from '@core/state.js';
+import { populateCurrencySelects } from '@domain/doviz.js';
+import { calcTaksit, getIslemTaksitliste, herhangiTaksitKesinlesmisMi } from '@domain/hesaplamalar.js';
+import { _sidebarDim, phSet, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { applyToAll } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
+import { applyChipsToContainer, wireAllMoneyCurButtons } from '@components/select-to-chips.js';
+import { _islemProvizyonManuel, set_islemProvizyonManuel, _eeOnSaveHook } from '@pages/islemler/00-state.js';
+import { renderIslemAciklamaButon } from '@pages/islemler/01-aciklama-onerileri.js';
+import { onIslemKartChange, onIslemTarihiChange } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { editIslemId, renderIslemler, setEditIslemId } from '@pages/islemler/03-islem-liste-render.js';
+import { renderIslemKategoriChips } from '@pages/islemler/06-islem-kategori-secici.js';
+import { getKart, getKartCurrencies, getKartCurrency, getKartDefaultCurrency } from '@pages/kartlar/01-kart-data.js';
+import { kdRenderIslemler } from '@pages/kartlar/04-kart-detay-v1.js';
+import { kd2RenderIslemler } from '@pages/kartlar/05-kart-detay-v2.js';
+import { _kd2KartId, _kdKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { editNakitAvans } from '@pages/krediler/02-nakit-avans.js';
+import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
+import { closeModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/islemler/07-islem-modal-crud.js
 // İşlem ekleme/düzenleme/silme modalı (ana CRUD akışı)

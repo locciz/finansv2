@@ -1,11 +1,14 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { getMaasOdemeGunu, kontratAylariHesapla } from '../../../domain/hesaplamalar.js';
-import { odBeklemedeMi, odIptalMi, odKiraMaasOverride } from '../../pages/odeme/01-genel-yardimcilar.js';
-import { getTatilSet } from '../../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { openHesapModal } from '../../pages/hesaplar/03-hesap-form-crud.js';
-import { showPage } from '../../../core/app-core-base.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.format, core.state,
+// domain.hesaplamalar zaten container'a taşınmış katmanlara ait. @pages/*
+// importları o katman henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _hesaplamalar = inject('domain.hesaplamalar');
+import { odBeklemedeMi, odIptalMi, odKiraMaasOverride } from '@pages/odeme/01-genel-yardimcilar.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openHesapModal } from '@pages/hesaplar/03-hesap-form-crud.js';
 // ============================================================
 // js/ui/components/mobile-nav-tema/03-bakiye-izleme-paneli.js
 // Hesap bakiyesi izleme paneli (yaklaşan çıkış/gelir tespiti, uyarılar)
@@ -29,12 +32,12 @@ export function hesapBakiyeDurumTespit(hesap) {
   // Minimum bakiye eşiği varsa
   if(min !== undefined && min !== null && min !== '') {
     const minVal = parseFloat(min) || 0;
-    if(b < 0)         return { seviye:'kritik', renk:'var(--danger)', ikon:'🚨', etiket:'Negatif Bakiye', aciklama:`Bakiye ${fmtCur(b, hesap.paraBirimi||'TRY')}` };
+    if(b < 0)         return { seviye:'kritik', renk:'var(--danger)', ikon:'🚨', etiket:'Negatif Bakiye', aciklama:`Bakiye ${_format.fmtCur(b, hesap.paraBirimi||'TRY')}` };
     if(b < minVal * 0.5) return { seviye:'kritik', renk:'var(--danger)', ikon:'🚨', etiket:'Kritik Seviye', aciklama:`Min. eşiğin %50 altında` };
-    if(b < minVal)       return { seviye:'dusuk',  renk:'var(--warn)',   ikon:'⚠️', etiket:'Düşük Bakiye',  aciklama:`Min. eşik: ${fmtCur(minVal, hesap.paraBirimi||'TRY')}` };
+    if(b < minVal)       return { seviye:'dusuk',  renk:'var(--warn)',   ikon:'⚠️', etiket:'Düşük Bakiye',  aciklama:`Min. eşik: ${_format.fmtCur(minVal, hesap.paraBirimi||'TRY')}` };
     if(hedef !== undefined && hedef !== null && hedef !== '') {
       const hedefVal = parseFloat(hedef) || 0;
-      if(b >= hedefVal) return { seviye:'fazla', renk:'var(--teal)', ikon:'✅', etiket:'Hedefte', aciklama:`Hedef: ${fmtCur(hedefVal, hesap.paraBirimi||'TRY')}` };
+      if(b >= hedefVal) return { seviye:'fazla', renk:'var(--teal)', ikon:'✅', etiket:'Hedefte', aciklama:`Hedef: ${_format.fmtCur(hedefVal, hesap.paraBirimi||'TRY')}` };
     }
     return { seviye:'iyi', renk:'var(--teal)', ikon:'🟢', etiket:'Normal', aciklama:`Eşik üzerinde` };
   }
@@ -42,8 +45,8 @@ export function hesapBakiyeDurumTespit(hesap) {
   // Sadece hedef varsa
   if(hedef !== undefined && hedef !== null && hedef !== '') {
     const hedefVal = parseFloat(hedef) || 0;
-    if(b < 0)           return { seviye:'kritik', renk:'var(--danger)', ikon:'🚨', etiket:'Negatif Bakiye', aciklama:`Bakiye ${fmtCur(b, hesap.paraBirimi||'TRY')}` };
-    if(b >= hedefVal)   return { seviye:'fazla',  renk:'var(--teal)',   ikon:'✅', etiket:'Hedefte',        aciklama:`Hedef: ${fmtCur(hedefVal, hesap.paraBirimi||'TRY')}` };
+    if(b < 0)           return { seviye:'kritik', renk:'var(--danger)', ikon:'🚨', etiket:'Negatif Bakiye', aciklama:`Bakiye ${_format.fmtCur(b, hesap.paraBirimi||'TRY')}` };
+    if(b >= hedefVal)   return { seviye:'fazla',  renk:'var(--teal)',   ikon:'✅', etiket:'Hedefte',        aciklama:`Hedef: ${_format.fmtCur(hedefVal, hesap.paraBirimi||'TRY')}` };
     const pct = hedefVal > 0 ? Math.round((b/hedefVal)*100) : 0;
     if(pct < 25)        return { seviye:'dusuk',  renk:'var(--warn)',   ikon:'⚠️', etiket:'Hedefe Uzak',    aciklama:`Hedefin %${pct}'inde` };
     return { seviye:'normal', renk:'var(--sky)', ikon:'📈', etiket:'Hedefe Yöneliyor', aciklama:`Hedefin %${pct}'inde` };
@@ -60,8 +63,8 @@ export function hesapBakiyeDurumTespit(hesap) {
 
 export function hesapYaklasanCikislar(gunSayisi) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const todayStr = localDateStr(today);
-  const limitStr = localDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + gunSayisi));
+  const todayStr = _format.localDateStr(today);
+  const limitStr = _format.localDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + gunSayisi));
   const tatilSet = getTatilSet();
   const result = {}; // hesapId → { toplamCikis, pb, islemler }
 
@@ -73,11 +76,11 @@ export function hesapYaklasanCikislar(gunSayisi) {
   }
 
   // Kira ödemeleri
-  (DB.kiralar||[]).forEach(k => {
+  (_coreState.DB.kiralar||[]).forEach(k => {
     if(!k.hesapId) return;
-    const pb = k.paraBirimi || defaultCurrency;
+    const pb = k.paraBirimi || _coreState.defaultCurrency;
     const yil = today.getFullYear();
-    const aylar = (typeof kontratAylariHesapla === 'function') ? kontratAylariHesapla(k, yil) : [];
+    const aylar = (typeof kontratAylariHesapla === 'function') ? _hesaplamalar.kontratAylariHesapla(k, yil) : [];
     aylar.forEach(a => {
       if(a.tarih >= todayStr && a.tarih <= limitStr) {
         const ov = odKiraMaasOverride(k, a.ay);
@@ -87,7 +90,7 @@ export function hesapYaklasanCikislar(gunSayisi) {
       }
     });
     // Bir sonraki yılın ilk ayları
-    const aylarSonraki = (typeof kontratAylariHesapla === 'function') ? kontratAylariHesapla(k, yil+1) : [];
+    const aylarSonraki = (typeof kontratAylariHesapla === 'function') ? _hesaplamalar.kontratAylariHesapla(k, yil+1) : [];
     aylarSonraki.forEach(a => {
       if(a.tarih >= todayStr && a.tarih <= limitStr) {
         const ov = odKiraMaasOverride(k, a.ay);
@@ -100,11 +103,11 @@ export function hesapYaklasanCikislar(gunSayisi) {
 
   // Maaş (nakit çıkışı sayılmaz — gelir)
   // Elden gider ödemeleri
-  (DB.eldenler||[]).forEach(e => {
+  (_coreState.DB.eldenler||[]).forEach(e => {
     if(!e.hesapId || e.tur !== 'gider') return;
     if(e.tarih >= todayStr && e.tarih <= limitStr) {
       if(odBeklemedeMi(e.odDurum)) {
-        ekle(e.hesapId, Math.abs(e.tutar), '📉 Elden: '+(e.aciklama||''), e.tarih, e.paraBirimi||defaultCurrency);
+        ekle(e.hesapId, Math.abs(e.tutar), '📉 Elden: '+(e.aciklama||''), e.tarih, e.paraBirimi||_coreState.defaultCurrency);
       }
     }
   });
@@ -118,8 +121,8 @@ export function hesapYaklasanCikislar(gunSayisi) {
 
 export function hesapYaklasanGelirler(gunSayisi) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const todayStr = localDateStr(today);
-  const limitStr = localDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + gunSayisi));
+  const todayStr = _format.localDateStr(today);
+  const limitStr = _format.localDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + gunSayisi));
   const result = {};
 
   function ekle(hesapId, tutar, aciklama, tarih, pb) {
@@ -130,12 +133,12 @@ export function hesapYaklasanGelirler(gunSayisi) {
   }
 
   // Kira gelirleri
-  (DB.kiralar||[]).forEach(k => {
+  (_coreState.DB.kiralar||[]).forEach(k => {
     if(!k.hesapId || k.tutar <= 0) return;
-    const pb = k.paraBirimi || defaultCurrency;
+    const pb = k.paraBirimi || _coreState.defaultCurrency;
     const yil = today.getFullYear();
     [yil, yil+1].forEach(y => {
-      const aylar = (typeof kontratAylariHesapla === 'function') ? kontratAylariHesapla(k, y) : [];
+      const aylar = (typeof kontratAylariHesapla === 'function') ? _hesaplamalar.kontratAylariHesapla(k, y) : [];
       aylar.forEach(a => {
         if(a.tarih >= todayStr && a.tarih <= limitStr) {
           const ov = odKiraMaasOverride(k, a.ay);
@@ -148,14 +151,14 @@ export function hesapYaklasanGelirler(gunSayisi) {
   });
 
   // Maaş gelirleri
-  (DB.maaslar||[]).forEach(m => {
+  (_coreState.DB.maaslar||[]).forEach(m => {
     if(!m.hesapId) return;
-    const pb = m.paraBirimi || defaultCurrency;
+    const pb = m.paraBirimi || _coreState.defaultCurrency;
     const yil = today.getFullYear();
     for(let ay = 0; ay < 3; ay++) {
-      const og = getMaasOdemeGunu(m, today.getFullYear(), today.getMonth() + ay);
+      const og = _hesaplamalar.getMaasOdemeGunu(m, today.getFullYear(), today.getMonth() + ay);
       const d = og.sonraki ? new Date(today.getFullYear(), today.getMonth() + ay + 1, og.gun) : new Date(today.getFullYear(), today.getMonth() + ay, og.gun);
-      const tarih = localDateStr(d);
+      const tarih = _format.localDateStr(d);
       if(tarih >= todayStr && tarih <= limitStr) {
         if(tarih >= m.baslangic && (!m.bitis || tarih <= m.bitis)) {
           const ovKey = tarih.slice(0,7);
@@ -169,17 +172,17 @@ export function hesapYaklasanGelirler(gunSayisi) {
   return Object.values(result);
 }
 
-// Bakiye uyarıları — kalem bazlı "yoksay" (kalıcı: DB.bakiyeUyariGizli üzerinden
+// Bakiye uyarıları — kalem bazlı "yoksay" (kalıcı: _coreState.DB.bakiyeUyariGizli üzerinden
 // Drive'a senkron olur, sayfa yenilense/cihaz değişse de dismiss edilen uyarı geri gelmez).
 export var _bakiyeUyariGizli = new Set();
 
 export function _restoreBakiyeUyariGizliFromDB() {
-  // Not: bilerek her çağrıda DB.bakiyeUyariGizli'den TAZE okunuyor (önbelleklenmiyor).
+  // Not: bilerek her çağrıda _coreState.DB.bakiyeUyariGizli'den TAZE okunuyor (önbelleklenmiyor).
   // Önceki sürümde "sadece ilk seferde oku" bayrağı vardı; sayfa açılışında Drive
   // verisi henüz gelmeden bir render tetiklenirse boş listeyle kilitleniyor ve Drive'dan
   // gerçek liste geldikten sonra bile bir daha hiç yeniden okunmuyordu — "yoksay"
   // dediğin uyarılar bu yüzden bir süre sonra tekrar görünüyordu.
-  _bakiyeUyariGizli = new Set(Array.isArray(DB.bakiyeUyariGizli) ? DB.bakiyeUyariGizli : []);
+  _bakiyeUyariGizli = new Set(Array.isArray(_coreState.DB.bakiyeUyariGizli) ? _coreState.DB.bakiyeUyariGizli : []);
 }
 
 export function _bakiyeUyariAnahtar(u) { return `${u.hesap.id}::${u.tip}`; }
@@ -187,8 +190,8 @@ export function _bakiyeUyariAnahtar(u) { return `${u.hesap.id}::${u.tip}`; }
 export function bakiyeUyariGizle(anahtar) {
   _restoreBakiyeUyariGizliFromDB();
   _bakiyeUyariGizli.add(anahtar);
-  DB.bakiyeUyariGizli = Array.from(_bakiyeUyariGizli);
-  saveData();
+  _coreState.DB.bakiyeUyariGizli = Array.from(_bakiyeUyariGizli);
+  _appCoreBase.saveData();
   renderBakiyeIzlemePanel();
   renderOzetBakiyeUyarilar();
 }
@@ -197,8 +200,8 @@ export function bakiyeUyariTumunuGizle() {
   _restoreBakiyeUyariGizliFromDB();
   const { uyarilar } = otoBakiyeAnalizYap();
   uyarilar.forEach(u => _bakiyeUyariGizli.add(_bakiyeUyariAnahtar(u)));
-  DB.bakiyeUyariGizli = Array.from(_bakiyeUyariGizli);
-  saveData();
+  _coreState.DB.bakiyeUyariGizli = Array.from(_bakiyeUyariGizli);
+  _appCoreBase.saveData();
   renderBakiyeIzlemePanel();
   renderOzetBakiyeUyarilar();
 }
@@ -209,7 +212,7 @@ export function bakiyeUyariTumunuGizle() {
  */
 
 export function otoBakiyeAnalizYap() {
-  const hesaplar = (DB.hesaplar||[]).filter(h => h.durum === 'aktif');
+  const hesaplar = (_coreState.DB.hesaplar||[]).filter(h => h.durum === 'aktif');
   const uyarilar = [];
   const analizler = [];
 
@@ -220,7 +223,7 @@ export function otoBakiyeAnalizYap() {
   hesaplar.forEach(h => {
     const durum = hesapBakiyeDurumTespit(h);
     const pb = h.paraBirimi || 'TRY';
-    const bankaAd = (DB.bankalar||[]).find(b=>b.id===h.banka)?.kisa || '';
+    const bankaAd = (_coreState.DB.bankalar||[]).find(b=>b.id===h.banka)?.kisa || '';
 
     // 30 gün cıkış/giriş hesapla
     const cikis30 = cikislar30.find(c=>c.hesapId===h.id);
@@ -265,7 +268,7 @@ export function otoBakiyeAnalizYap() {
       const minVal = parseFloat(h.minBakiye)||0;
       if(tahminiiBakiye7 < minVal && h.bakiye >= minVal) {
         uyarilar.push({ tip: 'gelecek-kritik', hesap: h, analiz,
-          mesaj: `📅 ${h.ad}: 7 gün içinde minimum bakiye eşiğinin altına düşecek (Tahmini: ${fmtCur(tahminiiBakiye7, pb)})` });
+          mesaj: `📅 ${h.ad}: 7 gün içinde minimum bakiye eşiğinin altına düşecek (Tahmini: ${_format.fmtCur(tahminiiBakiye7, pb)})` });
       }
     }
 
@@ -274,10 +277,10 @@ export function otoBakiyeAnalizYap() {
       const kmhKapak = h.kmhLimit || 0;
       if(Math.abs(tahminiiBakiye30) > kmhKapak) {
         uyarilar.push({ tip: 'gelecek-negatif', hesap: h, analiz,
-          mesaj: `📉 ${h.ad}: 30 gün içinde KMH limitini aşabilir (Tahmini: ${fmtCur(tahminiiBakiye30, pb)})` });
+          mesaj: `📉 ${h.ad}: 30 gün içinde KMH limitini aşabilir (Tahmini: ${_format.fmtCur(tahminiiBakiye30, pb)})` });
       } else if(tahminiiBakiye30 < 0) {
         uyarilar.push({ tip: 'gelecek-dusuk', hesap: h, analiz,
-          mesaj: `📊 ${h.ad}: 30 gün içinde bakiye negatife düşebilir (Tahmini: ${fmtCur(tahminiiBakiye30, pb)})` });
+          mesaj: `📊 ${h.ad}: 30 gün içinde bakiye negatife düşebilir (Tahmini: ${_format.fmtCur(tahminiiBakiye30, pb)})` });
       }
     }
   });
@@ -371,7 +374,7 @@ export function renderBakiyeIzlemePanel() {
               const barCol = pct < 100 ? 'var(--danger)' : pct < 150 ? 'var(--warn)' : 'var(--teal)';
               minBarHtml = `<div style="margin-top:6px">
                 <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px">
-                  <span>Min. eşik: ${fmtCur(minVal,pb)}</span><span style="color:${barCol}">%${Math.min(200,pct).toFixed(0)}</span>
+                  <span>Min. eşik: ${_format.fmtCur(minVal,pb)}</span><span style="color:${barCol}">%${Math.min(200,pct).toFixed(0)}</span>
                 </div>
                 <div style="height:4px;background:var(--surface4);border-radius:2px;overflow:hidden">
                   <div style="height:100%;width:${Math.min(100,pct)}%;background:${barCol};border-radius:2px;transition:width .3s"></div>
@@ -385,9 +388,9 @@ export function renderBakiyeIzlemePanel() {
           if(a.toplCikis30 > 0 || a.toplGelir30 > 0) {
             const proj30Col = a.tahminiiBakiye30 < 0 ? 'var(--danger)' : a.tahminiiBakiye30 < (parseFloat(a.minBakiye)||0) ? 'var(--warn)' : 'var(--teal)';
             projHtml = `<div style="display:flex;gap:8px;margin-top:8px;font-size:10.5px;flex-wrap:wrap">
-              ${a.toplCikis30 > 0 ? `<span style="color:var(--danger)">▼ ${fmtCur(a.toplCikis30,pb)} çıkış</span>` : ''}
-              ${a.toplGelir30 > 0 ? `<span style="color:var(--teal)">▲ ${fmtCur(a.toplGelir30,pb)} giriş</span>` : ''}
-              <span style="color:${proj30Col};font-weight:600">→ ${fmtCur(a.tahminiiBakiye30,pb)}</span>
+              ${a.toplCikis30 > 0 ? `<span style="color:var(--danger)">▼ ${_format.fmtCur(a.toplCikis30,pb)} çıkış</span>` : ''}
+              ${a.toplGelir30 > 0 ? `<span style="color:var(--teal)">▲ ${_format.fmtCur(a.toplGelir30,pb)} giriş</span>` : ''}
+              <span style="color:${proj30Col};font-weight:600">→ ${_format.fmtCur(a.tahminiiBakiye30,pb)}</span>
             </div>`;
           }
 
@@ -398,7 +401,7 @@ export function renderBakiyeIzlemePanel() {
                 ${d ? `<div style="font-size:10px;color:${d.renk};margin-top:2px">${d.ikon} ${d.etiket}</div>` : ''}
               </div>
               <div style="text-align:right">
-                <div class="mono" style="font-size:13px;font-weight:700;color:${a.mevcutBakiye>=0?'var(--teal)':'var(--danger)'}">${fmtCur(a.mevcutBakiye,pb)}</div>
+                <div class="mono" style="font-size:13px;font-weight:700;color:${a.mevcutBakiye>=0?'var(--teal)':'var(--danger)'}">${_format.fmtCur(a.mevcutBakiye,pb)}</div>
                 <div style="font-size:10px;color:var(--text3)">${pb}</div>
               </div>
             </div>
@@ -464,7 +467,7 @@ export function renderOzetBakiyeUyarilar() {
   // [ES module] onclick="..." kaldırıldı - gerçek addEventListener bağlanıyor.
   // showPage: DUPE_NAMES listesinde (birden fazla dosyada tanımlı) -> window köprüsü kullan.
   el.querySelectorAll('.ozet-bakiye-hesaplara-git-btn').forEach(btn => {
-    btn.addEventListener('click', () => showPage('hesaplar'));
+    btn.addEventListener('click', () => _appCoreBase.showPage('hesaplar'));
   });
   el.querySelectorAll('.ozet-bakiye-uyari-gizle-btn').forEach(btn => {
     btn.addEventListener('click', () => bakiyeUyariGizle(btn.getAttribute('data-anahtar')));
@@ -488,3 +491,16 @@ export let _provizyonGizliIslemler = new Set(); // "Sonra" denilip gizlenen işl
    Tüm modüller tek bakiye motoruna bağlı. Ödeme → hesap anında güncellenir.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.bakiyeIzlemePaneli — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.bakiyeIzlemePaneli', {
+  hesapBakiyeDurumTespit, hesapYaklasanCikislar, hesapYaklasanGelirler,
+  get _bakiyeUyariGizli() { return _bakiyeUyariGizli; },
+  _restoreBakiyeUyariGizliFromDB, _bakiyeUyariAnahtar, bakiyeUyariGizle,
+  bakiyeUyariTumunuGizle, otoBakiyeAnalizYap, renderBakiyeIzlemePanel,
+  renderOzetBakiyeUyarilar,
+  get _provizyonGizliIslemler() { return _provizyonGizliIslemler; },
+});

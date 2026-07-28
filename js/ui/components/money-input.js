@@ -1,11 +1,16 @@
-import { autoSaveGoruntuAyarlari, fmtDate, fmtMoneyCustom } from '../../core/format.js';
-import { CURRENCY_CONFIG, FORMAT_CONFIG } from '../../core/state.js';
-import { odModalKapat } from '../pages/odeme/04-modal-yasam-dongusu.js';
-import { applyToAll } from './mobile-nav-tema/05-tarih-input-overlay.js';
-import { _odHesapPopupToggle } from '../pages/odeme/05-hesap-secim-popup.js';
-import { rfOdTumuDoldur } from '../pages/odeme/patches/01-transfer-log-senkron.js';
-import { odKalanBorcTamaminiDoldur, odModalSifirla, odModalKaydet } from '../pages/odeme/06-genel-odeme-modali.js';
-import { call } from '../../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.format, core.state, ui.components.
+// tarihInputOverlay, core.wrapRegistry zaten container'a taşınmış
+// katmanlara ait. @pages/* importları o katman henüz taşınmadığı için
+// BİLİNÇLİ OLARAK korunuyor.
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _tarihInputOverlay = inject('ui.components.tarihInputOverlay');
+const _wrapRegistry = inject('core.wrapRegistry');
+import { odModalKapat } from '@pages/odeme/04-modal-yasam-dongusu.js';
+import { _odHesapPopupToggle } from '@pages/odeme/05-hesap-secim-popup.js';
+import { rfOdTumuDoldur } from '@pages/odeme/patches/01-transfer-log-senkron.js';
+import { odKalanBorcTamaminiDoldur, odModalSifirla, odModalKaydet } from '@pages/odeme/06-genel-odeme-modali.js';
 // ============================================================
 // js/ui/components/money-input.js — Para tutarı input mantığı
 // (ATM stili canlı formatlama, para birimi sembol/wrap yönetimi,
@@ -16,8 +21,8 @@ import { call } from '../../core/wrap-registry.js';
 // aynı "ATM stili sağdan-sola, binlik ayraçlı" formatlama mantığını kullanır
 // (ham rakamları decimals'e göre sağdan hizala). Tek yerde topluyoruz.
 export function _moneyAtmFormatla(rawDigits, decimals, neg) {
-  const ondalik = FORMAT_CONFIG.ondalikAyrac || ',';
-  const binlik  = FORMAT_CONFIG.binlikAyrac !== undefined ? FORMAT_CONFIG.binlikAyrac : '.';
+  const ondalik = _coreState.FORMAT_CONFIG.ondalikAyrac || ',';
+  const binlik  = _coreState.FORMAT_CONFIG.binlikAyrac !== undefined ? _coreState.FORMAT_CONFIG.binlikAyrac : '.';
   const str = rawDigits.padStart(decimals + 1, '0');
   const intPart = decimals > 0 ? (str.slice(0, -decimals) || '0') : str;
   const decPart = decimals > 0 ? str.slice(-decimals) : '';
@@ -27,7 +32,7 @@ export function _moneyAtmFormatla(rawDigits, decimals, neg) {
 }
 
 export function updateMoneyWrapSymbols(code) {
-  const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[code]) || {};
+  const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[code]) || {};
   const sym = cfg.symbol || (code === 'TRY' ? '\u20ba' : code);
   document.querySelectorAll('.money-wrap').forEach(w => {
     // Kendi para birimi olan wrap'leri (hesap/mevduat modal gibi) atla
@@ -41,7 +46,7 @@ export function updateMoneyWrapSymbols(code) {
       if(decimals === 0) {
         inp.placeholder = '0';
       } else {
-        inp.placeholder = '0' + (FORMAT_CONFIG.ondalikAyrac || ',') + '0'.repeat(decimals);
+        inp.placeholder = '0' + (_coreState.FORMAT_CONFIG.ondalikAyrac || ',') + '0'.repeat(decimals);
       }
     }
   });
@@ -50,7 +55,7 @@ export function updateMoneyWrapSymbols(code) {
 export function updateModalMoneyWraps(modalId, code) {
   const modal = document.getElementById(modalId);
   if(!modal) return;
-  const cfg = (typeof CURRENCY_CONFIG !== 'undefined' && CURRENCY_CONFIG[code]) || {};
+  const cfg = (typeof _coreState.CURRENCY_CONFIG !== 'undefined' && _coreState.CURRENCY_CONFIG[code]) || {};
   const sym = cfg.symbol || (code === 'TRY' ? '\u20ba' : code);
   modal.querySelectorAll('.money-wrap').forEach(w => {
     w.dataset.symbol = sym;
@@ -62,7 +67,7 @@ export function setMoneyInput(id, val) {
   const el = document.getElementById(id);
   if(!el) return;
   const n = parseFloat(String(val).replace(/[^0-9.,\-]/g,'').replace(',','.')) || 0;
-  const decimals = parseInt(el.dataset.decimals ?? FORMAT_CONFIG.ondalikBasamak ?? '2');
+  const decimals = parseInt(el.dataset.decimals ?? _coreState.FORMAT_CONFIG.ondalikBasamak ?? '2');
   if(val === '' || val === null || val === undefined) {
     el.value = '';
     el._rawVal = 0;
@@ -75,7 +80,7 @@ export function setMoneyInput(id, val) {
     const raw = String(Math.round(Math.abs(n) * Math.pow(10, decimals)));
     el.value = _moneyAtmFormatla(raw, decimals, neg);
   } else {
-    el.value = fmtMoneyCustom(n, decimals, FORMAT_CONFIG.ondalikAyrac || ',', FORMAT_CONFIG.binlikAyrac ?? '.');
+    el.value = _format.fmtMoneyCustom(n, decimals, _coreState.FORMAT_CONFIG.ondalikAyrac || ',', _coreState.FORMAT_CONFIG.binlikAyrac ?? '.');
   }
 }
 
@@ -84,8 +89,8 @@ export function getMoneyInput(id) {
   if(!el) return 0;
   // Binlik ayraçları temizle, ondalık ayracını noktaya çevir
   const raw = (el.value || '').replace(/\s/g,'')
-    .replace(new RegExp('\\' + (FORMAT_CONFIG.binlikAyrac||'.'), 'g'), '')
-    .replace(FORMAT_CONFIG.ondalikAyrac || ',', '.');
+    .replace(new RegExp('\\' + (_coreState.FORMAT_CONFIG.binlikAyrac||'.'), 'g'), '')
+    .replace(_coreState.FORMAT_CONFIG.ondalikAyrac || ',', '.');
   return parseFloat(raw) || 0;
 }
 
@@ -95,7 +100,7 @@ export function bindMoneyInputs(container) {
     if(el._moneyBound) return;
     el._moneyBound = true;
     el.addEventListener('focus', function() {
-      const decimals = parseInt(this.dataset.decimals ?? FORMAT_CONFIG.ondalikBasamak ?? '2');
+      const decimals = parseInt(this.dataset.decimals ?? _coreState.FORMAT_CONFIG.ondalikBasamak ?? '2');
       // Mevcut değerden eksi işaretini ve ham rakamları al
       const neg = (this.value || '').trim().startsWith('-');
       const raw = (this.value || '').replace(/[^\d]/g, '');
@@ -118,15 +123,15 @@ export function bindMoneyInputs(container) {
     });
     el.addEventListener('blur', function() {
       const n = getMoneyInput(this.id);
-      const decimals = parseInt(this.dataset.decimals ?? FORMAT_CONFIG.ondalikBasamak ?? '2');
+      const decimals = parseInt(this.dataset.decimals ?? _coreState.FORMAT_CONFIG.ondalikBasamak ?? '2');
       if(this.value.trim() === '') { this.value = ''; return; }
-      this.value = fmtMoneyCustom(n, decimals, FORMAT_CONFIG.ondalikAyrac || ',', FORMAT_CONFIG.binlikAyrac ?? '.');
+      this.value = _format.fmtMoneyCustom(n, decimals, _coreState.FORMAT_CONFIG.ondalikAyrac || ',', _coreState.FORMAT_CONFIG.binlikAyrac ?? '.');
     });
     // Yazarken canlı formatla: binlik ayraçları otomatik ekle
     el.addEventListener('input', function() {
-      const ondalikAyrac = FORMAT_CONFIG.ondalikAyrac || ',';
-      const binlikAyrac  = FORMAT_CONFIG.binlikAyrac !== undefined ? FORMAT_CONFIG.binlikAyrac : '.';
-      const decimals     = parseInt(this.dataset.decimals ?? FORMAT_CONFIG.ondalikBasamak ?? '2');
+      const ondalikAyrac = _coreState.FORMAT_CONFIG.ondalikAyrac || ',';
+      const binlikAyrac  = _coreState.FORMAT_CONFIG.binlikAyrac !== undefined ? _coreState.FORMAT_CONFIG.binlikAyrac : '.';
+      const decimals     = parseInt(this.dataset.decimals ?? _coreState.FORMAT_CONFIG.ondalikBasamak ?? '2');
       let raw = this.value;
       // Ondalık ayraçla başlıyorsa başına 0 ekle (soldan sağa yazım zorla)
       if(raw.startsWith(ondalikAyrac)) raw = '0' + raw;
@@ -170,7 +175,7 @@ export function bindMoneyInputs(container) {
     });
     // Sadece sayısal karakter, ondalık ayraç, eksi izin ver
     el.addEventListener('keypress', function(e) {
-      const allowed = '0123456789' + (FORMAT_CONFIG.ondalikAyrac || ',') + (FORMAT_CONFIG.binlikAyrac || '.') + '-';
+      const allowed = '0123456789' + (_coreState.FORMAT_CONFIG.ondalikAyrac || ',') + (_coreState.FORMAT_CONFIG.binlikAyrac || '.') + '-';
       if(!allowed.includes(e.key) && !['Backspace','Delete','Tab','Enter','ArrowLeft','ArrowRight'].includes(e.key)) {
         e.preventDefault();
       }
@@ -185,7 +190,7 @@ export function setMoneyFormat(ondalik, binlik, basamak) {
   if(oa) oa.value = ondalik;
   if(ba) ba.value = binlik;
   if(ob) ob.value = basamak;
-  autoSaveGoruntuAyarlari();
+  _format.autoSaveGoruntuAyarlari();
 }
 
 export function setDateInputValue(elOrId, value) {
@@ -196,7 +201,7 @@ export function setDateInputValue(elOrId, value) {
     if(!value) {
       el._dateFake.value = '';
     } else {
-      try { el._dateFake.value = fmtDate(value); } catch(e) { el._dateFake.value = value; }
+      try { el._dateFake.value = _format.fmtDate(value); } catch(e) { el._dateFake.value = value; }
     }
     el._dateFake.style.color = '';
   }
@@ -452,7 +457,7 @@ export function setDateInputValue(elOrId, value) {
   // (eskiden onclick="..." attribute'u içine gömülüydü).
   document.getElementById('od-modal-close').addEventListener('click', () => odModalKapat());
   document.getElementById('od-pop-hesap-trigger').addEventListener('click', () => _odHesapPopupToggle());
-  document.getElementById('od-hizli-transfer-btn').addEventListener('click', () => call('kartOdemeHizliTransferAc', 'od-modal'));
+  document.getElementById('od-hizli-transfer-btn').addEventListener('click', () => _wrapRegistry.call('kartOdemeHizliTransferAc', 'od-modal'));
   document.getElementById('od-tumu-btn').addEventListener('click', () => rfOdTumuDoldur());
   document.getElementById('od-kalan-tamamini-btn').addEventListener('click', () => odKalanBorcTamaminiDoldur());
   document.getElementById('od-modal-sifirla-btn').addEventListener('click', () => odModalSifirla());
@@ -463,8 +468,18 @@ export function setDateInputValue(elOrId, value) {
   // ayraç formatlama + focus/blur davranışı diğer tutar alanlarıyla tutarlı olsun diye).
   bindMoneyInputs(bg);
   // od-pop-tarih'i diğer date inputlar gibi date-wrap overlay'e sar
-  setTimeout(() => { applyToAll(); }, 0);
+  setTimeout(() => { _tarihInputOverlay.applyToAll(); }, 0);
   // Dışına tıklayınca kapat
   bg.addEventListener('click', function(e){ if(e.target===bg) odModalKapat(); });
 })();
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.moneyInput — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.moneyInput', {
+  _moneyAtmFormatla, updateMoneyWrapSymbols, updateModalMoneyWraps,
+  setMoneyInput, getMoneyInput, bindMoneyInputs, setMoneyFormat,
+  setDateInputValue,
+});

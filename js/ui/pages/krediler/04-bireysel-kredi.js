@@ -1,17 +1,17 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '../../../core/app-core.js';
-import { fmt, fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _krediMetrik, getBireyselKrediKalan, getBsmvOrani, getKkdfOrani, hesaplaKrediOnizleme } from '../../../domain/hesaplamalar.js';
-import { phSet, showConfirm, validateRequiredFields } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { bindTblFiltreChips, tblFiltreChipsHtml, tblFiltreChipsMultiHtml, tblFiltreClearHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '../../components/tablo-filtre-sirala.js';
-import { KREDI_DURUM_FILTRE_OPTS, KREDI_STEP_COUNT, _krediCurrentStep, editKrediId, setEditKrediId, set_krediCurrentStep } from './00-state.js';
-import { _krediFiltreBaslikGuncelle, _krediTurEtiket, _renderKrediKart, _toggleKrediAccordion, readManuelTaksitler, renderKrediTaksitPlani, renderKrediTaksitPlaniEfektif } from './01-genel-yardimcilar.js';
-import { bankaOptionMetin, getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '@core/app-core.js';
+import { fmt, fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _krediMetrik, getBireyselKrediKalan, getBsmvOrani, getKkdfOrani, hesaplaKrediOnizleme } from '@domain/hesaplamalar.js';
+import { phSet, showConfirm, validateRequiredFields } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { bindTblFiltreChips, tblFiltreChipsHtml, tblFiltreChipsMultiHtml, tblFiltreClearHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { KREDI_DURUM_FILTRE_OPTS, KREDI_STEP_COUNT, _krediCurrentStep, editKrediId, setEditKrediId, set_krediCurrentStep } from '@pages/krediler/00-state.js';
+import { _krediFiltreBaslikGuncelle, _krediTurEtiket, _renderKrediKart, _toggleKrediAccordion, readManuelTaksitler, renderKrediTaksitPlani, renderKrediTaksitPlaniEfektif } from '@pages/krediler/01-genel-yardimcilar.js';
+import { bankaOptionMetin, getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/krediler/04-bireysel-kredi.js
 // Bireysel kredi (ihtiyaç/konut) akışı

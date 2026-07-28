@@ -1,7 +1,7 @@
-import { fmtCur, fmtDate } from '../../../core/format.js';
-import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../../core/state.js';
-import { _hesapLogId, _hesapLogKayitlar, _hesapLogNakitPb, set_hesapLogId, set_hesapLogKayitlar, set_hesapLogNakitPb } from './04-hesap-liste-render.js';
-import { openModal } from '../../components/modal-genel.js';
+import { fmtCur, fmtDate } from '@core/format.js';
+import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { _hesapLogId, _hesapLogKayitlar, _hesapLogNakitPb, set_hesapLogId, set_hesapLogKayitlar, set_hesapLogNakitPb } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/hesaplar/06-hesap-log.js
 // Hesap bakiye/nakit işlem geçmişi log görüntüleme

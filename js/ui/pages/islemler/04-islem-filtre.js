@@ -1,8 +1,8 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { DB } from '../../../core/state.js';
-import { _islemFiltreRestored, renderIslemler, set_islemFiltreRestored } from './03-islem-liste-render.js';
-import { getKartRenk } from '../kartlar/01-kart-data.js';
-import { openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { DB } from '@core/state.js';
+import { _islemFiltreRestored, renderIslemler, set_islemFiltreRestored } from '@pages/islemler/03-islem-liste-render.js';
+import { getKartRenk } from '@pages/kartlar/01-kart-data.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/islemler/04-islem-filtre.js
 // İşlem listesi filtreleme (kart/ay/kategori/arama)

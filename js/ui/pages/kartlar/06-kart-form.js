@@ -1,19 +1,19 @@
-import { saveData, updateSidebarKartNav } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr, uid } from '../../../core/format.js';
-import { ALL_CURRENCIES, DB, defaultCurrency } from '../../../core/state.js';
-import { rebuildAllCurrencies } from '../../../domain/doviz.js';
-import { phSet, phUpdate, validateRequiredFields } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { gecmisListesiRenderEt, swizOzetSatirHtml, swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { extreTypeChange } from '../ekstreler/01-ekstre-kesinlestirme.js';
-import { KART_STEP_COUNT, _kartCurrentStep, set_kartCurrentStep } from './00-state.js';
-import { _syncKartLimitAlaninaGrupLimit, populateOrtakGrupSelect, renderOrtakGrupYonetimSatiri } from './07-ortak-limit-grubu.js';
-import { editKartId, fillKartAltyapiSelect, setEditKartId } from './09-kart-altyapi.js';
-import { kartLimitGecmisSonSil } from './01-kart-data.js';
-import { renderKartlar } from './10-kart-liste.js';
-import { bankaOptionMetin } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData, updateSidebarKartNav } from '@core/app-core-base.js';
+import { fmtCur, localDateStr, uid } from '@core/format.js';
+import { ALL_CURRENCIES, DB, defaultCurrency } from '@core/state.js';
+import { rebuildAllCurrencies } from '@domain/doviz.js';
+import { phSet, phUpdate, validateRequiredFields } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { gecmisListesiRenderEt, swizOzetSatirHtml, swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { extreTypeChange } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { KART_STEP_COUNT, _kartCurrentStep, set_kartCurrentStep } from '@pages/kartlar/00-state.js';
+import { _syncKartLimitAlaninaGrupLimit, populateOrtakGrupSelect, renderOrtakGrupYonetimSatiri } from '@pages/kartlar/07-ortak-limit-grubu.js';
+import { editKartId, fillKartAltyapiSelect, setEditKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { kartLimitGecmisSonSil } from '@pages/kartlar/01-kart-data.js';
+import { renderKartlar } from '@pages/kartlar/10-kart-liste.js';
+import { bankaOptionMetin } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/kartlar/06-kart-form.js
 // Kart ekleme/düzenleme formu (step wizard)

@@ -55,3 +55,11 @@ export function snavFilter(q) {
   });
 }
 
+// ============================================================
+// [DI-MIGRATION] ui.components.mobileSideNav — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.mobileSideNav', {
+  snavMobileOpen, snavMobileClose, snavMobileBack, snavFilter,
+});
+

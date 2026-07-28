@@ -39,3 +39,14 @@ export function call(name, ...args) {
   if (typeof fn === 'function') return fn(...args);
   return undefined;
 }
+
+// ============================================================
+// [DI-MIGRATION] Bu modül (action wrap zinciri) container'a
+// 'core.wrapRegistry' namespace'i olarak da kaydedilir — böylece container
+// üzerinden çalışan yeni servisler `resolve('core.wrapRegistry').call(...)`
+// diyerek eskisiyle aynı zincire erişebilir. Dairesel import'tan kaçınmak
+// için container.js'i dinamik olarak import ediyoruz (top-level'da değil).
+// ============================================================
+import('@core/container.js').then(({ provide }) => {
+  provide('core.wrapRegistry', { register, get, has, call });
+});

@@ -1,9 +1,16 @@
-import { saveData } from '../core/app-core-base.js';
-import { escapeHtml, fmtDate, localDateStr } from '../core/format.js';
-import { CURRENCY_CONFIG, DB } from '../core/state.js';
-import { showToast } from '../ui/components/modal-genel.js';
-import { getTatilSet } from '../ui/pages/tanimlamalar/01-genel-yardimcilar.js';
-import { renderTanimlamalar } from '../ui/pages/tanimlamalar/02-ana-sayfa.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+// core.appCoreBase ve core.format artık container'da kayıtlı (Tur 4) —
+// bu turda çevrildi (DI-MIGRATION.md madde 4).
+const _appCoreBase = inject('core.appCoreBase');
+const saveData = (...a) => _appCoreBase.saveData(...a);
+const _coreFormat = inject('core.format');
+const escapeHtml = (...a) => _coreFormat.escapeHtml(...a);
+const fmtDate = (...a) => _coreFormat.fmtDate(...a);
+const localDateStr = (...a) => _coreFormat.localDateStr(...a);
+import { showToast } from '@components/modal-genel.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
 // ============================================================
 // js/services/kur-servisleri.js — Döviz kuru servisleri
 // (TCMB XML/JSON çekme, CORS proxy zinciri, özel API kaynakları,
@@ -51,7 +58,7 @@ export function _cacheSet(url, text, kaynak) {
 }
 
 export function corsProxyZinciriOlustur(hedefUrl) {
-  const workerUrl = (DB?.ayarlar?.corsProxyWorker || '').replace(/\/$/, '');
+  const workerUrl = (_coreState.DB?.ayarlar?.corsProxyWorker || '').replace(/\/$/, '');
   const enc = encodeURIComponent(hedefUrl);
   return [
     ...(workerUrl ? [{ url: `${workerUrl}?url=${enc}`,                              ad: 'Worker',         wrapped: false }] : []),
@@ -174,7 +181,7 @@ export function jsonPathOku(obj, path) {
 
 // ── TCMB kur çekme / parse etme ───────────────────────────────
 export async function xauSpotCek() {
-  const workerUrl = (DB?.ayarlar?.corsProxyWorker || '').replace(/\/$/, '');
+  const workerUrl = (_coreState.DB?.ayarlar?.corsProxyWorker || '').replace(/\/$/, '');
   if (!workerUrl) { console.warn('[xau] Worker URL tanımlı değil'); return null; }
   try {
     const resp = await fetch(`${workerUrl}/xau`, { signal: AbortSignal.timeout(10000) });
@@ -354,19 +361,19 @@ export function tcmbKurXmlParse(xmlText) {
 }
 
 export function tcmbKurGecmiseKaydet(tarihIso, kurlar) {
-  DB.tcmbKurGecmis = DB.tcmbKurGecmis || [];
-  const idx = DB.tcmbKurGecmis.findIndex(r => r.tarih === tarihIso);
+  _coreState.DB.tcmbKurGecmis = _coreState.DB.tcmbKurGecmis || [];
+  const idx = _coreState.DB.tcmbKurGecmis.findIndex(r => r.tarih === tarihIso);
   if (idx >= 0) {
     // Mevcut kaydı güncelle: gelen kurları mevcutla birleştir (merge)
-    DB.tcmbKurGecmis[idx] = {
+    _coreState.DB.tcmbKurGecmis[idx] = {
       tarih: tarihIso,
       guncellendi: new Date().toISOString(),
-      kurlar: { ...DB.tcmbKurGecmis[idx].kurlar, ...kurlar }
+      kurlar: { ..._coreState.DB.tcmbKurGecmis[idx].kurlar, ...kurlar }
     };
   } else {
-    DB.tcmbKurGecmis.push({ tarih: tarihIso, guncellendi: new Date().toISOString(), kurlar });
+    _coreState.DB.tcmbKurGecmis.push({ tarih: tarihIso, guncellendi: new Date().toISOString(), kurlar });
     // Eklendikten sonra sırala (push sıradışı olabilir)
-    DB.tcmbKurGecmis.sort((a, b) => a.tarih.localeCompare(b.tarih));
+    _coreState.DB.tcmbKurGecmis.sort((a, b) => a.tarih.localeCompare(b.tarih));
   }
 }
 
@@ -390,8 +397,8 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
   if (manuel && btn) { btn.disabled = true; btn.textContent = '⏳ Çekiliyor...'; }
   if (status) status.textContent = '';
 
-  DB.tcmbKur     = DB.tcmbKur     || { tarih: null, guncellendi: null, sonKontrol: null, kurlar: {} };
-  DB.tcmbKurGecmis = DB.tcmbKurGecmis || [];
+  _coreState.DB.tcmbKur     = _coreState.DB.tcmbKur     || { tarih: null, guncellendi: null, sonKontrol: null, kurlar: {} };
+  _coreState.DB.tcmbKurGecmis = _coreState.DB.tcmbKurGecmis || [];
 
   try {
     // ── 1) Bugünkü TCMB bültenini çek (today.xml + arşiv + alternatif JSON) ──
@@ -418,7 +425,7 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
       }
     }
 
-    DB.tcmbKur.sonKontrol = localDateStr(new Date());
+    _coreState.DB.tcmbKur.sonKontrol = localDateStr(new Date());
 
     // ── 2) Kurları uygulama kodlarına eşleştir ────────────────────────
     const bugunTarih = bugunVeriXml ? bugunVeriXml.tarihIso : localDateStr(new Date());
@@ -426,16 +433,16 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
 
     if (bugunVeriXml) {
       // TCMB XML başarılı: kod eşleştirmesi yap
-      Object.keys(CURRENCY_CONFIG).forEach(code => {
-        const kk = CURRENCY_CONFIG[code].kurKaynagi;
+      Object.keys(_coreState.CURRENCY_CONFIG).forEach(code => {
+        const kk = _coreState.CURRENCY_CONFIG[code].kurKaynagi;
         if (kk?.tip === 'tcmb' && kk.tcmbKodu && bugunVeriXml.kurlar[kk.tcmbKodu]) {
           bugunKurlar[code] = bugunVeriXml.kurlar[kk.tcmbKodu];
         }
       });
     } else if (altJsonKullanildi && altJsonKurlar) {
       // Alternatif JSON: TCMB kodu = uygulama kodu (USD→USD, EUR→EUR vb.)
-      Object.keys(CURRENCY_CONFIG).forEach(code => {
-        const kk = CURRENCY_CONFIG[code].kurKaynagi;
+      Object.keys(_coreState.CURRENCY_CONFIG).forEach(code => {
+        const kk = _coreState.CURRENCY_CONFIG[code].kurKaynagi;
         if (kk?.tip !== 'tcmb') return;
         const tcmbKodu = kk.tcmbKodu || code;
         if (altJsonKurlar[tcmbKodu]) {
@@ -448,15 +455,15 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
 
     // ── 3) Özel API kaynakları — PARALEL çek ──────────────────────────
     const ozelApiHatalari = [];
-    const ozelCodes = Object.keys(CURRENCY_CONFIG).filter(code => {
-      const kk = CURRENCY_CONFIG[code].kurKaynagi;
+    const ozelCodes = Object.keys(_coreState.CURRENCY_CONFIG).filter(code => {
+      const kk = _coreState.CURRENCY_CONFIG[code].kurKaynagi;
       return kk?.tip === 'ozel';
     });
 
     if (ozelCodes.length) {
       const ozelSonuclar = await Promise.allSettled(
         ozelCodes.map(async (code) => {
-          const cfg = CURRENCY_CONFIG[code];
+          const cfg = _coreState.CURRENCY_CONFIG[code];
           const kk = cfg.kurKaynagi;
           const kaynaklar = Array.isArray(kk.kaynaklar) && kk.kaynaklar.length
             ? kk.kaynaklar
@@ -491,7 +498,7 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
 
     // ── 4) Bugünkü veriyi kaydet ───────────────────────────────────────
     tcmbKurGecmiseKaydet(bugunTarih, bugunKurlar);
-    DB.tcmbKur = {
+    _coreState.DB.tcmbKur = {
       tarih: bugunTarih,
       guncellendi: new Date().toISOString(),
       sonKontrol: localDateStr(new Date()),
@@ -506,17 +513,17 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
     // Backfill aynı anda en fazla 3 istek paralel çalışır (proxy aşırı yüklenmesin).
     let dolduralan = 0;
     try {
-      if (DB.tcmbKurGecmis.length > 1) {
-        const mevcutTarihler = new Set(DB.tcmbKurGecmis.map(r => r.tarih));
+      if (_coreState.DB.tcmbKurGecmis.length > 1) {
+        const mevcutTarihler = new Set(_coreState.DB.tcmbKurGecmis.map(r => r.tarih));
         const tatilSet = typeof getTatilSet === 'function' ? getTatilSet() : new Set();
-        const tcmbKodlar = Object.keys(CURRENCY_CONFIG).filter(code => {
-          const kk = CURRENCY_CONFIG[code].kurKaynagi;
+        const tcmbKodlar = Object.keys(_coreState.CURRENCY_CONFIG).filter(code => {
+          const kk = _coreState.CURRENCY_CONFIG[code].kurKaynagi;
           return kk?.tip === 'tcmb' && kk.tcmbKodu;
         });
 
         const limitTarih = new Date();
         limitTarih.setDate(limitTarih.getDate() - TCMB_BACKFILL_GUN_LIMIT);
-        const enEskiKayit = DB.tcmbKurGecmis[0].tarih;
+        const enEskiKayit = _coreState.DB.tcmbKurGecmis[0].tarih;
         const enEskiDt = new Date(enEskiKayit + 'T00:00:00');
         enEskiDt.setDate(enEskiDt.getDate() + 1);
         const baslangicDt = enEskiDt > limitTarih ? enEskiDt : limitTarih;
@@ -545,7 +552,7 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
             if (!veri || mevcutTarihler.has(veri.tarihIso)) continue;
             const eslesmis = {};
             tcmbKodlar.forEach(code => {
-              const tk = CURRENCY_CONFIG[code].kurKaynagi.tcmbKodu;
+              const tk = _coreState.CURRENCY_CONFIG[code].kurKaynagi.tcmbKodu;
               if (veri.kurlar[tk]) eslesmis[code] = veri.kurlar[tk];
             });
             tcmbKurGecmiseKaydet(veri.tarihIso, eslesmis);
@@ -590,18 +597,18 @@ export async function tcmbKurlariniGuncelle(manuel = false) {
 // ── Günlük otomatik kontrol / kur getter'ları ────────────────
 export function tcmbKurGunlukKontrolEt() {
   const bugun = localDateStr(new Date());
-  const sonKontrol = DB.tcmbKur?.sonKontrol;
+  const sonKontrol = _coreState.DB.tcmbKur?.sonKontrol;
   if (sonKontrol === bugun) return; // Bugün zaten çekildi
 
   // Hafta sonu ise: son kayıtlı verisi varsa çekme (TCMB yayınlamaz)
   const bugunDt = new Date();
-  if (tcmbHaftaSonuMu(bugunDt) && DB.tcmbKurGecmis?.length) return;
+  if (tcmbHaftaSonuMu(bugunDt) && _coreState.DB.tcmbKurGecmis?.length) return;
 
   tcmbKurlariniGuncelle(false);
 }
 
 export function getTcmbKur(code, tarihStr) {
-  const gecmis = DB.tcmbKurGecmis || [];
+  const gecmis = _coreState.DB.tcmbKurGecmis || [];
   if (!gecmis.length) return null;
   const hedefTarih = tarihStr || localDateStr(new Date());
   let secili = null;
@@ -617,14 +624,14 @@ export function populateTcmbGecmisModal() {
   const sel = document.getElementById('tg-pb-filtre');
   if (sel) {
     // Otomatik bir kaynaktan (TCMB veya özel API) kuru çekilebilen birimleri listele — manuel hariç.
-    const uygun = Object.keys(CURRENCY_CONFIG).filter(c => {
+    const uygun = Object.keys(_coreState.CURRENCY_CONFIG).filter(c => {
       if (c === 'TRY') return false;
-      const kk = CURRENCY_CONFIG[c].kurKaynagi;
+      const kk = _coreState.CURRENCY_CONFIG[c].kurKaynagi;
       return kk && (kk.tip === 'tcmb' || kk.tip === 'ozel');
     });
     const onceki = sel.value;
     sel.innerHTML = uygun.map(c => {
-      const cfg = CURRENCY_CONFIG[c];
+      const cfg = _coreState.CURRENCY_CONFIG[c];
       const kk = cfg.kurKaynagi || {};
       const kaynakLabel = kk.tip === 'tcmb' ? 'TCMB' : kk.tip === 'ozel' ? 'Özel API' : '';
       return `<option value="${c}">${cfg.flag || ''} ${c}${kaynakLabel ? ' (' + kaynakLabel + ')' : ''}</option>`;
@@ -651,7 +658,7 @@ export function renderTcmbGecmis() {
   const bitis = document.getElementById('tg-bitis').value || '9999-12-31';
 
   // Kayıtlar artık doğrudan uygulama koduyla saklanıyor (bkz. tcmbKurlariniGuncelle) — tcmbKodu çevirisi gerekmez.
-  const gecmis = (DB.tcmbKurGecmis || [])
+  const gecmis = (_coreState.DB.tcmbKurGecmis || [])
     .filter(r => r.tarih >= baslangic && r.tarih <= bitis)
     .slice()
     .sort((a, b) => b.tarih.localeCompare(a.tarih)); // en yeni üstte
@@ -689,7 +696,7 @@ export function pbKurTipDegisti() {
 export function pbKaynakListesiRender() {
   const el = document.getElementById('pb-kaynak-listesi');
   if (!el) return;
-  const kurCodes = Object.keys(CURRENCY_CONFIG);
+  const kurCodes = Object.keys(_coreState.CURRENCY_CONFIG);
   el.innerHTML = _pbKaynaklar.map((k, i) => {
     const opts = kurCodes.map(c => `<option value="${c}"${k.kurBirimi===c?' selected':''}>${c}</option>`).join('');
     return `<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px">
@@ -911,14 +918,14 @@ export function pbKaynakEkle() {
 
 // ── CORS proxy worker ayarları (kaydet/yükle) ────────────────
 export function saveCorsProxyWorker(val) {
-  DB.ayarlar = DB.ayarlar || {};
-  DB.ayarlar.corsProxyWorker = val.trim() || null;
+  _coreState.DB.ayarlar = _coreState.DB.ayarlar || {};
+  _coreState.DB.ayarlar.corsProxyWorker = val.trim() || null;
   saveData();
 }
 
 export function loadCorsProxyWorkerInput() {
   const inp = document.getElementById('cors-proxy-worker-url');
-  if (inp && DB?.ayarlar?.corsProxyWorker) inp.value = DB.ayarlar.corsProxyWorker;
+  if (inp && _coreState.DB?.ayarlar?.corsProxyWorker) inp.value = _coreState.DB.ayarlar.corsProxyWorker;
 }
 
 
@@ -943,3 +950,33 @@ export function paraSayiyaCevir(v) {  if (v === null || v === undefined) return 
 // eklendi - ilgili dosyalar artık `X = v` yerine `setX(v)` çağırıyor.
 export function set_pbTestJsonCache(v) { _pbTestJsonCache = v; }
 export function set_pbKaynaklar(v) { _pbKaynaklar = v; }
+
+// ============================================================
+// [DI-MIGRATION] services.kurServisleri — container'a kayıt
+// ------------------------------------------------------------
+// Bu dosyanın TÜM export'ları 'services.kurServisleri' namespace'i altında
+// container'a da kaydedilir. Yeni/taşınan tüketiciler artık:
+//   import { resolve } from '@core/container.js';
+//   const { getTcmbKur } = resolve('services.kurServisleri');
+// şeklinde çekebilir; `import ... from '@services/kur-servisleri.js'`
+// satırlarına ihtiyaç kalmaz. Bu dosyanın KENDİ üstteki importları
+// (saveData, format, state, vb.) bir sonraki DI turunda, o modüller de
+// container'a taşındığında kaldırılacak — bkz. DI-MIGRATION.md.
+// ============================================================
+import { provide } from '@core/container.js';
+provide('services.kurServisleri', {
+  _proxyHataKaydet, _proxyBasariKaydet, _proxySagliklimi, _cacheGet, _cacheSet,
+  corsProxyZinciriOlustur, jsonPathOku, _tcmbArshivUrl, tcmbKurXmlParse, tcmbKurGecmiseKaydet,
+  tcmbHaftaSonuMu, tcmbKurGunlukKontrolEt, getTcmbKur, populateTcmbGecmisModal,
+  renderTcmbGecmis, pbKurTipDegisti, pbKaynakListesiRender, pbJsonYollariBul,
+  pbTestSonucRender, pbTestMesaj, pbPathSec, pbKaynakEkle, saveCorsProxyWorker,
+  loadCorsProxyWorkerInput, paraSayiyaCevir, set_pbTestJsonCache, set_pbKaynaklar,
+  _parallelFetch, corsProxyZinciriDene, xauSpotCek, tcmbAlternatifJsonKurCek, tcmbKurXmlCek,
+  tcmbKurlariniGuncelle, pbFetchJsonDenemeli, tekKaynakKurCek, ozelKaynaklarKurCek,
+  pbKaynakTestEt, TCMB_BACKFILL_GUN_LIMIT,
+  get _pbKaynaklar() { return _pbKaynaklar; },
+  get _pbTestJsonCache() { return _pbTestJsonCache; },
+  get _proxyHealth() { return _proxyHealth; },
+  get _urlCache() { return _urlCache; },
+  get _tcmbGuncellemeSuruyor() { return _tcmbGuncellemeSuruyor; },
+});

@@ -1,20 +1,20 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { ALL_CURRENCIES, DB, defaultCurrency } from '../../../core/state.js';
-import { buildCurrencyOptions } from '../../../domain/doviz.js';
-import { _tutarAsiyorMu, getStopajOrani } from '../../../domain/hesaplamalar.js';
-import { swizOzetSatirHtml, swizUpdateStepIndicator } from '../../components/step-wizard.js';
-import { hesaplaMevduatOnizleme } from '../../../domain/mevduat-hesaplama.js';
-import { _markFieldError, showToast, openModal } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { applyChipsToContainer, wireAllMoneyCurButtons } from '../../components/select-to-chips.js';
-import { renderIslemler } from '../islemler/03-islem-liste-render.js';
-import { MEV_STEP_COUNT, _editMevduatEskiTutar, _mevCurrentStep, _mevGunlukMod, editMevduatId, setEditMevduatId, set_editMevduatEskiTutar, set_mevCurrentStep, set_mevGunlukMod } from './00-state.js';
-import { renderMevduat } from './05-mevduat-liste-render.js';
-import { _fillMevHesapSel, _fillMevVadesizSel, _updateMevTutarBakiyeHint, onMevOtoHesapToggle, onMevStratejiChange } from './06-mevduat-hesap-secim-formu.js';
-import { closeModal } from '../../components/modal-genel.js';
-import { renderHesaplar } from '../hesaplar/04-hesap-liste-render.js';
-import { register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { ALL_CURRENCIES, DB, defaultCurrency } from '@core/state.js';
+import { buildCurrencyOptions } from '@domain/doviz.js';
+import { _tutarAsiyorMu, getStopajOrani } from '@domain/hesaplamalar.js';
+import { swizOzetSatirHtml, swizUpdateStepIndicator } from '@components/step-wizard.js';
+import { hesaplaMevduatOnizleme } from '@domain/mevduat-hesaplama.js';
+import { _markFieldError, showToast, openModal } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { applyChipsToContainer, wireAllMoneyCurButtons } from '@components/select-to-chips.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { MEV_STEP_COUNT, _editMevduatEskiTutar, _mevCurrentStep, _mevGunlukMod, editMevduatId, setEditMevduatId, set_editMevduatEskiTutar, set_mevCurrentStep, set_mevGunlukMod } from '@pages/mevduat/00-state.js';
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { _fillMevHesapSel, _fillMevVadesizSel, _updateMevTutarBakiyeHint, onMevOtoHesapToggle, onMevStratejiChange } from '@pages/mevduat/06-mevduat-hesap-secim-formu.js';
+import { closeModal } from '@components/modal-genel.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/mevduat/01-mevduat-form-wizard.js
 // Mevduat açma formu (step wizard) + faiz hesaplayıcı + kaydetme/düzenleme

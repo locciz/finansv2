@@ -1,14 +1,17 @@
-import { applyMigrations } from '../core/app-core-base.js';
-import { DB, replaceObjectContents } from '../core/state.js';
-import { tcmbKurGunlukKontrolEt } from './kur-servisleri.js';
-import { call } from '../core/wrap-registry.js';
-import { showToast } from '../ui/components/modal-genel.js';
-import { _asgariKuralPbFiltreRestored, set_asgariKuralPbFiltreRestored } from '../ui/pages/asgari-odeme.js';
-import { _extreFiltreRestored, _katFiltreRestored, set_extreFiltreRestored, set_katFiltreRestored } from '../ui/pages/ekstreler/02-ekstre-render.js';
-import { _hesapFiltreRestored, set_hesapFiltreRestored } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { _islemFiltreRestored, set_islemFiltreRestored } from '../ui/pages/islemler/03-islem-liste-render.js';
-import { VY_OZET_ALANLAR, vyDoldurOnayModal, vyRevSecAlan } from '../ui/pages/veri-yonetimi.js';
-import { closeModal, openModal } from '../ui/components/modal-genel.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _kurServisleri = inject('services.kurServisleri');
+const _wrapRegistry = inject('core.wrapRegistry');
+// core.appCoreBase container'da kayıtlı (Tur 4) — bu turda çevrildi.
+const _appCoreBase = inject('core.appCoreBase');
+const applyMigrations = (...a) => _appCoreBase.applyMigrations(...a);
+import { showToast } from '@components/modal-genel.js';
+import { _asgariKuralPbFiltreRestored, set_asgariKuralPbFiltreRestored } from '@pages/asgari-odeme.js';
+import { _extreFiltreRestored, _katFiltreRestored, set_extreFiltreRestored, set_katFiltreRestored } from '@pages/ekstreler/02-ekstre-render.js';
+import { _hesapFiltreRestored, set_hesapFiltreRestored } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { _islemFiltreRestored, set_islemFiltreRestored } from '@pages/islemler/03-islem-liste-render.js';
+import { VY_OZET_ALANLAR, vyDoldurOnayModal, vyRevSecAlan } from '@pages/veri-yonetimi.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/services/gdrive.js — Google Drive senkronizasyon servisi
 // (OAuth token yönetimi, veri yükleme/kaydetme, sürüm geçmişi)
@@ -357,7 +360,7 @@ export async function gDriveLoadFromDrive() {
       gInitialLoadDone = true; // gerçekten "yeni kullanıcı" tespit edildi — artık Drive'a yazmak güvenli
       gDriveSetStatus('Hazır (yeni)', 'var(--success, #4ade80)');
       setTimeout(() => gDriveSetStatus('Hazır', 'var(--text3)'), 3000);
-      if(typeof tcmbKurGunlukKontrolEt === 'function') tcmbKurGunlukKontrolEt();
+      if(typeof _kurServisleri.tcmbKurGunlukKontrolEt === 'function') _kurServisleri.tcmbKurGunlukKontrolEt();
       return;
     }
     gDriveFileId = file.id;
@@ -372,7 +375,7 @@ export async function gDriveLoadFromDrive() {
     }
     const remoteDB = await res.json();
     // applyMigrations içinde FORMAT_CONFIG ve currency da uygulanır
-    replaceObjectContents(DB, applyMigrations(remoteDB));
+    _coreState.replaceObjectContents(_coreState.DB, applyMigrations(remoteDB));
     gInitialLoadDone = true; // gerçek veri başarıyla geldi — artık Drive'a yazmak güvenli
     gDirty = false; // taze veri geldi, yereldeki "kaydedilmemiş değişiklik" durumu artık geçersiz
     // Drive'dan taze veri geldi — sayfa filtrelerini de güncel DB'ye göre yeniden uygula
@@ -381,17 +384,17 @@ export async function gDriveLoadFromDrive() {
     set_hesapFiltreRestored(false);
     set_katFiltreRestored(false);
     set_asgariKuralPbFiltreRestored(false);
-    call('renderAll');
+    _wrapRegistry.call('renderAll');
     // Drive verisi bu noktaya kadar gelmemiş olabileceğinden, sayfa ilk açıldığında
     // #kartlar?kart=...&tab=... gibi bir deep-link varsa ve kart o an DB'de yoktu diye
     // açılamadıysa, taze veri geldikten sonra tekrar dene.
-    call('_retryKartDeepLink');
+    _wrapRegistry.call('_retryKartDeepLink');
     gDriveSetStatus('Senkronize edildi ✓', 'var(--success, #4ade80)');
     setTimeout(() => gDriveSetStatus('Hazır', 'var(--text3)'), 3000);
     // Format config yüklendikten sonra saati güncelle
-    call('updateClockFn');
+    _wrapRegistry.call('updateClockFn');
     // Her gün bir defa: TCMB döviz kurlarını sessizce kontrol et / güncelle
-    if(typeof tcmbKurGunlukKontrolEt === 'function') tcmbKurGunlukKontrolEt();
+    if(typeof _kurServisleri.tcmbKurGunlukKontrolEt === 'function') _kurServisleri.tcmbKurGunlukKontrolEt();
   } catch(e) {
     console.error('Drive load error:', e);
     gDriveSetStatus('Yükleme hatası', 'var(--danger)');
@@ -418,7 +421,7 @@ export async function gDriveSaveNow() {
   gSaving = true;
   gDriveSetStatus('Kaydediliyor...', 'var(--accent)');
   try {
-    const body = JSON.stringify(DB);
+    const body = JSON.stringify(_coreState.DB);
     const blob  = new Blob([body], { type: 'application/json' });
 
     let res;
@@ -449,7 +452,7 @@ export async function gDriveSaveNow() {
     // Başarılı kayıt — yerel güvenlik yedeğini de güncelle ve dirty bayrağını temizle
     gDirty = false;
     clearTimeout(gSaveRetryTimer);
-    try { localStorage.setItem('finans_local_backup', JSON.stringify({ tarih: new Date().toISOString(), data: DB })); } catch(e) {}
+    try { localStorage.setItem('finans_local_backup', JSON.stringify({ tarih: new Date().toISOString(), data: _coreState.DB })); } catch(e) {}
     gDriveSetStatus('Kaydedildi ✓', 'var(--success, #4ade80)');
     setTimeout(() => gDriveSetStatus('Hazır', 'var(--text3)'), 2500);
   } catch(e) {
@@ -523,3 +526,31 @@ window.addEventListener('beforeunload', function(e) {
 // module'de yasaktır). Bu setter fonksiyonları o davranışı korumak için
 // eklendi - ilgili dosyalar artık `X = v` yerine `setX(v)` çağırıyor.
 export function setGDirty(v) { gDirty = v; }
+
+// ============================================================
+// [DI-MIGRATION] services.gdrive — container'a kayıt
+// ------------------------------------------------------------
+// bkz. kur-servisleri.js'teki açıklama. Bu dosyanın da kendi üstteki
+// importları (ui/pages'e geri bağımlılıklar dahil) bir sonraki turda,
+// o sayfa modülleri container'a taşındığında kaldırılacak.
+// ============================================================
+import { provide } from '@core/container.js';
+provide('services.gdrive', {
+  gDriveGeriYukleYerelYedek, gDriveReady, gDriveSetStatus, _gDriveTokenAlindi,
+  gDriveInit, gDriveSilentRefresh, gFetchUserInfo, gDriveShowUserInfo,
+  gDriveSignIn, gDriveSignOut, _gDriveRenderRevizyonListesi, isIOSSafari,
+  setGDirty, gDriveAcRevizyonModal, gDriveOnizleRevizyon, gApiFetch,
+  gDriveFindFile, gDriveLoadFromDrive, gDriveSaveNow, gDriveSyncNow,
+  GDRIVE_CLIENT_ID_DEFAULT, GDRIVE_SCOPES, GDRIVE_FILE_NAME,
+  get _gDriveRevizyonListesi() { return _gDriveRevizyonListesi; },
+  get _gDriveSeciliRevizyonId() { return _gDriveSeciliRevizyonId; },
+  get _gDriveOnizlemeData() { return _gDriveOnizlemeData; },
+  get GDRIVE_CLIENT_ID() { return GDRIVE_CLIENT_ID; },
+  get gTokenClient() { return gTokenClient; },
+  get gAccessToken() { return gAccessToken; },
+  get gDriveFileId() { return gDriveFileId; },
+  get gDirty() { return gDirty; },
+  get gInitialLoadDone() { return gInitialLoadDone; },
+  get gSaving() { return gSaving; },
+  get gSaveRetryTimer() { return gSaveRetryTimer; },
+});

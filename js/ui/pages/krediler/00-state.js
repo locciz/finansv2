@@ -48,3 +48,8 @@ export function set_kmhKrediCurrentStep(v) { _kmhKrediCurrentStep = v; }
 export function setEditKrediId(v) { editKrediId = v; }
 export function set_krediCurrentStep(v) { _krediCurrentStep = v; }
 export function setEditKrediTipId(v) { editKrediTipId = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.kredilerState", _self);

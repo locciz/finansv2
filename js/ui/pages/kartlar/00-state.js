@@ -57,3 +57,8 @@ export function set_editGrupId(v) { _editGrupId = v; }
 export function set_kartOdemeCurrentStep(v) { _kartOdemeCurrentStep = v; }
 export function set_kartOdemeKalanBorc(v) { _kartOdemeKalanBorc = v; }
 export function setEditKartAltyapiId(v) { editKartAltyapiId = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.kartlarState", _self);

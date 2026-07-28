@@ -1,13 +1,19 @@
-import { saveData } from '../../core/app-core-base.js';
-import { isIsBgunu } from '../../core/date-utils.js';
-import { fmt, fmtDate, localDateStr } from '../../core/format.js';
-import { DB } from '../../core/state.js';
-import { kontratAylariHesapla } from '../../domain/hesaplamalar.js';
-import { _sidebarDim, showToast } from './modal-genel.js';
-import { setDateInputValue } from './money-input.js';
-import { getTatilSet } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
-import { renderHesaplar } from '../pages/hesaplar/04-hesap-liste-render.js';
-import { call } from '../../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.dateUtils, core.format,
+// core.state, domain.hesaplamalar, ui.components.modalGenel,
+// ui.components.moneyInput, core.wrapRegistry zaten container'a taşınmış
+// katmanlara ait. @pages/* importları o katman henüz taşınmadığı için
+// BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _dateUtils = inject('core.dateUtils');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _hesaplamalar = inject('domain.hesaplamalar');
+const _modalGenel = inject('ui.components.modalGenel');
+const _moneyInput = inject('ui.components.moneyInput');
+const _wrapRegistry = inject('core.wrapRegistry');
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 // ============================================================
 // js/ui/components/kontrat-plani.js — Kontrat (kira/maaş) ödeme
 // planı modalı: ay bazlı ödendi/atla/ertele/taksitlendir/not
@@ -23,7 +29,7 @@ export function openKontratPlan(tip, id) {
   _kpYil = new Date().getFullYear();
   kontratPlanFormKapat();
   renderKontratPlan();
-  document.getElementById('modal-kontrat-plan').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
+  document.getElementById('modal-kontrat-plan').classList.add('open'); document.body.classList.add('modal-open'); _modalGenel._sidebarDim(true);
 }
 
 export function kontratPlanYilDegistir(d) { _kpYil += d; renderKontratPlan(); }
@@ -31,8 +37,8 @@ export function kontratPlanYilDegistir(d) { _kpYil += d; renderKontratPlan(); }
 export function kontratPlanBugune()        { _kpYil = new Date().getFullYear(); renderKontratPlan(); }
 
 export function getKontrat() {
-  if(_kpTip==='kira') return (DB.kiralar||[]).find(k=>k.id===_kpId);
-  return (DB.maaslar||[]).find(m=>m.id===_kpId);
+  if(_kpTip==='kira') return (_coreState.DB.kiralar||[]).find(k=>k.id===_kpId);
+  return (_coreState.DB.maaslar||[]).find(m=>m.id===_kpId);
 }
 
 export function getOverride(k, ay) {
@@ -50,12 +56,12 @@ export function renderKontratPlan() {
   document.getElementById('kontrat-plan-title').textContent = (k.aciklama||'Kontrat') + ' — Ödeme Planı';
   document.getElementById('kontrat-plan-sub').textContent =
     (isKira ? (isGelir?'Kira Geliri':'Kira Gideri') : 'Maaş') +
-    ' · ' + fmtDate(k.baslangic) + ' – ' + (k.bitis?fmtDate(k.bitis):'Süresiz') +
+    ' · ' + _format.fmtDate(k.baslangic) + ' – ' + (k.bitis?_format.fmtDate(k.bitis):'Süresiz') +
     ' · Her ayın ' + k.gun + '. günü';
   document.getElementById('kontrat-plan-yil').textContent = _kpYil;
 
-  const aylar = kontratAylariHesapla(k, _kpYil);
-  const todayStr = localDateStr(new Date());
+  const aylar = _hesaplamalar.kontratAylariHesapla(k, _kpYil);
+  const todayStr = _format.localDateStr(new Date());
 
   // Stats
   let odendi=0, bekliyor=0, ertelendi=0, atlandi=0, toplamTutar=0;
@@ -73,7 +79,7 @@ export function renderKontratPlan() {
     ['Bekliyor', bekliyor, 'color:var(--accent)'],
     ['Ertelendi', ertelendi, 'color:var(--warning,#f59e0b)'],
     ['Atlandı', atlandi, 'color:var(--text3)'],
-    ['Yıl Toplam', fmt(toplamTutar), isGelir?'color:var(--accent2)':'color:var(--danger)'],
+    ['Yıl Toplam', _format.fmt(toplamTutar), isGelir?'color:var(--accent2)':'color:var(--danger)'],
   ].map(([label,val,style])=>
     `<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;min-width:90px">
       <div style="font-size:10px;color:var(--text3);margin-bottom:3px">${label}</div>
@@ -116,8 +122,8 @@ export function renderKontratPlan() {
       taksitRows = ov.taksitler.map((t,i)=>
         `<tr style="background:rgba(139,92,246,.05)">
           <td style="padding-left:24px;color:var(--text3);font-size:11px">↳ ${i+1}. taksit</td>
-          <td class="mono" style="font-size:11px">${fmtDate(t.tarih)}</td>
-          <td class="mono" style="font-size:11px">${fmt(t.tutar)}</td>
+          <td class="mono" style="font-size:11px">${_format.fmtDate(t.tarih)}</td>
+          <td class="mono" style="font-size:11px">${_format.fmt(t.tutar)}</td>
           <td colspan="3"></td>
         </tr>`
       ).join('');
@@ -125,8 +131,8 @@ export function renderKontratPlan() {
 
     return `<tr style="${rowStyle}">
       <td class="mono" style="font-size:12px">${a.ay}</td>
-      <td class="mono" style="font-size:12px${tarih!==a.tarih?' color:var(--accent)':''}">${fmtDate(tarih)}</td>
-      <td class="mono" style="font-size:13px;font-weight:600;${isGelir?'color:var(--accent2)':'color:var(--danger)'}">${fmt(tutar)}</td>
+      <td class="mono" style="font-size:12px${tarih!==a.tarih?' color:var(--accent)':''}">${_format.fmtDate(tarih)}</td>
+      <td class="mono" style="font-size:13px;font-weight:600;${isGelir?'color:var(--accent2)':'color:var(--danger)'}">${_format.fmt(tutar)}</td>
       <td>${durumBadge}</td>
       <td style="font-size:11px;color:var(--text3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${not}">${not}</td>
       <td style="white-space:nowrap">
@@ -170,14 +176,14 @@ export function renderKontratPlan() {
 export function kontratPlanOdendi(ay) {
   const k = getKontrat(); if(!k) return;
   if(!k.odemeOverrides) k.odemeOverrides = {};
-  const aylar = kontratAylariHesapla(k, parseInt(ay.split('-')[0]));
+  const aylar = _hesaplamalar.kontratAylariHesapla(k, parseInt(ay.split('-')[0]));
   const ayData = aylar.find(a=>a.ay===ay);
   const tutar = ayData ? Math.abs(ayData.tutar) : Math.abs(k.tutar);
   k.odemeOverrides[ay] = {...(k.odemeOverrides[ay]||{}), durum:'odendi', tutar};
-  saveData();
+  _appCoreBase.saveData();
   // Otomatik bakiye
-  call('_otoBakiyeGuncelle', _kpTip, _kpId, ay, 'odendi', tutar);
-  saveData();
+  _wrapRegistry.call('_otoBakiyeGuncelle', _kpTip, _kpId, ay, 'odendi', tutar);
+  _appCoreBase.saveData();
   renderHesaplar();
   renderKontratPlan();
 }
@@ -187,11 +193,11 @@ export function kontratPlanOdenmediYap(ay) {
   if(!k.odemeOverrides) k.odemeOverrides = {};
   const ov = k.odemeOverrides[ay]||{};
   // Geri al: bakiyeden düş
-  call('_otoBakiyeGuncelle', _kpTip, _kpId, ay, 'bekliyor', 0);
+  _wrapRegistry.call('_otoBakiyeGuncelle', _kpTip, _kpId, ay, 'bekliyor', 0);
   delete ov.durum;
   if(Object.keys(ov).length===0) delete k.odemeOverrides[ay];
   else k.odemeOverrides[ay]=ov;
-  saveData();
+  _appCoreBase.saveData();
   renderHesaplar();
   renderKontratPlan();
 }
@@ -201,13 +207,13 @@ export function kontratPlanAtla(ay) {
   if(!k.odemeOverrides) k.odemeOverrides = {};
   // İptal/atla durumunda o ay tutar 0 olsun
   k.odemeOverrides[ay] = {...(k.odemeOverrides[ay]||{}), durum:'atlandi', tutar: 0};
-  saveData(); renderKontratPlan();
+  _appCoreBase.saveData(); renderKontratPlan();
 }
 
 export function kontratPlanSifirla(ay) {
   const k = getKontrat(); if(!k) return;
   if(k.odemeOverrides) delete k.odemeOverrides[ay];
-  saveData(); renderKontratPlan();
+  _appCoreBase.saveData(); renderKontratPlan();
 }
 
 // ── Ertele/Taksitlendir/Not formu (aç/kapat/kaydet) ──────────
@@ -231,7 +237,7 @@ export function kontratPlanFormAc(ay, islem) {
     if(davranis === 'onceki') {
       const tatilSet = getTatilSet();
       let dt = new Date(parseInt(yilStr), parseInt(ayStr)-1, lastDay);
-      while(!isIsBgunu(dt, tatilSet)) dt.setDate(dt.getDate()-1);
+      while(!_dateUtils.isIsBgunu(dt, tatilSet)) dt.setDate(dt.getDate()-1);
       payGun = dt.getDate();
     } else {
       payGun = lastDay;
@@ -243,7 +249,7 @@ export function kontratPlanFormAc(ay, islem) {
   const mevcutNot   = ov.not || '';
 
   if(islem==='ertele') {
-    const ertelemeTarih = ov.tarih || localDateStr(new Date());
+    const ertelemeTarih = ov.tarih || _format.localDateStr(new Date());
     titleEl.textContent = '↷ Ödeme Erteleme — ' + ay;
     bodyEl.innerHTML = `
       <div class="form-row cols-2">
@@ -252,7 +258,7 @@ export function kontratPlanFormAc(ay, islem) {
       </div>
       <div class="form-row"><div><label>Not</label><input id="kpf-not-ertele" placeholder="Erteleme nedeni..."></div></div>`;
     setTimeout(()=>{
-      const el = document.getElementById('kpf-tarih'); if(el) setDateInputValue(el, ertelemeTarih);
+      const el = document.getElementById('kpf-tarih'); if(el) _moneyInput.setDateInputValue(el, ertelemeTarih);
       const el2 = document.getElementById('kpf-tutar'); if(el2) el2.value = mevcutTutar;
       const el3 = document.getElementById('kpf-not-ertele'); if(el3) el3.value = mevcutNot;
     }, 0);
@@ -262,10 +268,10 @@ export function kontratPlanFormAc(ay, islem) {
     const d1 = ov.taksitler?.[0]?.tarih || mevcutTarih;
     // 2. taksit 1 ay sonra
     const dt2 = new Date(mevcutTarih+'T00:00:00'); dt2.setMonth(dt2.getMonth()+1);
-    const d2 = ov.taksitler?.[1]?.tarih || localDateStr(dt2);
+    const d2 = ov.taksitler?.[1]?.tarih || _format.localDateStr(dt2);
     titleEl.textContent = '⊟ Taksitlendirme — ' + ay;
     bodyEl.innerHTML = `
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Toplam tutar: ${fmt(mevcutTutar)} — İki taksit olarak bölebilirsiniz</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Toplam tutar: ${_format.fmt(mevcutTutar)} — İki taksit olarak bölebilirsiniz</div>
       <div class="form-row cols-2">
         <div><label>1. Taksit Tarihi</label><input id="kpf-t1-tarih" type="date"></div>
         <div><label>1. Taksit Tutarı</label><input id="kpf-t1-tutar" type="number" step="0.01"></div>
@@ -276,9 +282,9 @@ export function kontratPlanFormAc(ay, islem) {
       </div>
       <div class="form-row"><div><label>Not</label><input id="kpf-not-taksit" placeholder="Taksit nedeni..."></div></div>`;
     setTimeout(()=>{
-      const i1t = document.getElementById('kpf-t1-tarih'); if(i1t) setDateInputValue(i1t, d1);
+      const i1t = document.getElementById('kpf-t1-tarih'); if(i1t) _moneyInput.setDateInputValue(i1t, d1);
       const i1a = document.getElementById('kpf-t1-tutar'); if(i1a) i1a.value = t1;
-      const i2t = document.getElementById('kpf-t2-tarih'); if(i2t) setDateInputValue(i2t, d2);
+      const i2t = document.getElementById('kpf-t2-tarih'); if(i2t) _moneyInput.setDateInputValue(i2t, d2);
       const i2a = document.getElementById('kpf-t2-tutar'); if(i2a) i2a.value = t2;
       const iN  = document.getElementById('kpf-not-taksit');      if(iN)  iN.value  = mevcutNot;
     }, 0);
@@ -313,7 +319,7 @@ export function kontratPlanFormKaydet() {
     const tarih = document.getElementById('kpf-tarih')?.value;
     const tutar = parseFloat(document.getElementById('kpf-tutar')?.value);
     const not   = document.getElementById('kpf-not-ertele')?.value.trim();
-    if(!tarih) { showToast('Tarih zorunlu', 'error'); return; }
+    if(!tarih) { _modalGenel.showToast('Tarih zorunlu', 'error'); return; }
     k.odemeOverrides[ay] = { ...ov, durum:'ertelendi', tarih, tutar: isNaN(tutar)?Math.abs(k.tutar):tutar, not };
   } else if(islem==='taksit') {
     const t1t = document.getElementById('kpf-t1-tarih')?.value;
@@ -321,7 +327,7 @@ export function kontratPlanFormKaydet() {
     const t2t = document.getElementById('kpf-t2-tarih')?.value;
     const t2a = parseFloat(document.getElementById('kpf-t2-tutar')?.value);
     const not = document.getElementById('kpf-not-taksit')?.value.trim();
-    if(!t1t || !t2t || isNaN(t1a) || isNaN(t2a)) { showToast('Tüm alanları doldurun', 'error'); return; }
+    if(!t1t || !t2t || isNaN(t1a) || isNaN(t2a)) { _modalGenel.showToast('Tüm alanları doldurun', 'error'); return; }
     k.odemeOverrides[ay] = { ...ov, durum:'taksit', taksitler:[{tarih:t1t,tutar:t1a},{tarih:t2t,tutar:t2a}], not };
   } else if(islem==='not') {
     const not = document.getElementById('kpf-not-not')?.value.trim();
@@ -329,10 +335,25 @@ export function kontratPlanFormKaydet() {
     if(!k.odemeOverrides[ay].durum) delete k.odemeOverrides[ay].durum; // not only
   }
 
-  saveData();
+  _appCoreBase.saveData();
   kontratPlanFormKapat();
   renderKontratPlan();
-  showToast('Kaydedildi');
+  _modalGenel.showToast('Kaydedildi');
 }
 
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.kontratPlani — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.kontratPlani', {
+  get _kpTip() { return _kpTip; },
+  get _kpId() { return _kpId; },
+  get _kpYil() { return _kpYil; },
+  get _kpAktifForm() { return _kpAktifForm; },
+  openKontratPlan, kontratPlanYilDegistir, kontratPlanBugune, getKontrat,
+  getOverride, renderKontratPlan, kontratPlanOdendi, kontratPlanOdenmediYap,
+  kontratPlanAtla, kontratPlanSifirla, kontratPlanFormAc,
+  kontratPlanFormKapat, kontratPlanFormKaydet,
+});

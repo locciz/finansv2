@@ -55,3 +55,9 @@
     return { faizBazis, brutFaiz, stopajTutar, netFaiz, nihai, kazanc, kazanYuzde, bitisTarihISO };
   }
 
+// ============================================================
+// [DI-MIGRATION] domain.mevduatHesaplama — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.mevduatHesaplama', { _toLocalISODate, hesaplaMevduatOnizleme });
+

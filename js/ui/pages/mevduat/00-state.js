@@ -33,3 +33,8 @@ export function set_mevCurrentStep(v) { _mevCurrentStep = v; }
 export function setEditMevduatId(v) { editMevduatId = v; }
 export function set_editMevduatEskiTutar(v) { _editMevduatEskiTutar = v; }
 export function set_mevGunlukMod(v) { _mevGunlukMod = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.mevduatState", _self);

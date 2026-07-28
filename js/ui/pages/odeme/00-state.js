@@ -29,3 +29,8 @@ export var _odHesapPopupHesaplar = [];
 export function set_odModalSuspendedByTransfer(v) { _odModalSuspendedByTransfer = v; }
 export function set_odModalOwnsBodyLock(v) { _odModalOwnsBodyLock = v; }
 export function set_odHesapPopupHesaplar(v) { _odHesapPopupHesaplar = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.odemeState", _self);

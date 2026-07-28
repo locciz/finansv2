@@ -1,20 +1,20 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, localDateStr } from '../../../core/format.js';
-import { ALL_CURRENCIES, DB } from '../../../core/state.js';
-import { buildCurrencyOptions } from '../../../domain/doviz.js';
-import { showConfirm, showToast } from '../../components/modal-genel.js';
-import { setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { calcMevduatObj } from '../abonelik.js';
-import { _mevGunlukMod, set_mevGunlukMod } from './00-state.js';
-import { calcMevduat } from './01-mevduat-form-wizard.js';
-import { renderMevduat } from './05-mevduat-liste-render.js';
-import { _fillMevVadesizSel, _mevGizliAksiyonlar, onMevStratejiChange } from './06-mevduat-hesap-secim-formu.js';
-import { odOdendiMi } from '../odeme/01-genel-yardimcilar.js';
-import { getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { renderOzet } from '../ozet.js';
-import { renderHesaplar } from '../hesaplar/04-hesap-liste-render.js';
-import { openModal } from '../../components/modal-genel.js';
-import { call } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, localDateStr } from '@core/format.js';
+import { ALL_CURRENCIES, DB } from '@core/state.js';
+import { buildCurrencyOptions } from '@domain/doviz.js';
+import { showConfirm, showToast } from '@components/modal-genel.js';
+import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { calcMevduatObj } from '@pages/abonelik.js';
+import { _mevGunlukMod, set_mevGunlukMod } from '@pages/mevduat/00-state.js';
+import { calcMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { _fillMevVadesizSel, _mevGizliAksiyonlar, onMevStratejiChange } from '@pages/mevduat/06-mevduat-hesap-secim-formu.js';
+import { odOdendiMi } from '@pages/odeme/01-genel-yardimcilar.js';
+import { getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderOzet } from '@pages/ozet.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { openModal } from '@components/modal-genel.js';
+import { call } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/mevduat/03-mevduat-yenileme-ve-kapama.js
 // Vade sonu yenileme (tümü/anapara) ve vadesize aktarma/kapama

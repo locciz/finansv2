@@ -1,12 +1,12 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { showConfirm, validateRequiredFields } from '../../components/modal-genel.js';
-import { setDateInputValue } from '../../components/money-input.js';
-import { editHesapId } from '../hesaplar/04-hesap-liste-render.js';
-import { ORAN_CONFIG, editOranId, editOranTip, setEditOranId, setEditOranTip } from './00-state.js';
-import { gecmisListesiRenderEt } from '../../components/step-wizard.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { showConfirm, validateRequiredFields } from '@components/modal-genel.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { editHesapId } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { ORAN_CONFIG, editOranId, editOranTip, setEditOranId, setEditOranTip } from '@pages/tanimlamalar/00-state.js';
+import { gecmisListesiRenderEt } from '@components/step-wizard.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/05-genel-oran-tablolari.js
 // Genel oran tabloları — KMH/gecikme/KKDF/BSMV/stopaj + oto günlük oran geçmişi

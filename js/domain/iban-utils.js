@@ -44,5 +44,11 @@ export function formatIbanView(el) {
 // taraması, 2026-07). formatIbanView'in "tersi" olarak tasarlanmış ama focus/blur
 // event'lerine hiç bağlanmamış, kullanılmayan bir yardımcıydı.
 
+// ============================================================
+// [DI-MIGRATION] domain.ibanUtils — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.ibanUtils', { ibanMod97, parseIban, formatIbanView });
+
 
 

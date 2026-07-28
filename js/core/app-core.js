@@ -1,17 +1,24 @@
-import { MOB_MORE_ITEM_ID_BY_PAGE, saveData } from './app-core-base.js';
-import { DB } from './state.js';
-import { hesapFiltre, setHesapFiltre } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { renderHesaplar } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { attachAllIbanValidations } from '../ui/components/iban-ui.js';
-import { applyToAll } from '../ui/components/mobile-nav-tema/05-tarih-input-overlay.js';
-import { bindKartlarToolbarEvents, kartlarFiltreOku, kartlarToolbarHtml } from '../ui/pages/kartlar/09-kart-altyapi.js';
-import { entegre } from '../domain/hesap-entegrasyon-motoru.js';
-import { call, get, has, register } from './wrap-registry.js';
-// Bu dosya, temel tanımlar (loadData/applyMigrations/defaultData/saveData/
+import { hesapFiltre, setHesapFiltre } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { attachAllIbanValidations } from '@components/iban-ui.js';
+import { applyToAll } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
+import { bindKartlarToolbarEvents, kartlarFiltreOku, kartlarToolbarHtml } from '@pages/kartlar/09-kart-altyapi.js';
+import { inject, provide } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: aşağıdaki dört bağımlılık zaten container'a
+// taşınmış katmanlara ait (core.appCoreBase, core.state,
+// domain.hesapEntegrasyonMotoru, core.wrapRegistry), bu yüzden doğrudan
+// import yerine inject() ile tembel çözülüyor. @pages/* ve @components/*
+// importları ise o katmanlar henüz taşınmadığı için BİLİNÇLİ OLARAK
+// korunuyor (bkz. DI-MIGRATION.md).
+const _appCoreBase = inject('core.appCoreBase');
+const _coreState = inject('core.state');
+const _hesapEntegrasyonMotoru = inject('domain.hesapEntegrasyonMotoru');
+const _wrapRegistry = inject('core.wrapRegistry');
+// Bu dosya, temel tanımlar (loadData/applyMigrations/defaultData/_appCoreBase.saveData/
 // showPage/renderAll/showTab — bkz. js/core/app-core-base.js) yerleştirildikten
 // SONRA çalışması gereken genel amaçlı wrap/iyileştirme fonksiyonlarını içerir:
 // ödeme popup'ı ikon/buton düzeltmeleri, tablo filtre/sıralama tercihlerinin
-// kalıcı hâle getirilmesi ve DB şeklinin normalize edilmesi. index.html'de
+// kalıcı hâle getirilmesi ve _coreState.DB şeklinin normalize edilmesi. index.html'de
 // kasıtlı olarak geç pozisyonda — renderKartlar/tblSiralamaAyarla/showPage
 // gibi isimleri wrap ediyor, o yüzden her şeyin zaten tanımlı olmasına
 // ihtiyaç duyuyor.
@@ -24,7 +31,7 @@ import { call, get, has, register } from './wrap-registry.js';
   // [ES module] eskiden hook(name,after) window[name]'i doğrudan okuyup
   // window[name]'e geri yazarak wrap ediyordu; artık get/register ile
   // wrap-registry üzerinden aynı zincirleme wrap deseni sağlanıyor.
-  function hook(name,after){const old=get(name);if(typeof old!=='function'||old._uiIconFixWrapped)return;const wrapped=function(){const r=old.apply(this,arguments);run(after);return r;};wrapped._uiIconFixWrapped=true;register(name,wrapped);}
+  function hook(name,after){const old=_wrapRegistry.get(name);if(typeof old!=='function'||old._uiIconFixWrapped)return;const wrapped=function(){const r=old.apply(this,arguments);run(after);return r;};wrapped._uiIconFixWrapped=true;_wrapRegistry.register(name,wrapped);}
   function fixPaymentButtons(){
     const tum=el('od-tumu-btn');
     if(tum && !tum.querySelector('.mhtb-icon svg')){
@@ -53,9 +60,9 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
   'use strict';
 
   function ensureRoot(){
-    if(typeof DB === 'undefined' || !DB) return null;
-    if(!DB.uiFiltreler || typeof DB.uiFiltreler !== 'object') DB.uiFiltreler = {};
-    return DB.uiFiltreler;
+    if(typeof _coreState.DB === 'undefined' || !_coreState.DB) return null;
+    if(!_coreState.DB.uiFiltreler || typeof _coreState.DB.uiFiltreler !== 'object') _coreState.DB.uiFiltreler = {};
+    return _coreState.DB.uiFiltreler;
   }
   function ensurePage(page){
     const root = ensureRoot();
@@ -73,7 +80,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     try { return JSON.stringify(a) === JSON.stringify(b); } catch(e) { return false; }
   }
   function save(){
-    try { if(typeof saveData === 'function') saveData(); } catch(e) {}
+    try { if(typeof _appCoreBase.saveData === 'function') _appCoreBase.saveData(); } catch(e) {}
   }
   function normalizeMulti(value){
     const arr = Array.isArray(value) ? value.slice() : (value ? [value] : []);
@@ -163,7 +170,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
 })();
 
 
-// ── DB şekli normalizasyonu + tablo filtre wrap'leri ───────────────────────
+// ── _coreState.DB şekli normalizasyonu + tablo filtre wrap'leri ───────────────────────
 // NOT: Bu blok bir IIFE olarak yorumlanmıştı ama açılış "(function(){" satırı
 // eksikti — kod, module top-level scope'unda sarmalayıcısız çalışıyordu.
 // Pratikte çalışma zamanı davranışını bozmuyordu (ES module zaten dosya
@@ -312,24 +319,24 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
   }
   function db(){
     // [BUG FIX] Eskiden `if(!W.DB) W.DB = {}; return normalizeDb(W.DB);` idi.
-    // window.DB projede artık hiç set edilmediği için (gerçek DB, state.js'in
+    // window.DB projede artık hiç set edilmediği için (gerçek _coreState.DB, state.js'in
     // export ettiği modül binding'i olarak yaşıyor) bu her çağrıda W.DB hep
     // boş kalıyor, fonksiyon her seferinde YENİ, KALICI OLMAYAN bir {} objesi
     // yaratıp onu normalize ediyordu — prefGet/prefSet/tblFiltreKaydet/
     // transferLogStatusFiltre gibi bu bloğun tüm tercih/filtre kaydetme
-    // mekanizması sessizce gerçek DB'ye değil bu çöp objeye yazıyordu.
-    // Artık gerçek (import edilen) DB binding'i normalize edilip kullanılıyor.
-    return normalizeDb(DB);
+    // mekanizması sessizce gerçek _coreState.DB'ye değil bu çöp objeye yazıyordu.
+    // Artık gerçek (import edilen) _coreState.DB binding'i normalize edilip kullanılıyor.
+    return normalizeDb(_coreState.DB);
   }
   function save(changed){
     if(!changed) return;
-    // [BUG FIX] Eskiden `if(typeof W.saveData==='function') safe('saveData',function(){W.saveData();});`
-    // idi. window.saveData artık hiç set edilmediği için bu her zaman false
+    // [BUG FIX] Eskiden `if(typeof W._appCoreBase.saveData==='function') safe('_appCoreBase.saveData',function(){W._appCoreBase.saveData();});`
+    // idi. window._appCoreBase.saveData artık hiç set edilmediği için bu her zaman false
     // dönüyordu — prefSet() ile değiştirilen tercih/filtre ayarları
     // (transferLog durumu, tablo filtreleri vb.) hiçbir zaman diske
-    // kaydedilmiyordu. saveData zaten dosya başında gerçek import olarak
+    // kaydedilmiyordu. _appCoreBase.saveData zaten dosya başında gerçek import olarak
     // mevcut, doğrudan çağrılıyor.
-    safe('saveData', function(){ saveData(); });
+    safe('_appCoreBase.saveData', function(){ _appCoreBase.saveData(); });
   }
 
   function prefGet(page, key, fallback){
@@ -398,9 +405,9 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
       const oldDefault = W.defaultData;
       W.defaultData = mark(function(){ return normalizeDb(oldDefault.apply(this, arguments)); }, '_dbShapeFix');
     }
-    if(typeof W.saveData === 'function' && !onceFlag(W.saveData, '_dbShapeFix')){
-      const oldSave = W.saveData;
-      W.saveData = mark(function(){ normalizeDb(DB); return oldSave.apply(this, arguments); }, '_dbShapeFix');
+    if(typeof W._appCoreBase.saveData === 'function' && !onceFlag(W._appCoreBase.saveData, '_dbShapeFix')){
+      const oldSave = W._appCoreBase.saveData;
+      W._appCoreBase.saveData = mark(function(){ normalizeDb(_coreState.DB); return oldSave.apply(this, arguments); }, '_dbShapeFix');
     }
   }
 
@@ -444,9 +451,9 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
       queueRender('renderTransferLog');
       return selected;
     }, '_dbShapeFix');
-    const oldPopup = get('openTransferLogFiltrePopup');
+    const oldPopup = _wrapRegistry.get('openTransferLogFiltrePopup');
     if(typeof oldPopup === 'function' && !onceFlag(oldPopup, '_dbShapeFix')){
-      register('openTransferLogFiltrePopup', mark(function(){ normalizeDb(DB); return oldPopup.apply(this, arguments); }, '_dbShapeFix'));
+      _wrapRegistry.register('openTransferLogFiltrePopup', mark(function(){ normalizeDb(_coreState.DB); return oldPopup.apply(this, arguments); }, '_dbShapeFix'));
     }
   }
 
@@ -463,7 +470,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
   }
 
   function boot(){
-    normalizeDb(DB);
+    normalizeDb(_coreState.DB);
     patchFactories();
     patchFilterHelpers();
     patchMonthlyDetailApi();
@@ -493,7 +500,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     toggleMulti: prefToggleMulti,
     page: function(pageName){ return db().uiFiltreler[pageName]; }
   };
-  W.normalizeDbPrefs = function(){ return normalizeDb(DB); };
+  W.normalizeDbPrefs = function(){ return normalizeDb(_coreState.DB); };
 
   if(DOC.readyState === 'loading') DOC.addEventListener('DOMContentLoaded', boot, { once:true });
   else boot();
@@ -546,8 +553,8 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
       const pageId = (page.id || '').replace(/^page-/, '');
       // [ES module] Eskiden onclick attribute içeriği okunarak eşleştiriliyordu;
       // onclick temizliği sonrası HTML'de bu attribute yok, sabit id haritası
-      // (MOB_MORE_ITEM_ID_BY_PAGE) kullanılıyor.
-      const activeItemId = MOB_MORE_ITEM_ID_BY_PAGE[pageId];
+      // (_appCoreBase.MOB_MORE_ITEM_ID_BY_PAGE) kullanılıyor.
+      const activeItemId = _appCoreBase.MOB_MORE_ITEM_ID_BY_PAGE[pageId];
       D.querySelectorAll('.mob-more-item').forEach(function(item){
         item.classList.toggle('active', !!activeItemId && item.id === activeItemId);
       });
@@ -611,7 +618,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
       if(typeof kartlarToolbarHtml !== 'function') return;
       const bar = D.getElementById('kartlar-siralama-bar');
       if(!bar) return;
-      const cards = Array.isArray(DB.kartlar) ? DB.kartlar.filter(function(k){ return !k.silindi; }) : [];
+      const cards = Array.isArray(_coreState.DB.kartlar) ? _coreState.DB.kartlar.filter(function(k){ return !k.silindi; }) : [];
       const sayac = {
         tumu: cards.length,
         aktif: cards.filter(function(k){ return (k.durum || 'aktif') !== 'pasif'; }).length,
@@ -669,10 +676,10 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     }
   };
 
-  // ---- tableLabelPass: tablo label (ikinci geçiş), iban validasyon, date overlay, topbar entegre, kart toolbar polish ----
+  // ---- tableLabelPass: tablo label (ikinci geçiş), iban validasyon, date overlay, topbar _hesapEntegrasyonMotoru.entegre, kart toolbar polish ----
   const tableLabelPass = {
     updateTopbarProcedural: function(){
-      if(entegre && typeof entegre.yenile === 'function') entegre.yenile();
+      if(_hesapEntegrasyonMotoru.entegre && typeof _hesapEntegrasyonMotoru.entegre.yenile === 'function') _hesapEntegrasyonMotoru.entegre.yenile();
     },
     labelizeTablesProcedural: function(){
       D.querySelectorAll('.tbl-wrap table:not([data-rf86-labeled])').forEach(function(table){
@@ -869,7 +876,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     'showPage','showTab','renderPage','openModal','closeModal',
     'tbkAyDetayAc','renderTbkAyDetay','tbkAyDetayRender','openTransferModal','confirmTumVeriRestore'
   ];
-  const SAVE_FNS = ['saveData','saveDB'];
+  const SAVE_FNS = ['_appCoreBase.saveData','saveDB'];
 
   function wrapRender(name){
     const old = W[name];
@@ -997,7 +1004,7 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
   W.addEventListener('load', function(){ schedule('load'); }, { once:true });
 })();
 
-// [ES module] Yukarıdaki "DB şekli normalizasyonu" IIFE'si tblFiltre*
+// [ES module] Yukarıdaki "_coreState.DB şekli normalizasyonu" IIFE'si tblFiltre*
 // fonksiyonlarını kendi kapalı scope'unda tanımlayıp modül üstü
 // (_tblFiltreKaydetImpl vb.) mutable pointer'lara yazıyordu. Başka dosyalar
 // bunları statik `import` ile kullanabilsin diye, aynı isimlerle burada —
@@ -1008,3 +1015,17 @@ export function tblFiltreOku(...args) { return _tblFiltreOkuImpl(...args); }
 export function tblFiltreOkuMulti(...args) { return _tblFiltreOkuMultiImpl(...args); }
 export function tblFiltreMultiToggle(...args) { return _tblFiltreMultiToggleImpl(...args); }
 export function filterHesap(...args) { return _filterHesapImpl(...args); }
+
+// ============================================================
+// [DI-MIGRATION] core.appCore — container'a kayıt
+// ============================================================
+// NOT: Bu dosyanın asıl etkisi modül yüklenirken çalışan IIFE'ler
+// (ödeme popup ikon düzeltmeleri, tablo filtre/sıralama persistence,
+// _coreState.DB şekli normalizasyonu) — bunlar side-effect olarak zaten
+// import edilince tetikleniyor. provide() burada sadece dışarıya açık
+// tek gerçek export grubunu (tblFiltre*/filterHesap köprü fonksiyonları)
+// kaydediyor.
+provide('core.appCore', {
+  tblFiltreKaydet, tblFiltreOku, tblFiltreOkuMulti, tblFiltreMultiToggle,
+  filterHesap,
+});

@@ -1,5 +1,5 @@
-import { fmt } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
+import { fmt } from '@core/format.js';
+import { DB } from '@core/state.js';
 // ============================================================
 // js/ui/pages/odeme/03-odeme-log.js
 // Ödeme log kaydı (kim/ne zaman/ne kadar ödedi geçmişi)
@@ -55,4 +55,13 @@ export function _odLogRender(tip, id, key) {
       </div>`;
     }).join('');
 }
+
+// ============================================================
+// DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+// Kendi üstteki importlar (core.format, core.state) BİLİNÇLİ OLARAK
+// bırakıldı — dosyanın davranışı değişmedi, sadece dışa export'lar
+// container'a da kaydedildi.
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.pages.odemeLog', { odLogEkle, odLogGetir, _odLogRender });
 

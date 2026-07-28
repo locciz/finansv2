@@ -1,12 +1,13 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { corsProxyZinciriDene } from '../../../services/kur-servisleri.js';
-import { _sidebarDim, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { setDateInputValue } from '../../components/money-input.js';
-import { editTatilId, setEditTatilId } from './00-state.js';
-import { renderTanimlamalar } from './02-ana-sayfa.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { inject } from '@core/container.js';
+const _kurServisleri = inject('services.kurServisleri');
+import { _sidebarDim, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { editTatilId, setEditTatilId } from '@pages/tanimlamalar/00-state.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/10-resmi-tatiller.js
 // Resmi tatil listesi (otomatik güncelleme + CRUD)
@@ -50,7 +51,7 @@ export async function resmiTatilleriGuncelle() {
       // geçici kesintilere karşı merkezi proxy zincirinden geçiyoruz
       // (Worker varsa önce o denenir, sonra ücretsiz yedekler).
       const TARGET = `https://date.nager.at/api/v3/PublicHolidays/${yil}/TR`;
-      const sonuc = await corsProxyZinciriDene(TARGET, {
+      const sonuc = await _kurServisleri.corsProxyZinciriDene(TARGET, {
         timeoutMs: 6000,
         validator: (text) => {
           try { const p = JSON.parse(text); return Array.isArray(p) && p.length > 0; }

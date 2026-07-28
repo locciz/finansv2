@@ -1,11 +1,11 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _sidebarDim, showConfirm, validateRequiredFields } from '../../components/modal-genel.js';
-import { applyChipsToContainer } from '../../components/select-to-chips.js';
-import { editUrunTipId, setEditUrunTipId } from './00-state.js';
-import { renderTanimlamalar } from './02-ana-sayfa.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _sidebarDim, showConfirm, validateRequiredFields } from '@components/modal-genel.js';
+import { applyChipsToContainer } from '@components/select-to-chips.js';
+import { editUrunTipId, setEditUrunTipId } from '@pages/tanimlamalar/00-state.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/09-urun-tipleri.js
 // Ürün tipi tanımlama CRUD'u

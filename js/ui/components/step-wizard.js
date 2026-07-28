@@ -1,5 +1,8 @@
-import { fmtCur, fmtDate } from '../../core/format.js';
-import { _tutarAsiyorMu } from '../../domain/hesaplamalar.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: her iki bağımlılık da (core.format,
+// domain.hesaplamalar) zaten container'a taşınmış katmanlara ait.
+const _format = inject('core.format');
+const _hesaplamalar = inject('domain.hesaplamalar');
 // ============================================================
 // js/ui/components/step-wizard.js
 // Step wizard (adım sihirbazı) modal'larındaki ortak DOM güncelleme
@@ -47,11 +50,11 @@ import { _tutarAsiyorMu } from '../../domain/hesaplamalar.js';
   // @param {{tutar:number, pb:string}} kb - kullanılabilir bakiye {tutar, pb (para birimi)}
   export function swizBakiyeHintGuncelle(hint, tutar, kb) {
     if (!hint || !kb) return;
-    if (_tutarAsiyorMu(tutar, kb.tutar)) {
-      hint.innerHTML = `⚠ Kullanılabilir bakiye <b>${fmtCur(kb.tutar, kb.pb)}</b> — girilen tutar bakiyeyi aşıyor`;
+    if (_hesaplamalar._tutarAsiyorMu(tutar, kb.tutar)) {
+      hint.innerHTML = `⚠ Kullanılabilir bakiye <b>${_format.fmtCur(kb.tutar, kb.pb)}</b> — girilen tutar bakiyeyi aşıyor`;
       hint.style.color = 'var(--danger)';
     } else {
-      hint.innerHTML = `Kullanılabilir bakiye: <b>${fmtCur(kb.tutar, kb.pb)}</b>`;
+      hint.innerHTML = `Kullanılabilir bakiye: <b>${_format.fmtCur(kb.tutar, kb.pb)}</b>`;
       hint.style.color = 'var(--text3)';
     }
   }
@@ -107,7 +110,7 @@ import { _tutarAsiyorMu } from '../../domain/hesaplamalar.js';
   // @param {Array} gecmis - {tarih, bitisTarih?, ...} kayıt dizisi
   // @param {object} opts
   //   @param {(g:object)=>number} opts.deger - karşılaştırılacak sayısal alan (limit, faizOran, vb.)
-  //   @param {(g:object)=>string} opts.degerHtml - görüntülenecek değer HTML'i (fmtCur(...) veya "%12 / %5" gibi)
+  //   @param {(g:object)=>string} opts.degerHtml - görüntülenecek değer HTML'i (_format.fmtCur(...) veya "%12 / %5" gibi)
   //   @param {(g:object, fark:number)=>string} [opts.farkHtml] - artı/eksi badge'indeki fark metni (varsayılan: farkı olduğu gibi gösterir)
   //   @param {(g:object, isLast:boolean)=>string} [opts.ekBadgeHtml] - ek badge (örn. kart limitindeki "grup" rozeti); yoksa boş
   //   @param {string} opts.bosMesaj - liste boşken gösterilecek metin
@@ -135,7 +138,7 @@ import { _tutarAsiyorMu } from '../../domain/hesaplamalar.js';
         ? `<button class="btn btn-danger btn-sm gecmis-sil-btn" title="Son kaydı sil ve öncekine dön">✕</button>`
         : `<span class="gecmis-sil-bosluk"></span>`;
       return `<div class="gecmis-satir">
-      <span class="gecmis-tarih" title="${g.bitisTarih ? 'Bitiş: ' + g.bitisTarih : 'Güncel'}">${fmtDate(g.tarih)}</span>
+      <span class="gecmis-tarih" title="${g.bitisTarih ? 'Bitiş: ' + g.bitisTarih : 'Güncel'}">${_format.fmtDate(g.tarih)}</span>
       <span class="gecmis-deger" title="${opts.titleHtml ? opts.titleHtml(g) : opts.degerHtml(g)}">${opts.degerHtml(g)}</span>
       ${badge}
       ${ekBadge}
@@ -146,3 +149,12 @@ import { _tutarAsiyorMu } from '../../domain/hesaplamalar.js';
     const silBtn = panel.querySelector('.gecmis-sil-btn');
     if (silBtn && opts.silHandler) silBtn.addEventListener('click', () => opts.silHandler());
   }
+
+// ============================================================
+// [DI-MIGRATION] ui.components.stepWizard — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.stepWizard', {
+  swizUpdateStepIndicator, swizBakiyeHintGuncelle, swizOzetSatirHtml,
+  swizOzetSatirHtmlKisa, gecmisListesiRenderEt,
+});

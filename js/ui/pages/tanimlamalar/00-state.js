@@ -154,3 +154,8 @@ export function setSubeModalBankaId(v) { subeModalBankaId = v; }
 export function setSubeListTumu(v) { subeListTumu = v; }
 export function setEditUrunTipId(v) { editUrunTipId = v; }
 export function setEditTatilId(v) { editTatilId = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.tanimlamalarState", _self);

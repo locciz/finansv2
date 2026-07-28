@@ -1,11 +1,11 @@
-import { kd2IslemSiralamaDegisti } from '../../kartlar/05-kart-detay-v2.js';
-import { kdIslemSiralamaDegisti } from '../../kartlar/04-kart-detay-v1.js';
-import { _openScSearchPopup } from '../../../components/select-to-chips.js';
-import { _kartOdemeHizliTransferGuncelle } from '../../kartlar/08-kart-odeme.js';
-import { _odHesapTriggerGuncelle } from '../05-hesap-secim-popup.js';
-import { getCloseModal, setCloseModal } from '../../../components/modal-genel.js';
-import { call, get, register } from '../../../../core/wrap-registry.js';
-import { _kdIslemSiralama, _kd2IslemSiralama } from '../../kartlar/09-kart-altyapi.js';
+import { kd2IslemSiralamaDegisti } from '@pages/kartlar/05-kart-detay-v2.js';
+import { kdIslemSiralamaDegisti } from '@pages/kartlar/04-kart-detay-v1.js';
+import { _openScSearchPopup } from '@components/select-to-chips.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { _odHesapTriggerGuncelle } from '@pages/odeme/05-hesap-secim-popup.js';
+import { getCloseModal, setCloseModal } from '@components/modal-genel.js';
+import { call, get, register } from '@core/wrap-registry.js';
+import { _kdIslemSiralama, _kd2IslemSiralama } from '@pages/kartlar/09-kart-altyapi.js';
 // ============================================================
 // js/ui/pages/odeme/patches/03-canli-bakiye-render.js
 // Kart/hesap işlem satırlarını okunaklı hâle getir + canlı bakiye

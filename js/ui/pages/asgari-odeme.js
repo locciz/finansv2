@@ -1,10 +1,10 @@
-import { saveData } from '../../core/app-core-base.js';
-import { fmt, fmtCur, uid } from '../../core/format.js';
-import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '../../core/state.js';
-import { rebuildAllCurrencies } from '../../domain/doviz.js';
-import { showToast } from '../components/modal-genel.js';
-import { getMoneyInput, setMoneyInput } from '../components/money-input.js';
-import { _restoreAsgariKuralPbFiltreFromDB } from '../components/tablo-filtre-sirala.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmt, fmtCur, uid } from '@core/format.js';
+import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { rebuildAllCurrencies } from '@domain/doviz.js';
+import { showToast } from '@components/modal-genel.js';
+import { getMoneyInput, setMoneyInput } from '@components/money-input.js';
+import { _restoreAsgariKuralPbFiltreFromDB } from '@components/tablo-filtre-sirala.js';
 // Orijinal 02-core-app-engine.js içinden çıkarıldı. İçerik değiştirilmedi.
 
 // ==== 02-core-app-engine.js'den taşınan modül state'i ====
@@ -458,3 +458,8 @@ export var _asgariKuralPbFiltreRestored = false;
 // eklendi - ilgili dosyalar artık `X = v` yerine `setX(v)` çağırıyor.
 export function set_asgariKuralPbFiltreRestored(v) { _asgariKuralPbFiltreRestored = v; }
 export function set_asgariKuralPbFiltre(v) { _asgariKuralPbFiltre = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./asgari-odeme.js";
+provide("ui.pages.asgariOdeme", _self);

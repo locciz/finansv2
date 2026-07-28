@@ -1,7 +1,7 @@
-import { localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _hesapVarsayilanVeyaBankaHesabi, _hesaplariIlgiliBankayaGoreSirala } from '../hesaplar/01-genel-yardimcilar.js';
-import { call } from '../../../core/wrap-registry.js';
+import { localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _hesapVarsayilanVeyaBankaHesabi, _hesaplariIlgiliBankayaGoreSirala } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { call } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/01-genel-yardimcilar.js
 // Genel yardımcılar — durum hesaplama, badge/toggle render, hesap seçim listesi

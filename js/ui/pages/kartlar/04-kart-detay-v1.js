@@ -1,20 +1,20 @@
-import { fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { _currentHashPage, _currentHashParams, _pushHashState } from '../../../core/init.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { cpsInit, cpsSync } from '../../components/cps-select.js';
-import { _restoreKdIslemSiralamaFromDB } from '../../components/tablo-filtre-sirala.js';
-import { kesinlesmeyiBekleyenDonemler, kesinlestirEkstre, kesinlestirTumBekleyenler, kesinlestirmeyiKaldir } from '../ekstreler/01-ekstre-kesinlestirme.js';
-import { _ekstreBekleyenKartHtml } from '../ekstreler/02-ekstre-render.js';
-import { bindIslemRowEvents, islemRowHtml } from '../islemler/03-islem-liste-render.js';
-import { _kdAcikExtreDonem, _kdActiveTab, _kdIslemArama, _kdIslemKatFiltre, _kdKatBarCtx, set_kdAcikExtreDonem, set_kdActiveTab, set_kdIslemArama, set_kdKatBarCtx } from './00-state.js';
-import { getKartCurrencies, getKartCurrency, getKartStatementAmount, kartOdemeTarihiEfektif } from './01-kart-data.js';
-import { _kdKatBarAktifFiltre, kdRenderKatBar } from './02-kategori-arama-widget.js';
-import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle } from './03-kart-detay-ortak.js';
-import { _kd2IslemSiralama, _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2IslemSiralama, set_kdIslemSiralama } from './09-kart-altyapi.js';
-import { getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { openModal } from '../../components/modal-genel.js';
-import { register } from '../../../core/wrap-registry.js';
+import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { _currentHashPage, _currentHashParams, _pushHashState } from '@core/init.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { cpsInit, cpsSync } from '@components/cps-select.js';
+import { _restoreKdIslemSiralamaFromDB } from '@components/tablo-filtre-sirala.js';
+import { kesinlesmeyiBekleyenDonemler, kesinlestirEkstre, kesinlestirTumBekleyenler, kesinlestirmeyiKaldir } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { _ekstreBekleyenKartHtml } from '@pages/ekstreler/02-ekstre-render.js';
+import { bindIslemRowEvents, islemRowHtml } from '@pages/islemler/03-islem-liste-render.js';
+import { _kdAcikExtreDonem, _kdActiveTab, _kdIslemArama, _kdIslemKatFiltre, _kdKatBarCtx, set_kdAcikExtreDonem, set_kdActiveTab, set_kdIslemArama, set_kdKatBarCtx } from '@pages/kartlar/00-state.js';
+import { getKartCurrencies, getKartCurrency, getKartStatementAmount, kartOdemeTarihiEfektif } from '@pages/kartlar/01-kart-data.js';
+import { _kdKatBarAktifFiltre, kdRenderKatBar } from '@pages/kartlar/02-kategori-arama-widget.js';
+import { _kdCoreAramaSync, _kdCoreAramaTemizle, _kdCoreSiralamaPersist, _kdCoreSwitchTabToggle } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { _kd2IslemSiralama, _kd2KartId, _kdIslemSiralama, _kdKartId, set_kd2IslemSiralama, set_kdIslemSiralama } from '@pages/kartlar/09-kart-altyapi.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openModal } from '@components/modal-genel.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/kartlar/04-kart-detay-v1.js
 // Kart Detay sayfası — v1 (modal görünüm)

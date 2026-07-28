@@ -1,17 +1,17 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { escapeHtml, fmtCur, fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { _sidebarDim, phSet, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { _renderAltyapiLogoPicker, applyChipsToContainer } from '../../components/select-to-chips.js';
-import { bindTblFiltreChips, tblSiralamaBarHtml, TBL_FILTRE_IKON } from '../../components/tablo-filtre-sirala.js';
-import { editKartAltyapiId, setEditKartAltyapiId } from './00-state.js';
-import { populateKartModal } from './06-kart-form.js';
-import { renderKartlar } from './10-kart-liste.js';
-import { getBanka } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { renderTanimlamalar } from '../tanimlamalar/02-ana-sayfa.js';
-import { cpsInit, cpsSync } from '../../components/cps-select.js';
-import { closeModal } from '../../components/modal-genel.js';
-import { call, get, has, register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { escapeHtml, fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { _sidebarDim, phSet, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { _renderAltyapiLogoPicker, applyChipsToContainer } from '@components/select-to-chips.js';
+import { bindTblFiltreChips, tblSiralamaBarHtml, TBL_FILTRE_IKON } from '@components/tablo-filtre-sirala.js';
+import { editKartAltyapiId, setEditKartAltyapiId } from '@pages/kartlar/00-state.js';
+import { populateKartModal } from '@pages/kartlar/06-kart-form.js';
+import { renderKartlar } from '@pages/kartlar/10-kart-liste.js';
+import { getBanka } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { cpsInit, cpsSync } from '@components/cps-select.js';
+import { closeModal } from '@components/modal-genel.js';
+import { call, get, has, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/kartlar/09-kart-altyapi.js
 // Kart altyapısı (Visa/Mastercard/Troy vb.) tanımlama CRUD'u

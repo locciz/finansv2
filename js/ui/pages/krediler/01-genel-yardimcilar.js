@@ -1,14 +1,14 @@
-import { isIsBgunu, nextIsBgunu } from '../../../core/date-utils.js';
-import { fmt, fmtDate, fmtMoneyCustom, localDateStr, parseTutarStr } from '../../../core/format.js';
-import { DB, FORMAT_CONFIG } from '../../../core/state.js';
-import { _krediMetrik, _krediTaksitOdendiMi, getBireyselKrediTaksitler, getKrediTaksitler } from '../../../domain/hesaplamalar.js';
-import { bindMoneyInputs } from '../../components/money-input.js';
-import { resetTekTaksit } from '../islemler/02-islem-form-degisiklikleri.js';
-import { _KREDI_DURUM_ETIKET } from './00-state.js';
-import { calcKmhKredi, getKmhHesap } from './03-kmh-kredi.js';
-import { calcKredi } from './04-bireysel-kredi.js';
-import { odBadgeHtml } from '../odeme/01-genel-yardimcilar.js';
-import { getTatilSet, tanimRenkAl } from '../tanimlamalar/01-genel-yardimcilar.js';
+import { isIsBgunu, nextIsBgunu } from '@core/date-utils.js';
+import { fmt, fmtDate, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
+import { DB, FORMAT_CONFIG } from '@core/state.js';
+import { _krediMetrik, _krediTaksitOdendiMi, getBireyselKrediTaksitler, getKrediTaksitler } from '@domain/hesaplamalar.js';
+import { bindMoneyInputs } from '@components/money-input.js';
+import { resetTekTaksit } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { _KREDI_DURUM_ETIKET } from '@pages/krediler/00-state.js';
+import { calcKmhKredi, getKmhHesap } from '@pages/krediler/03-kmh-kredi.js';
+import { calcKredi } from '@pages/krediler/04-bireysel-kredi.js';
+import { odBadgeHtml } from '@pages/odeme/01-genel-yardimcilar.js';
+import { getTatilSet, tanimRenkAl } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 // ============================================================
 // js/ui/pages/krediler/01-genel-yardimcilar.js
 // Genel yardımcılar — taksit planı render/hesap yardımcıları, kredi kartı bileşeni

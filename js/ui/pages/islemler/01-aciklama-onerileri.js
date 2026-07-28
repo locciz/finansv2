@@ -1,7 +1,7 @@
-import { DB } from '../../../core/state.js';
-import { AC_ENGELLI_KELIMELER } from './00-state.js';
-import { renderIslemKategoriButon } from './06-islem-kategori-secici.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { DB } from '@core/state.js';
+import { AC_ENGELLI_KELIMELER } from '@pages/islemler/00-state.js';
+import { renderIslemKategoriButon } from '@pages/islemler/06-islem-kategori-secici.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/islemler/01-aciklama-onerileri.js
 // İşlem açıklaması otomatik tamamlama/geçmiş öneri modalı

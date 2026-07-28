@@ -1,7 +1,7 @@
-import { localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { odOdendiMi } from '../odeme/01-genel-yardimcilar.js';
-import { call } from '../../../core/wrap-registry.js';
+import { localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { odOdendiMi } from '@pages/odeme/01-genel-yardimcilar.js';
+import { call } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/mevduat/04-mevduat-otomasyon.js
 // Otomatik vade kontrolü ve yaklaşan ödeme tespiti

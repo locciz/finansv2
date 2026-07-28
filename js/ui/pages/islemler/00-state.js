@@ -41,3 +41,8 @@ export function set_islemDonemTab(v) { _islemDonemTab = v; }
 // tutuluyor; her iki taraf da buradan import eder.
 export var _eeOnSaveHook = null;
 export function set_eeOnSaveHook(fn) { _eeOnSaveHook = fn; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from "@core/container.js";
+import * as _self from "./00-state.js";
+provide("ui.pages.islemlerState", _self);

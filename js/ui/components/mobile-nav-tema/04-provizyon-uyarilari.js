@@ -1,19 +1,25 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { getIslemTaksitliste, islemProvizyonEksikMi } from '../../../domain/hesaplamalar.js';
-import { _provizyonGizliIslemler } from './03-bakiye-izleme-paneli.js';
-import { showToast } from '../modal-genel.js';
-import { renderIslemler } from '../../pages/islemler/03-islem-liste-render.js';
-import { getKart, getKartRenk } from '../../pages/kartlar/01-kart-data.js';
-import { tahminProvizyonGunFarki } from '../../pages/ozet.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.format, core.state,
+// domain.hesaplamalar, ui.components.bakiyeIzlemePaneli,
+// ui.components.modalGenel zaten container'a taşınmış katmanlara ait.
+// @pages/* importları o katman henüz taşınmadığı için BİLİNÇLİ OLARAK
+// korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _hesaplamalar = inject('domain.hesaplamalar');
+const _bakiyeIzlemePaneli = inject('ui.components.bakiyeIzlemePaneli');
+const _modalGenel = inject('ui.components.modalGenel');
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { getKart, getKartRenk } from '@pages/kartlar/01-kart-data.js';
+import { tahminProvizyonGunFarki } from '@pages/ozet.js';
 // ============================================================
 // js/ui/components/mobile-nav-tema/04-provizyon-uyarilari.js
 // Provizyonu eksik işlemler için uyarı paneli
 // Kod SATIR SATIR aynı kaldı; sadece dosya sınırı/gruplama değişti.
 // ============================================================
 export function _provizyonEksikIslemleriBul() {
-  return (DB.islemler||[]).filter(i => typeof islemProvizyonEksikMi === 'function' && islemProvizyonEksikMi(i) && !_provizyonGizliIslemler.has(i.id));
+  return (_coreState.DB.islemler||[]).filter(i => typeof islemProvizyonEksikMi === 'function' && _hesaplamalar.islemProvizyonEksikMi(i) && !_bakiyeIzlemePaneli._provizyonGizliIslemler.has(i.id));
 }
 
 export function renderOzetProvizyonUyarilar() {
@@ -65,8 +71,8 @@ export function _provizyonUyariSatiri(i) {
   const k = (typeof getKart === 'function') ? getKart(i.kart) : null;
   const kartAd = k ? k.ad : '—';
   const kartRenk = (typeof getKartRenk === 'function') ? getKartRenk(k) : ((k && k.renk) || 'var(--violet)');
-  const tutarStr = (typeof fmtCur === 'function') ? fmtCur(i.tutar, i.paraBirimi || 'TRY') : i.tutar;
-  const tarihStr = (typeof fmtDate === 'function') ? fmtDate(i.tarih) : i.tarih;
+  const tutarStr = (typeof fmtCur === 'function') ? _format.fmtCur(i.tutar, i.paraBirimi || 'TRY') : i.tutar;
+  const tarihStr = (typeof fmtDate === 'function') ? _format.fmtDate(i.tarih) : i.tarih;
   const aciklamaSafe = (i.aciklama || '—').replace(/"/g,'&quot;');
   const taksitBadge = (i.taksit||1) > 1 ? ` · ${i.taksit} Taksit` : '';
 
@@ -76,7 +82,7 @@ export function _provizyonUyariSatiri(i) {
   if(gunFarki !== null) {
     const dt = new Date(i.tarih+'T00:00:00');
     dt.setDate(dt.getDate() + gunFarki);
-    onerilenTarih = localDateStr(dt);
+    onerilenTarih = _format.localDateStr(dt);
   }
 
   return `<div class="provizyon-uyari-row" id="prov-row-${i.id}" style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--surface3);border-radius:6px;border:1px solid var(--border)">
@@ -102,29 +108,29 @@ export function provizyonUyariKaydet(islemId) {
     input.focus();
     return;
   }
-  const idx = (DB.islemler||[]).findIndex(x => x.id === islemId);
+  const idx = (_coreState.DB.islemler||[]).findIndex(x => x.id === islemId);
   if(idx < 0) return;
-  const islem = DB.islemler[idx];
+  const islem = _coreState.DB.islemler[idx];
   islem.provizyonTarihi = tarih;
   if(islem.manuelTaksitler && islem.manuelTaksitler[0]) {
     islem.manuelTaksitler[0].provizyonTarihi = tarih;
   } else if(islem.taksit > 1) {
     // manuelTaksitler henüz oluşturulmamışsa, taksit listesinden üret
-    const liste = getIslemTaksitliste(islem);
+    const liste = _hesaplamalar.getIslemTaksitliste(islem);
     islem.manuelTaksitler = liste.map((t,idx2) => ({ tarih: t.tarih, tutar: t.tutar, provizyonTarihi: idx2===0 ? tarih : null }));
   }
-  saveData();
+  _appCoreBase.saveData();
   renderOzetProvizyonUyarilar();
   if(typeof renderIslemler === 'function' && document.getElementById('page-islemler')?.classList.contains('active')) renderIslemler();
 }
 
 export function provizyonUyariGizle(islemId) {
-  _provizyonGizliIslemler.add(islemId);
+  _bakiyeIzlemePaneli._provizyonGizliIslemler.add(islemId);
   renderOzetProvizyonUyarilar();
 }
 
 export function provizyonUyariTumunuGizle() {
-  _provizyonEksikIslemleriBul().forEach(i => _provizyonGizliIslemler.add(i.id));
+  _provizyonEksikIslemleriBul().forEach(i => _bakiyeIzlemePaneli._provizyonGizliIslemler.add(i.id));
   renderOzetProvizyonUyarilar();
 }
 
@@ -141,17 +147,27 @@ export function provizyonUyariTumunuIslemTarihiIleGir() {
     if(islem.manuelTaksitler && islem.manuelTaksitler[0]) {
       islem.manuelTaksitler[0].provizyonTarihi = tarih;
     } else if(islem.taksit > 1) {
-      const liste = getIslemTaksitliste(islem);
+      const liste = _hesaplamalar.getIslemTaksitliste(islem);
       islem.manuelTaksitler = liste.map((t,idx2) => ({ tarih: t.tarih, tutar: t.tutar, provizyonTarihi: idx2===0 ? tarih : null }));
     }
   });
-  saveData();
+  _appCoreBase.saveData();
   renderOzetProvizyonUyarilar();
   if(typeof renderIslemler === 'function' && document.getElementById('page-islemler')?.classList.contains('active')) renderIslemler();
-  showToast(`${eksikler.length} işlemin provizyon tarihi işlem tarihiyle aynı yapıldı`, 'success');
+  _modalGenel.showToast(`${eksikler.length} işlemin provizyon tarihi işlem tarihiyle aynı yapıldı`, 'success');
 }
 
 
 // Mevduat oto-strateji: vade dolunca otomatik işlem yap (dashboard aksiyon)
 // Bu fonksiyon mevcut mevduatYenile / mevduatTumunuVadesizeAktar'ı tamamlar
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.provizyonUyarilari — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.provizyonUyarilari', {
+  _provizyonEksikIslemleriBul, renderOzetProvizyonUyarilar,
+  _provizyonUyariSatiri, provizyonUyariKaydet, provizyonUyariGizle,
+  provizyonUyariTumunuGizle, provizyonUyariTumunuIslemTarihiIleGir,
+});

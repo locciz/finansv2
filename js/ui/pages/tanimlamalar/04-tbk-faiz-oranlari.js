@@ -1,10 +1,10 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { showToast } from '../../components/modal-genel.js';
-import { setDateInputValue } from '../../components/money-input.js';
-import { renderTahminBakiye } from '../ozet.js';
-import { _tbkFaizDuzenlemeId, set_tbkFaizDuzenlemeId } from '../tbk-detay.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { showToast } from '@components/modal-genel.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { renderTahminBakiye } from '@pages/ozet.js';
+import { _tbkFaizDuzenlemeId, set_tbkFaizDuzenlemeId } from '@pages/tbk-detay.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/04-tbk-faiz-oranlari.js
 // TBK (Tüketici kredisi) faiz oranları tanımlama

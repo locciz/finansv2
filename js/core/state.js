@@ -1,6 +1,7 @@
-import { loadData } from './app-core-base.js';
-import { loadFormatConfig } from './format.js';
-import { loadCurrencyConfig } from '../ui/pages/tanimlamalar/06-para-birimi.js';
+import { loadData } from '@core/app-core-base.js';
+import { loadFormatConfig } from '@core/format.js';
+import { loadCurrencyConfig } from '@pages/tanimlamalar/06-para-birimi.js';
+import { provide } from '@core/container.js';
 // ============================================================
 // js/core/state.js — Paylaşılan çekirdek modül state'i
 // NOT: Bilinçli olarak IIFE'ye SARILMIYOR. DB/FORMAT_CONFIG/CURRENCY_CONFIG/
@@ -88,3 +89,24 @@ export function setDefaultCurrency(v) {
 // module'de yasaktır). Bu setter fonksiyonları o davranışı korumak için
 // eklendi - ilgili dosyalar artık `X = v` yerine `setX(v)` çağırıyor.
 export function setFORMAT_CONFIG(v) { FORMAT_CONFIG = v; }
+
+// ============================================================
+// [DI-MIGRATION] core.state — container'a kayıt
+// ------------------------------------------------------------
+// DB/CURRENCY_CONFIG gibi nesneler `replaceObjectContents` ile İÇERİĞİ
+// değişse de KİMLİĞİ (referansı) hiç değişmiyor — bu yüzden burada bir kere
+// register etmek yeterli, sonradan tekrar provide etmeye gerek yok.
+// defaultCurrency ise primitive olduğundan container'a "getter" fonksiyonu
+// olarak konur; her resolve() çağrısında güncel değeri okur.
+// ============================================================
+provide('core.state', {
+  BANKA_SUBELER,
+  CURRENCY_CONFIG,
+  FORMAT_CONFIG,
+  ALL_CURRENCIES,
+  DB,
+  get defaultCurrency() { return defaultCurrency; },
+  replaceObjectContents,
+  setDefaultCurrency,
+  setFORMAT_CONFIG,
+});

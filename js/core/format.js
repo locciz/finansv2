@@ -1,9 +1,10 @@
-import { saveData } from './app-core-base.js';
-import { CURRENCY_CONFIG, DB, FORMAT_CONFIG, defaultCurrency, replaceObjectContents, setDefaultCurrency, setFORMAT_CONFIG } from './state.js';
-import { showToast } from '../ui/components/modal-genel.js';
-import { refreshDateOverlays } from '../ui/components/mobile-nav-tema/05-tarih-input-overlay.js';
-import { renderTumOranTablolari } from '../ui/pages/tanimlamalar/05-genel-oran-tablolari.js';
-import { call } from './wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _wrapRegistry = inject('core.wrapRegistry');
+import { showToast } from '@components/modal-genel.js';
+import { refreshDateOverlays } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
+import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
 // ============================================================
 // js/core/format.js — Para/tarih/saat biçimlendirme + Görüntü
 // Ayarları (Tanımlamalar sayfası) UI mantığı
@@ -13,8 +14,8 @@ import { call } from './wrap-registry.js';
 export var _gaAutoSaveTimer = null; // Görüntü ayarları otomatik-kaydet debounce zamanlayıcısı
 
 function fmtCurBase(n, currency, sign=false) {
-  const code = (currency && CURRENCY_CONFIG[currency]) ? currency : (defaultCurrency || 'TRY');
-  const cfg = CURRENCY_CONFIG[code] || CURRENCY_CONFIG['TRY'] || { symbol: '₺', locale: 'tr-TR', position: 'prefix', decimals: 2 };
+  const code = (currency && _coreState.CURRENCY_CONFIG[currency]) ? currency : (_coreState.defaultCurrency || 'TRY');
+  const cfg = _coreState.CURRENCY_CONFIG[code] || _coreState.CURRENCY_CONFIG['TRY'] || { symbol: '₺', locale: 'tr-TR', position: 'prefix', decimals: 2 };
   if(isNaN(n) || n===null || n===undefined) {
     return cfg.position === 'prefix' ? cfg.symbol + '0' : '0\u202f' + cfg.symbol;
   }
@@ -34,7 +35,7 @@ function fmtCurBase(n, currency, sign=false) {
 // fmtCur(){}` ismini doğrudan yeniden atayarak override etmek (eskiden
 // `window.fmtCur = window._fmtCurFormatted` ile yapılıyordu) mümkün değil;
 // bunun yerine mutable bir pointer (_currentFmtCur) tutuyoruz.
-// updateFmtCurOverride() bu pointer'ı FORMAT_CONFIG'e duyarlı sürümle
+// updateFmtCurOverride() bu pointer'ı _coreState.FORMAT_CONFIG'e duyarlı sürümle
 // günceller; buradan export edilen `fmtCur` her zaman en güncel pointer'ı çağırır.
 let _currentFmtCur = fmtCurBase;
 
@@ -52,7 +53,7 @@ export function fmtCur(n, currency, sign=false) {
 }
 
 export function fmt(n, sign=false) {
-  return fmtCur(n, defaultCurrency, sign);
+  return fmtCur(n, _coreState.defaultCurrency, sign);
 }
 
 // ── Tarih/saat biçimlendirme ──────────────────────────────────
@@ -60,14 +61,14 @@ export function fmtDate(d) {
   if(!d) return '';
   const dt = typeof d === 'string' ? new Date(d+'T00:00:00') : d;
   if(!(dt instanceof Date) || isNaN(dt.getTime())) return '—';
-  const pattern = FORMAT_CONFIG.tarihFormat || 'dd/MM/yyyy';
+  const pattern = _coreState.FORMAT_CONFIG.tarihFormat || 'dd/MM/yyyy';
   return applyFormatToken(pattern, dt);
 }
 
 export function fmtTime(d) {
   if(!d) return '';
   const dt = (d instanceof Date) ? d : new Date(d);
-  const pattern = FORMAT_CONFIG.saatFormat || 'HH:mm';
+  const pattern = _coreState.FORMAT_CONFIG.saatFormat || 'HH:mm';
   return applyTimeToken(pattern, dt);
 }
 
@@ -88,7 +89,7 @@ export function fmtMoneyCustom(n, decimals, ondalik, binlik) {
 }
 
 export function fmtCurShort(n, currency) {
-  const cfg = (typeof CURRENCY_CONFIG!=='undefined' && CURRENCY_CONFIG[currency]) || {};
+  const cfg = (typeof _coreState.CURRENCY_CONFIG!=='undefined' && _coreState.CURRENCY_CONFIG[currency]) || {};
   const sym = cfg.symbol || '';
   const abs = Math.abs(n);
   let s;
@@ -172,18 +173,18 @@ export function localDateStr(d) {
 
 // ── Format config yükle/kaydet ────────────────────────────────
 export function loadFormatConfig() {
-  // FORMAT_CONFIG ve currency Drive'dan gelir (applyMigrations içinde uygulanır)
-  // Burada sadece DB'de zaten yüklüyse uygula (sayfa yenilemesiz geçiş için)
-  if(typeof DB !== 'undefined') {
-    if(DB._formatConfig) setFORMAT_CONFIG({...FORMAT_CONFIG, ...DB._formatConfig});
-    if(DB._currency) setDefaultCurrency(DB._currency);
+  // _coreState.FORMAT_CONFIG ve currency Drive'dan gelir (applyMigrations içinde uygulanır)
+  // Burada sadece _coreState.DB'de zaten yüklüyse uygula (sayfa yenilemesiz geçiş için)
+  if(typeof _coreState.DB !== 'undefined') {
+    if(_coreState.DB._formatConfig) _coreState.setFORMAT_CONFIG({..._coreState.FORMAT_CONFIG, ..._coreState.DB._formatConfig});
+    if(_coreState.DB._currency) _coreState.setDefaultCurrency(_coreState.DB._currency);
   }
 }
 
 export function saveFormatConfig() {
-  // Sadece DB'ye yaz, saveData Drive'a gönderir
-  if(typeof DB !== 'undefined') {
-    DB._formatConfig = FORMAT_CONFIG;
+  // Sadece _coreState.DB'ye yaz, saveData Drive'a gönderir
+  if(typeof _coreState.DB !== 'undefined') {
+    _coreState.DB._formatConfig = _coreState.FORMAT_CONFIG;
     if(typeof saveData === 'function') saveData();
   }
 }
@@ -195,13 +196,13 @@ export function loadGoruntuAyarlariUI() {
   const oa = document.getElementById('ga-ondalik-ayrac');
   const ba = document.getElementById('ga-binlik-ayrac');
   const ob = document.getElementById('ga-ondalik-basamak');
-  if(tf) tf.value = FORMAT_CONFIG.tarihFormat || 'dd/MM/yyyy';
-  if(sf) sf.value = FORMAT_CONFIG.saatFormat || 'HH:mm';
-  if(oa) oa.value = FORMAT_CONFIG.ondalikAyrac || ',';
-  if(ba) ba.value = FORMAT_CONFIG.binlikAyrac !== undefined ? FORMAT_CONFIG.binlikAyrac : '.';
-  if(ob) ob.value = FORMAT_CONFIG.ondalikBasamak || '2';
+  if(tf) tf.value = _coreState.FORMAT_CONFIG.tarihFormat || 'dd/MM/yyyy';
+  if(sf) sf.value = _coreState.FORMAT_CONFIG.saatFormat || 'HH:mm';
+  if(oa) oa.value = _coreState.FORMAT_CONFIG.ondalikAyrac || ',';
+  if(ba) ba.value = _coreState.FORMAT_CONFIG.binlikAyrac !== undefined ? _coreState.FORMAT_CONFIG.binlikAyrac : '.';
+  if(ob) ob.value = _coreState.FORMAT_CONFIG.ondalikBasamak || '2';
   const gkEl = document.getElementById('ga-tarih-giris-kolay');
-  if(gkEl) gkEl.checked = FORMAT_CONFIG.tarihGirisKolay !== false;
+  if(gkEl) gkEl.checked = _coreState.FORMAT_CONFIG.tarihGirisKolay !== false;
   // Saat ayraç select'ini senkronize et
   syncSaatAyracFromFormat();
   updateGoruntuPreview();
@@ -270,8 +271,8 @@ export function updateGoruntuPreview() {
   if(paraPrev) {
     const ornekTutar = 1234567.89;
     const paraStr = fmtMoneyCustom(ornekTutar, basamak, ondalik, binlik !== undefined ? binlik : '.');
-    // Mevcut defaultCurrency sembolünü göster
-    const cfg = CURRENCY_CONFIG[defaultCurrency] || {symbol:'₺', position:'prefix'};
+    // Mevcut _coreState.defaultCurrency sembolünü göster
+    const cfg = _coreState.CURRENCY_CONFIG[_coreState.defaultCurrency] || {symbol:'₺', position:'prefix'};
     paraPrev.textContent = cfg.position === 'suffix'
       ? paraStr + '\u202f' + cfg.symbol
       : cfg.symbol + paraStr;
@@ -285,20 +286,20 @@ export function updateGoruntuPreview() {
 }
 
 export function saveGoruntuAyarlari(silent) {
-  FORMAT_CONFIG.tarihFormat  = (document.getElementById('ga-tarih-format')||{}).value || 'dd/MM/yyyy';
-  FORMAT_CONFIG.saatFormat   = (document.getElementById('ga-saat-format')||{}).value  || 'HH:mm';
-  FORMAT_CONFIG.ondalikAyrac = (document.getElementById('ga-ondalik-ayrac')||{}).value || ',';
-  FORMAT_CONFIG.binlikAyrac  = (document.getElementById('ga-binlik-ayrac')||{}).value;
-  if(FORMAT_CONFIG.binlikAyrac === undefined) FORMAT_CONFIG.binlikAyrac = '.';
-  FORMAT_CONFIG.ondalikBasamak = (document.getElementById('ga-ondalik-basamak')||{}).value || '2';
+  _coreState.FORMAT_CONFIG.tarihFormat  = (document.getElementById('ga-tarih-format')||{}).value || 'dd/MM/yyyy';
+  _coreState.FORMAT_CONFIG.saatFormat   = (document.getElementById('ga-saat-format')||{}).value  || 'HH:mm';
+  _coreState.FORMAT_CONFIG.ondalikAyrac = (document.getElementById('ga-ondalik-ayrac')||{}).value || ',';
+  _coreState.FORMAT_CONFIG.binlikAyrac  = (document.getElementById('ga-binlik-ayrac')||{}).value;
+  if(_coreState.FORMAT_CONFIG.binlikAyrac === undefined) _coreState.FORMAT_CONFIG.binlikAyrac = '.';
+  _coreState.FORMAT_CONFIG.ondalikBasamak = (document.getElementById('ga-ondalik-basamak')||{}).value || '2';
   const gkEl = document.getElementById('ga-tarih-giris-kolay');
-  if(gkEl) FORMAT_CONFIG.tarihGirisKolay = gkEl.checked;
+  if(gkEl) _coreState.FORMAT_CONFIG.tarihGirisKolay = gkEl.checked;
   saveFormatConfig();
   if(!silent) showToast('Görüntü ayarları kaydedildi ✓');
   // fmtCur override'ını güncelle
   updateFmtCurOverride();
   // Topbar & sidebar saatini anında güncelle
-  call('updateClockFn');
+  _wrapRegistry.call('updateClockFn');
   // Vergi tablosu ve date overlay'leri yenile
   renderTumOranTablolari();
   refreshDateOverlays();
@@ -311,23 +312,23 @@ export function autoSaveGoruntuAyarlari() {
 }
 
 export function resetGoruntuAyarlari() {
-  replaceObjectContents(FORMAT_CONFIG, { tarihFormat:'dd/MM/yyyy', saatFormat:'HH:mm', ondalikAyrac:',', binlikAyrac:'.', ondalikBasamak:'2', tarihGirisKolay:true });
+  _coreState.replaceObjectContents(_coreState.FORMAT_CONFIG, { tarihFormat:'dd/MM/yyyy', saatFormat:'HH:mm', ondalikAyrac:',', binlikAyrac:'.', ondalikBasamak:'2', tarihGirisKolay:true });
   saveFormatConfig();
   loadGoruntuAyarlariUI();
   updateFmtCurOverride();
-  call('updateClockFn');
+  _wrapRegistry.call('updateClockFn');
   renderTumOranTablolari();
   refreshDateOverlays();
   showToast('Varsayılan ayarlara dönüldü');
 }
 
 // ── fmtCur'ü kullanıcı format ayarlarıyla override et ────────
-// NOT: fmtCur'ün orijinal (CURRENCY_CONFIG'e sabit locale ile bağlı) hali
-// yukarıda tanımlı; burada asıl kullanılan fmtCur, FORMAT_CONFIG'teki
+// NOT: fmtCur'ün orijinal (_coreState.CURRENCY_CONFIG'e sabit locale ile bağlı) hali
+// yukarıda tanımlı; burada asıl kullanılan fmtCur, _coreState.FORMAT_CONFIG'teki
 // ondalık/binlik ayrımı ve basamak sayısını dikkate alan bir sürümle
 // değiştiriliyor. saveGoruntuAyarlari/resetGoruntuAyarlari bu override'ı
-// FORMAT_CONFIG değiştikten sonra yeniden kurmak için çağırıyordu; override
-// zaten FORMAT_CONFIG'i her çağrıda taze okuduğundan yeniden kurmaya gerek
+// _coreState.FORMAT_CONFIG değiştikten sonra yeniden kurmak için çağırıyordu; override
+// zaten _coreState.FORMAT_CONFIG'i her çağrıda taze okuduğundan yeniden kurmaya gerek
 // yok — bu fonksiyon kasıtlı olarak boş bırakılmıştı, öyle kalıyor.
 export function updateFmtCurOverride() {}
 
@@ -338,12 +339,12 @@ export function updateFmtCurOverride() {}
 // Artık setFmtCur(...) ile mutable pointer güncelleniyor; export edilen
 // fmtCur (yukarıda tanımlı) her zaman bu pointer'ı çağırır.
 function fmtCurFormatted(n, currency, sign=false) {
-  const code = (currency && CURRENCY_CONFIG[currency]) ? currency : (defaultCurrency || 'TRY');
-  const cfg = CURRENCY_CONFIG[code] || CURRENCY_CONFIG['TRY'] || { symbol: '₺', position: 'prefix', decimals: 2 };
+  const code = (currency && _coreState.CURRENCY_CONFIG[currency]) ? currency : (_coreState.defaultCurrency || 'TRY');
+  const cfg = _coreState.CURRENCY_CONFIG[code] || _coreState.CURRENCY_CONFIG['TRY'] || { symbol: '₺', position: 'prefix', decimals: 2 };
   if(isNaN(n) || n===null || n===undefined) n = 0;
-  const decimals = FORMAT_CONFIG.ondalikBasamak !== undefined ? parseInt(FORMAT_CONFIG.ondalikBasamak) : (cfg.decimals !== undefined ? cfg.decimals : 2);
-  const ondalik = FORMAT_CONFIG.ondalikAyrac || ',';
-  const binlik  = FORMAT_CONFIG.binlikAyrac !== undefined ? FORMAT_CONFIG.binlikAyrac : '.';
+  const decimals = _coreState.FORMAT_CONFIG.ondalikBasamak !== undefined ? parseInt(_coreState.FORMAT_CONFIG.ondalikBasamak) : (cfg.decimals !== undefined ? cfg.decimals : 2);
+  const ondalik = _coreState.FORMAT_CONFIG.ondalikAyrac || ',';
+  const binlik  = _coreState.FORMAT_CONFIG.binlikAyrac !== undefined ? _coreState.FORMAT_CONFIG.binlikAyrac : '.';
   const numStr = fmtMoneyCustom(n, decimals, ondalik, binlik);
   const sym = cfg.symbol;
   const neg = n < 0;
@@ -354,4 +355,18 @@ function fmtCurFormatted(n, currency, sign=false) {
 }
 // fmtCur'ü format-aware versiyonla değiştir (mutable pointer üzerinden)
 setFmtCur(fmtCurFormatted);
+
+// ============================================================
+// [DI-MIGRATION] core.format — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('core.format', {
+  setFmtCur, getFmtCur, fmtCur, fmt, fmtDate, fmtTime, fmtMoneyCustom,
+  fmtCurShort, applyFormatToken, applyTimeToken, parseTutarStr, escapeHtml,
+  uid, localDateStr, loadFormatConfig, saveFormatConfig, loadGoruntuAyarlariUI,
+  syncSaatAyracFromFormat, syncTarihAyrac, syncSaatAyrac, setTarihFormat,
+  setSaatFormat, updateGoruntuPreview, saveGoruntuAyarlari,
+  autoSaveGoruntuAyarlari, resetGoruntuAyarlari, updateFmtCurOverride,
+  get _gaAutoSaveTimer() { return _gaAutoSaveTimer; },
+});
 

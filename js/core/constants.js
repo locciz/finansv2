@@ -17,7 +17,7 @@
 //    değiştirmeden önce bir migration (applyMigrations içinde) yazman gerekir.
 //
 // KULLANIM:
-//   import { DURUM, ISLEM_TUR, ODEME_YONTEM } from '../../core/constants.js';
+//   import { DURUM, ISLEM_TUR, ODEME_YONTEM } from '@core/constants.js';
 //   if (hesap.durum === DURUM.AKTIF) { ... }
 //   kayit.tur = ISLEM_TUR.GIDER;
 //
@@ -104,3 +104,13 @@ export const ODENMIS_SAYILAN_DURUMLAR = [
   ODEME_DURUM.ODENDI,
   ODEME_DURUM.KISMI,
 ];
+
+// ============================================================
+// [DI-MIGRATION] core.constants — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('core.constants', {
+  DURUM, ODEME_DURUM, ISLEM_TUR, ODEME_YONTEM, HESAP_TUR, KREDI_TIP,
+  SIRALAMA_YON, TEKRAR_TUR, AKTIF_ODEME_DURUMLARI, BEKLEMEDE_SAYILAN_DURUMLAR,
+  ODENMIS_SAYILAN_DURUMLAR,
+});

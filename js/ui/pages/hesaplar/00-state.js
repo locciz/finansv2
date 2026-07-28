@@ -27,3 +27,8 @@ export var HESAP_DURUM_BADGE = {
 // eklendi - ilgili dosyalar artık `X = v` yerine `setX(v)` çağırıyor.
 export function setEditHesapTurId(v) { editHesapTurId = v; }
 export function set_hesapCurrentStep(v) { _hesapCurrentStep = v; }
+
+// ==== DUAL-MODE CONTAINER KAYDI ====
+import { provide } from '@core/container.js';
+import * as _self from './00-state.js';
+provide('ui.pages.hesaplarState', _self);

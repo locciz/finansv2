@@ -6,7 +6,8 @@
 // Kendi kendine yeten tek bir (function(){...})() olduğu için
 // BÖLÜNMEDEN, olduğu gibi aktarıldı.
 // ============================================================
-import { DB } from '../../../../core/state.js';
+import { DB } from '@core/state.js';
+import { provide as _provide } from '@core/container.js';
 (function(){
   'use strict';
 
@@ -253,5 +254,24 @@ import { DB } from '../../../../core/state.js';
   if(DOC.readyState === 'loading') DOC.addEventListener('DOMContentLoaded', boot, { once:true });
   else boot();
   W.addEventListener('load', boot, { once:true });
+
+  // ============================================================
+  // DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+  // Kendi üstteki `core/state.js` importu BİLİNÇLİ OLARAK bırakıldı.
+  // Bu dosyanın dış API'si zaten window.FinansBusinessDays + birkaç
+  // window.* fonksiyon üzerinden; container'a da aynı namespace'i
+  // yansıtıyoruz.
+  // ============================================================
+  _provide('ui.pages.mevduatPatches.gunlukVadeliIsGunuRefactor', {
+    dateOnly: dateOnly,
+    dateKey: dateKey,
+    holidaySet: holidaySet,
+    isWeekend: isWeekend,
+    isBusinessDay: isBusinessDay,
+    nextBusinessDayAfter: nextBusinessDayAfter,
+    dailyMaturity: calculateDailyMaturity,
+    applyDailyMaturity: applyDailyMaturity,
+    updateDailyDepositObject: updateDailyDepositObject
+  });
 })();
 

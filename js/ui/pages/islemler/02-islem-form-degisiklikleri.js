@@ -1,11 +1,11 @@
-import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr } from '../../../core/format.js';
-import { FORMAT_CONFIG } from '../../../core/state.js';
-import { calcTaksit } from '../../../domain/hesaplamalar.js';
-import { setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { _islemProvizyonManuel, set_islemProvizyonManuel } from './00-state.js';
-import { getKartCurrencies, getKartDefaultCurrency } from '../kartlar/01-kart-data.js';
-import { onTaksitChange } from '../krediler/01-genel-yardimcilar.js';
-import { tahminProvizyonGunFarki } from '../ozet.js';
+import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
+import { FORMAT_CONFIG } from '@core/state.js';
+import { calcTaksit } from '@domain/hesaplamalar.js';
+import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { _islemProvizyonManuel, set_islemProvizyonManuel } from '@pages/islemler/00-state.js';
+import { getKartCurrencies, getKartDefaultCurrency } from '@pages/kartlar/01-kart-data.js';
+import { onTaksitChange } from '@pages/krediler/01-genel-yardimcilar.js';
+import { tahminProvizyonGunFarki } from '@pages/ozet.js';
 // ============================================================
 // js/ui/pages/islemler/02-islem-form-degisiklikleri.js
 // İşlem formu input değişiklik yakalayıcıları (tarih/kart/taksit)

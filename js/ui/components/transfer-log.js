@@ -16,14 +16,19 @@
 //   - Rota satırının solunda yapılabilirlik rozeti (yeşil/kırmızı ikon)
 //   - Boş durum için ikonlu, bağlama duyarlı mesaj (filtre/arama farkı)
 // ============================================================
-import { saveData } from '../../core/app-core-base.js';
-import { tblFiltreOkuMulti } from '../../core/app-core.js';
-import { fmtCur, fmtDate } from '../../core/format.js';
-import { DB } from '../../core/state.js';
-import { openMfFiltrePopup } from './mf-popup.js';
-import { showToast } from './modal-genel.js';
-import { register, call } from '../../core/wrap-registry.js';
-import { tekrarlaTransfer, deleteTransfer } from './transfer-modal.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: altı bağımlılık da (core.appCoreBase,
+// core.appCore, core.format, core.state, ui.components.mfPopup,
+// ui.components.modalGenel, core.wrapRegistry, ui.components.transferModal)
+// zaten container'a taşınmış katmanlara ait.
+const _appCoreBase = inject('core.appCoreBase');
+const _appCore = inject('core.appCore');
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _mfPopup = inject('ui.components.mfPopup');
+const _modalGenel = inject('ui.components.modalGenel');
+const _wrapRegistry = inject('core.wrapRegistry');
+const _transferModal = inject('ui.components.transferModal');
 
 function el(id) { return document.getElementById(id); }
 function esc(x) {
@@ -34,7 +39,7 @@ function esc(x) {
 
 function accLabel(h) {
   if (!h) return 'Hesap';
-  const b = (DB.bankalar || []).find(x => x.id === h.banka);
+  const b = (_coreState.DB.bankalar || []).find(x => x.id === h.banka);
   const bank = (b && (b.kisa || b.ad)) || 'Banka';
   const last = (h.iban || '').replace(/\s+/g, '').slice(-4);
   return bank + ' · ' + (h.ad || 'Hesap') + (last ? ' · ····' + last : '');
@@ -43,10 +48,10 @@ function accLabel(h) {
 function side(t, w) {
   if (w === 'k') {
     if (t.kTip === 'nakit') return ('Nakit ' + (t.kaynakPb || '')).trim();
-    return accLabel((DB.hesaplar || []).find(h => h.id === t.kaynakId));
+    return accLabel((_coreState.DB.hesaplar || []).find(h => h.id === t.kaynakId));
   }
   if (t.hTip === 'nakit') return ('Nakit ' + (t.hedefPb || '')).trim();
-  return accLabel((DB.hesaplar || []).find(h => h.id === t.hedefId));
+  return accLabel((_coreState.DB.hesaplar || []).find(h => h.id === t.hedefId));
 }
 
 // Bu transfer şu an tekrar yapılabilir mi? (yeterli bakiye + hesap aktif mi)
@@ -54,24 +59,24 @@ function possible(t) {
   const tut = Number(t.tutar) || 0;
   let src = false, dst = false;
   if (t.kTip === 'nakit') {
-    src = ((DB._nakitBakiye || {})[t.kaynakPb] || 0) >= tut - 0.005;
+    src = ((_coreState.DB._nakitBakiye || {})[t.kaynakPb] || 0) >= tut - 0.005;
   } else {
-    const h = (DB.hesaplar || []).find(x => x.id === t.kaynakId);
+    const h = (_coreState.DB.hesaplar || []).find(x => x.id === t.kaynakId);
     src = !!(h && h.durum === 'aktif' && h.tur !== 'vadeli' && ((Number(h.bakiye) || 0) + (Number(h.kmhLimit) || 0)) >= tut - 0.005);
   }
   if (t.hTip === 'nakit') {
     dst = !!t.hedefPb;
   } else {
-    const hh = (DB.hesaplar || []).find(x => x.id === t.hedefId);
+    const hh = (_coreState.DB.hesaplar || []).find(x => x.id === t.hedefId);
     dst = !!(hh && hh.durum === 'aktif' && hh.tur !== 'vadeli');
   }
   return src && dst;
 }
 
 function ensurePrefs() {
-  DB.uiFiltreler = DB.uiFiltreler || {};
-  DB.uiFiltreler.transferLog = DB.uiFiltreler.transferLog || {};
-  const p = DB.uiFiltreler.transferLog;
+  _coreState.DB.uiFiltreler = _coreState.DB.uiFiltreler || {};
+  _coreState.DB.uiFiltreler.transferLog = _coreState.DB.uiFiltreler.transferLog || {};
+  const p = _coreState.DB.uiFiltreler.transferLog;
   if (!Array.isArray(p.filtre)) p.filtre = p.filtre ? [p.filtre] : [];
   if (typeof p.status !== 'string') p.status = '';
   return p;
@@ -80,8 +85,8 @@ function currentStatus() { return ensurePrefs().status || ''; }
 
 export function setTransferLogStatusFilter(v) {
   ensurePrefs().status = v || '';
-  if (typeof saveData === 'function') saveData();
-  call('renderTransferLog');
+  if (typeof saveData === 'function') _appCoreBase.saveData();
+  _wrapRegistry.call('renderTransferLog');
 }
 
 function renderStatusFilterBar() {
@@ -105,14 +110,14 @@ function renderStatusFilterBar() {
 
 export function _transferLogFiltreItems() {
   const used = new Set(), cash = new Set();
-  (DB.transferler || []).forEach(t => {
+  (_coreState.DB.transferler || []).forEach(t => {
     if (t.kTip === 'hesap' && t.kaynakId) used.add(t.kaynakId);
     if (t.hTip === 'hesap' && t.hedefId) used.add(t.hedefId);
     if (t.kTip === 'nakit' && t.kaynakPb) cash.add(t.kaynakPb);
     if (t.hTip === 'nakit' && t.hedefPb) cash.add(t.hedefPb);
   });
   const a = Array.from(used).map(id => {
-    const h = (DB.hesaplar || []).find(x => x.id === id);
+    const h = (_coreState.DB.hesaplar || []).find(x => x.id === id);
     return h ? { value: 'h:' + id, label: accLabel(h), icon: '<span class="bank-icon">🏦</span>' } : null;
   }).filter(Boolean);
   const c = Array.from(cash).filter(Boolean).map(pb => (
@@ -123,8 +128,8 @@ export function _transferLogFiltreItems() {
 
 export function openTransferLogFiltrePopup(triggerEl) {
   const items = _transferLogFiltreItems();
-  if (!items.length) { showToast('Filtrelenecek transfer geçmişi yok', 'info'); return; }
-  openMfFiltrePopup('transferLog', 'filtre', 'Son Transferleri Filtrele', items, () => call('renderTransferLog'), triggerEl);
+  if (!items.length) { _modalGenel.showToast('Filtrelenecek transfer geçmişi yok', 'info'); return; }
+  _mfPopup.openMfFiltrePopup('transferLog', 'filtre', 'Son Transferleri Filtrele', items, () => _wrapRegistry.call('renderTransferLog'), triggerEl);
 }
 
 export function _transferLogFiltreLabelGuncelle(hesapMap, seciliFiltreler) {
@@ -167,31 +172,31 @@ function dayGroupLabel(tarih) {
   const key = tarih.slice(0, 10);
   if (key === toKey(today)) return 'Bugün';
   if (key === toKey(yest)) return 'Dün';
-  return fmtDate(tarih);
+  return _format.fmtDate(tarih);
 }
 
 function renderTransferLog() {
   ensurePrefs();
-  DB.transferler = DB.transferler || [];
+  _coreState.DB.transferler = _coreState.DB.transferler || [];
   const liste = el('transfer-log-liste');
   const sec = el('transfer-log-msec');
   const countBadge = el('transfer-log-count');
   if (!liste) return;
 
-  if (sec) sec.style.display = DB.transferler.length ? '' : 'none';
+  if (sec) sec.style.display = _coreState.DB.transferler.length ? '' : 'none';
   renderStatusFilterBar();
-  if (!DB.transferler.length) {
+  if (!_coreState.DB.transferler.length) {
     liste.innerHTML = `<div class="rf-transfer-empty">${EMPTY_SVG}<div>Henüz transfer yok</div></div>`;
     if (countBadge) countBadge.textContent = '';
     return;
   }
 
   const hesapMap = {};
-  (DB.hesaplar || []).forEach(h => { hesapMap[h.id] = h.ad; });
-  const selected = typeof tblFiltreOkuMulti === 'function' ? tblFiltreOkuMulti('transferLog', 'filtre') : [];
+  (_coreState.DB.hesaplar || []).forEach(h => { hesapMap[h.id] = h.ad; });
+  const selected = typeof tblFiltreOkuMulti === 'function' ? _appCore.tblFiltreOkuMulti('transferLog', 'filtre') : [];
   _transferLogFiltreLabelGuncelle(hesapMap, selected);
 
-  let rows = DB.transferler.slice().reverse();
+  let rows = _coreState.DB.transferler.slice().reverse();
   if (selected.length) {
     rows = rows.filter(t => selected.some(f => {
       if (f.startsWith('h:')) {
@@ -222,12 +227,12 @@ function renderTransferLog() {
     }
     const ok = possible(t);
     const pb = t.kaynakPb || t.hedefPb || 'TRY';
-    const noteHtml = t.aciklama ? esc(t.aciklama) : fmtDate(t.tarih);
+    const noteHtml = t.aciklama ? esc(t.aciklama) : _format.fmtDate(t.tarih);
     html.push(`<div class="rf-transfer-row ${ok ? 'state-ok' : 'state-no'}" title="${ok ? 'Şu an tekrar yapılabilir' : 'Şu an tekrar yapılamaz'}">
       <div class="rf-transfer-route"><span class="rf-transfer-seg">${esc(side(t, 'k'))}</span><span class="rf-transfer-arrow">${ARROW_SVG}</span><span class="rf-transfer-seg">${esc(side(t, 'h'))}</span></div>
       <div class="rf-transfer-bottom">
         <div class="rf-transfer-note">${noteHtml}</div>
-        <div class="rf-transfer-amount"><span class="mono">${fmtCur(t.tutar, pb)}</span></div>
+        <div class="rf-transfer-amount"><span class="mono">${_format.fmtCur(t.tutar, pb)}</span></div>
         <div class="rf-transfer-actions">
           <button class="rf-transfer-tekrar-btn" data-id="${t.id}" title="Bu transferi tekrarla" aria-label="Bu transferi tekrarla">${REPEAT_SVG}</button>
           <button class="rf-transfer-sil-btn danger" data-id="${t.id}" title="Sil" aria-label="Sil">${TRASH_SVG}</button>
@@ -238,14 +243,24 @@ function renderTransferLog() {
   liste.innerHTML = html.join('');
 
   liste.querySelectorAll('.rf-transfer-tekrar-btn').forEach(btn => {
-    btn.addEventListener('click', () => tekrarlaTransfer(btn.getAttribute('data-id')));
+    btn.addEventListener('click', () => _transferModal.tekrarlaTransfer(btn.getAttribute('data-id')));
   });
   liste.querySelectorAll('.rf-transfer-sil-btn').forEach(btn => {
-    btn.addEventListener('click', () => deleteTransfer(btn.getAttribute('data-id')));
+    btn.addEventListener('click', () => _transferModal.deleteTransfer(btn.getAttribute('data-id')));
   });
 }
 
-register('renderTransferLog', renderTransferLog);
-register('openTransferLogFiltrePopup', openTransferLogFiltrePopup);
+_wrapRegistry.register('renderTransferLog', renderTransferLog);
+_wrapRegistry.register('openTransferLogFiltrePopup', openTransferLogFiltrePopup);
 
 export { renderTransferLog };
+
+// ============================================================
+// [DI-MIGRATION] ui.components.transferLog — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.transferLog', {
+  setTransferLogStatusFilter, _transferLogFiltreItems,
+  openTransferLogFiltrePopup, _transferLogFiltreLabelGuncelle,
+  renderTransferLog,
+});

@@ -1,19 +1,19 @@
-import { saveData, updateSidebarKartNav } from '../../../core/app-core-base.js';
-import { localDateStr } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { paraBirimiCevirGuvenli } from '../../../domain/doviz.js';
-import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste, getKrediKalanBorc, getNakitAvansTaksitAnaParalari } from '../../../domain/hesaplamalar.js';
-import { showConfirm } from '../../components/modal-genel.js';
-import { setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { tblSiralamaAyarla } from '../../components/tablo-filtre-sirala.js';
-import { KART_RENK_PALET } from './00-state.js';
-import { kartStepGoto, populateKartModal, renderKartLimitGecmis } from './06-kart-form.js';
-import { getOrtakGrupKullanim } from './07-ortak-limit-grubu.js';
-import { editKartId, setEditKartId } from './09-kart-altyapi.js';
-import { renderKartlar } from './10-kart-liste.js';
-import { odKartDonemOverride } from '../odeme/01-genel-yardimcilar.js';
-import { tanimRenkAl } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { openModal } from '../../components/modal-genel.js';
+import { saveData, updateSidebarKartNav } from '@core/app-core-base.js';
+import { localDateStr } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { paraBirimiCevirGuvenli } from '@domain/doviz.js';
+import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste, getKrediKalanBorc, getNakitAvansTaksitAnaParalari } from '@domain/hesaplamalar.js';
+import { showConfirm } from '@components/modal-genel.js';
+import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { tblSiralamaAyarla } from '@components/tablo-filtre-sirala.js';
+import { KART_RENK_PALET } from '@pages/kartlar/00-state.js';
+import { kartStepGoto, populateKartModal, renderKartLimitGecmis } from '@pages/kartlar/06-kart-form.js';
+import { getOrtakGrupKullanim } from '@pages/kartlar/07-ortak-limit-grubu.js';
+import { editKartId, setEditKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { renderKartlar } from '@pages/kartlar/10-kart-liste.js';
+import { odKartDonemOverride } from '@pages/odeme/01-genel-yardimcilar.js';
+import { tanimRenkAl } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/kartlar/01-kart-data.js
 // Kart veri erişimi — getter/hesaplama fonksiyonları, temel CRUD

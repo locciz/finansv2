@@ -1,15 +1,15 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { calcExtreTarihi, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { setDateInputValue } from '../../components/money-input.js';
-import { renderExtreler } from './02-ekstre-render.js';
-import { kdRenderExtreUyari, kdRenderExtreler } from '../kartlar/04-kart-detay-v1.js';
-import { kd2RenderExtreler } from '../kartlar/05-kart-detay-v2.js';
-import { _kd2KartId, _kdKartId } from '../kartlar/09-kart-altyapi.js';
-import { renderOzetEkstreUyarilar } from '../ozet.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { calcExtreTarihi, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { renderExtreler } from '@pages/ekstreler/02-ekstre-render.js';
+import { kdRenderExtreUyari, kdRenderExtreler } from '@pages/kartlar/04-kart-detay-v1.js';
+import { kd2RenderExtreler } from '@pages/kartlar/05-kart-detay-v2.js';
+import { _kd2KartId, _kdKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { renderOzetEkstreUyarilar } from '@pages/ozet.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/ekstreler/01-ekstre-kesinlestirme.js
 // Ekstre kesinleştirme (dönem kapatma) akışı

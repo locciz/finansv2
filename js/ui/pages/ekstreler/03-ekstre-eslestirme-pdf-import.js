@@ -1,19 +1,19 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmtCur, fmtDate } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { _sidebarDim, showConfirm, showToast } from '../../components/modal-genel.js';
-import { applyToAll } from '../../components/mobile-nav-tema/05-tarih-input-overlay.js';
-import { bindMoneyInputs, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { isEkstreKesinlesmis } from './01-ekstre-kesinlestirme.js';
-import { EE_STATE, setEE_STATE } from './02-ekstre-render.js';
-import { onIslemKartChange, onIslemTarihiChange } from '../islemler/02-islem-form-degisiklikleri.js';
-import { renderIslemler } from '../islemler/03-islem-liste-render.js';
-import { renderIslemKategoriButon } from '../islemler/06-islem-kategori-secici.js';
-import { editIslem, populateIslemModal } from '../islemler/07-islem-modal-crud.js';
-import { getKart, getKartCurrency } from '../kartlar/01-kart-data.js';
-import { getKategoriOpts } from '../tanimlamalar/03-kategoriler.js';
-import { _eeOnSaveHook, set_eeOnSaveHook } from '../islemler/00-state.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmtCur, fmtDate } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { _sidebarDim, showConfirm, showToast } from '@components/modal-genel.js';
+import { applyToAll } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
+import { bindMoneyInputs, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { isEkstreKesinlesmis } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { EE_STATE, setEE_STATE } from '@pages/ekstreler/02-ekstre-render.js';
+import { onIslemKartChange, onIslemTarihiChange } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { renderIslemKategoriButon } from '@pages/islemler/06-islem-kategori-secici.js';
+import { editIslem, populateIslemModal } from '@pages/islemler/07-islem-modal-crud.js';
+import { getKart, getKartCurrency } from '@pages/kartlar/01-kart-data.js';
+import { getKategoriOpts } from '@pages/tanimlamalar/03-kategoriler.js';
+import { _eeOnSaveHook, set_eeOnSaveHook } from '@pages/islemler/00-state.js';
 // ============================================================
 // js/ui/pages/ekstreler/03-ekstre-eslestirme-pdf-import.js
 // PDF ekstre içe aktarma ve otomatik eşleştirme (OCR/parse)

@@ -1,8 +1,8 @@
-import { defaultCurrency } from '../../../core/state.js';
-import { _closeScSearchPopup, _hesapChipHtml, _hesapChipLabel, _hesapChipValue, _openScSearchPopup } from '../../components/select-to-chips.js';
-import { _odHesapPopupHesaplar, set_odHesapPopupHesaplar } from './00-state.js';
-import { _odModal } from './08-popup-giris-noktalari.js';
-import { call, register } from '../../../core/wrap-registry.js';
+import { defaultCurrency } from '@core/state.js';
+import { _closeScSearchPopup, _hesapChipHtml, _hesapChipLabel, _hesapChipValue, _openScSearchPopup } from '@components/select-to-chips.js';
+import { _odHesapPopupHesaplar, set_odHesapPopupHesaplar } from '@pages/odeme/00-state.js';
+import { _odModal } from '@pages/odeme/08-popup-giris-noktalari.js';
+import { call, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/05-hesap-secim-popup.js
 // Ödeme modalı içindeki hesap seçim popup'ı

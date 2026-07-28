@@ -1,13 +1,13 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { BANKA_LOGOLAR, BANK_ICON_MAP } from '../../../domain/banka-verisi.js';
-import { _renderBankaLogoPicker, _selectBankaLogo, onBankaIbanKodInput } from '../../components/iban-ui.js';
-import { _sidebarDim, showConfirm, showToast, validateRequiredFields } from '../../components/modal-genel.js';
-import { PRESET_BANKALAR, editBankaId, setEditBankaId } from './00-state.js';
-import { bankaLogoByKod } from './01-genel-yardimcilar.js';
-import { renderTanimlamalar } from './02-ana-sayfa.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { BANKA_LOGOLAR, BANK_ICON_MAP } from '@domain/banka-verisi.js';
+import { _renderBankaLogoPicker, _selectBankaLogo, onBankaIbanKodInput } from '@components/iban-ui.js';
+import { _sidebarDim, showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
+import { PRESET_BANKALAR, editBankaId, setEditBankaId } from '@pages/tanimlamalar/00-state.js';
+import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/07-bankalar.js
 // Banka tanımlama CRUD'u

@@ -1,16 +1,16 @@
-import { fmt, fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { CURRENCY_CONFIG, DB, defaultCurrency } from '../../../core/state.js';
-import { ODEME_DURUM, HESAP_TUR, DURUM } from '../../../core/constants.js';
-import { setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { _hesapBankayaAitMi } from '../hesaplar/01-genel-yardimcilar.js';
+import { fmt, fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { ODEME_DURUM, HESAP_TUR, DURUM } from '@core/constants.js';
+import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { _hesapBankayaAitMi } from '@pages/hesaplar/01-genel-yardimcilar.js';
 
-import { _odHesapSecimListesiHazirla, odBadgeHtml, odEfektifDurum, odGetDurum, odKartDonemOverride } from './01-genel-yardimcilar.js';
-import { _odLogRender } from './03-odeme-log.js';
-import { _odModalLockBodyScroll } from './04-modal-yasam-dongusu.js';
-import { _odHesapPopupBuild } from './05-hesap-secim-popup.js';
-import { _odHesapSecilebilirMi, _odHesapVeYon } from './06-genel-odeme-modali.js';
-import { _odModalSecDurumKart } from './07-kart-odeme-modali.js';
-import { call, register } from '../../../core/wrap-registry.js';
+import { _odHesapSecimListesiHazirla, odBadgeHtml, odEfektifDurum, odGetDurum, odKartDonemOverride } from '@pages/odeme/01-genel-yardimcilar.js';
+import { _odLogRender } from '@pages/odeme/03-odeme-log.js';
+import { _odModalLockBodyScroll } from '@pages/odeme/04-modal-yasam-dongusu.js';
+import { _odHesapPopupBuild } from '@pages/odeme/05-hesap-secim-popup.js';
+import { _odHesapSecilebilirMi, _odHesapVeYon } from '@pages/odeme/06-genel-odeme-modali.js';
+import { _odModalSecDurumKart } from '@pages/odeme/07-kart-odeme-modali.js';
+import { call, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/08-popup-giris-noktalari.js
 // Popup açma giriş noktaları (dışarıdan çağrılan iki fonksiyon)

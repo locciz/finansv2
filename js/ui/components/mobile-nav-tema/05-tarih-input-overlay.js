@@ -1,5 +1,12 @@
-import { applyFormatToken, fmtDate, localDateStr } from '../../../core/format.js';
-import { FORMAT_CONFIG } from '../../../core/state.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: core.format ve core.state zaten container'a
+// taşınmış katmanlara ait, bu yüzden inject() ile tembel çözülüyor. Bu,
+// dosyanın aşağıdaki yorumda bahsedilen dairesel bağımlılık zincirini
+// (state.js → app-core-base.js → bu dosya → state.js) doğal olarak
+// güvenli hale getiriyor — inject() proxy'si gerçek çözümü property
+// erişildiğinde yapar, modül evaluate sırasına bağımlı değildir.
+const _format = inject('core.format');
+const _coreState = inject('core.state');
 // [ES module geçişi] Bu dosya eskiden tüm içeriği initDateInputOverride adlı
 // bir IIFE içinde tutuyordu (kapsam izolasyonu için, dışarıya window.X ile
 // açılıyordu). ES module'de her dosya zaten kendi module scope'una sahip
@@ -55,7 +62,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
   }
 
   function activePattern(inp) {
-    const base = (FORMAT_CONFIG && FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
+    const base = (_coreState.FORMAT_CONFIG && _coreState.FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
     return (inp && inp.dataset && inp.dataset.dateCompact === '1') ? stripWeekdayToken(base) : base;
   }
 
@@ -64,7 +71,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
     if(!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return '';
     try {
       const dt = new Date(v+'T00:00:00');
-      return applyFormatToken(activePattern(inp), dt);
+      return _format.applyFormatToken(activePattern(inp), dt);
     } catch(e) { return v; }
   }
 
@@ -83,14 +90,14 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
     }
   }
 
-  // FORMAT_CONFIG.tarihFormat string'ini parse edip yyyy-MM-dd döndür
+  // _coreState.FORMAT_CONFIG.tarihFormat string'ini parse edip yyyy-MM-dd döndür
   function parseDisplayToYMD(str) {
     if (!str || !str.trim()) return null;
     const s = str.trim();
 
     // ── Hızlı giriş: ayraçsız sayı dizisi ───────────────────────────────
-    if ((!FORMAT_CONFIG || FORMAT_CONFIG.tarihGirisKolay !== false) && /^\d+$/.test(s)) {
-      const pattern = (FORMAT_CONFIG && FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
+    if ((!_coreState.FORMAT_CONFIG || _coreState.FORMAT_CONFIG.tarihGirisKolay !== false) && /^\d+$/.test(s)) {
+      const pattern = (_coreState.FORMAT_CONFIG && _coreState.FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
       // Pattern'daki token sırasını çıkar (yyyy mi önce, dd mi?)
       const tokenOrder = [];
       pattern.replace(/(yyyy|yy|MM|M|dd|d)/g, (tok) => { tokenOrder.push(tok); });
@@ -143,7 +150,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
     }
 
     // ── Normal parse: format pattern ile ─────────────────────────────────
-    const pattern = (FORMAT_CONFIG && FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
+    const pattern = (_coreState.FORMAT_CONFIG && _coreState.FORMAT_CONFIG.tarihFormat) || 'dd/MM/yyyy';
     const tokens = [];
     let regStr = pattern.replace(/(dd|MM|yyyy|yy|d|M)/g, (tok) => {
       tokens.push(tok);
@@ -152,7 +159,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
       return '(\\d{1,2})';
     });
     // Ayraçları isteğe bağlı yap (hızlı giriş aktifse)
-    if (!FORMAT_CONFIG || FORMAT_CONFIG.tarihGirisKolay !== false) {
+    if (!_coreState.FORMAT_CONFIG || _coreState.FORMAT_CONFIG.tarihGirisKolay !== false) {
       regStr = regStr.replace(/[\/\.\-]/g, (ch) => '(?:' + ch + ')?');
     }
     regStr = '^' + regStr + '$';
@@ -162,7 +169,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
       let Y, M, D;
       // Ayraç isteğe bağlıysa grup sayısı değişiyor — sadece rakam gruplarını al
       let digitGroups;
-      if (!FORMAT_CONFIG || FORMAT_CONFIG.tarihGirisKolay !== false) {
+      if (!_coreState.FORMAT_CONFIG || _coreState.FORMAT_CONFIG.tarihGirisKolay !== false) {
         digitGroups = [];
         let g = 1;
         // token'ların konumlarını bul
@@ -247,7 +254,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
     todayBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      inp.value = localDateStr(new Date());
+      inp.value = _format.localDateStr(new Date());
       inp.dispatchEvent(new Event('change', { bubbles: true }));
       txtInp.focus();
     });
@@ -294,8 +301,8 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
         inp.dispatchEvent(new Event('change', { bubbles: true }));
         txtInp.style.color = '';
         // Geçerli tarih → görsel formatı overlay'e yaz (ayraçsız yazıldıysa düzelt)
-        if ((!FORMAT_CONFIG || FORMAT_CONFIG.tarihGirisKolay !== false) && /^\d+$/.test(raw.trim())) {
-          try { txtInp.value = fmtDate(ymd); } catch(e) {}
+        if ((!_coreState.FORMAT_CONFIG || _coreState.FORMAT_CONFIG.tarihGirisKolay !== false) && /^\d+$/.test(raw.trim())) {
+          try { txtInp.value = _format.fmtDate(ymd); } catch(e) {}
         }
       } else {
         txtInp.style.color = inp.value ? '' : 'var(--danger, #fb7185)';
@@ -313,7 +320,7 @@ import { FORMAT_CONFIG } from '../../../core/state.js';
       } else if(ymd) {
         // Doğru parse edildi — görsel formatı normalize et
         inp.value = ymd;
-        try { txtInp.value = fmtDate(ymd); } catch(e) {}
+        try { txtInp.value = _format.fmtDate(ymd); } catch(e) {}
         inp.dispatchEvent(new Event('change', { bubbles: true }));
       } else {
         updateFake(inp); // geçersiz → eski değeri göster
@@ -332,7 +339,7 @@ export { applyToAll };
   } else {
     // Circular import zinciri (state.js → app-core-base.js →
     // 05-tarih-input-overlay.js → state.js) nedeniyle, bu modül evaluate
-    // olduğu anda state.js henüz tam init olmamış olabilir (FORMAT_CONFIG
+    // olduğu anda state.js henüz tam init olmamış olabilir (_coreState.FORMAT_CONFIG
     // undefined). Top-level çağrıyı bir microtask'a erteleyerek tüm modül
     // grafiğinin evaluate'inin bitmesini bekliyoruz.
     Promise.resolve().then(applyToAll);
@@ -356,7 +363,7 @@ export { applyToAll };
     }, 80);
   }
   /* rf-v86: date input dinamik izleyici kaldırıldı; render/openModal sonrası applyToAll çağrılır. */
-  // FORMAT_CONFIG değişince tüm fake metinleri yenile
+  // _coreState.FORMAT_CONFIG değişince tüm fake metinleri yenile
   export function refreshDateOverlays() {
     document.querySelectorAll('input[type="date"][data-date-overlay-done]').forEach(inp => {
       updateFake(inp);
@@ -383,3 +390,12 @@ export { applyToAll };
 
 // [KALDIRILDI] parseDateInput(v) — no-op yardımcı ("value zaten yyyy-MM-dd"),
 // hiçbir yerden çağrılmıyordu (ölü kod taraması, 2026-07).
+
+// ============================================================
+// [DI-MIGRATION] ui.components.tarihInputOverlay — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.tarihInputOverlay', {
+  applyToAll, openModalDateOverlayRefresh, refreshDateOverlays,
+  refreshDateOverlayStyles,
+});

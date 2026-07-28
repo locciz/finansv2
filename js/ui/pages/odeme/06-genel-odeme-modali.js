@@ -1,18 +1,18 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { fmt, fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB, defaultCurrency } from '../../../core/state.js';
-import { _krediGecikmeFaizi, _krediTaksitKalan, getKrediKalanBorc, getKrediTaksitler } from '../../../domain/hesaplamalar.js';
-import { showConfirm, showToast } from '../../components/modal-genel.js';
-import { getMoneyInput, setDateInputValue, setMoneyInput } from '../../components/money-input.js';
-import { _hesapVarsayilanVeyaBankaHesabi } from '../hesaplar/01-genel-yardimcilar.js';
-import { _kartOdemeHizliTransferGuncelle } from '../kartlar/08-kart-odeme.js';
-import { checkMevduatHesapKapat } from '../mevduat/03-mevduat-yenileme-ve-kapama.js';
-import { odGetDurum, odSetDurum } from './01-genel-yardimcilar.js';
-import { odLogEkle } from './03-odeme-log.js';
-import { odModalKapat } from './04-modal-yasam-dongusu.js';
-import { _odKartModalKaydet, _odKartModalSifirla } from './07-kart-odeme-modali.js';
-import { _odModal } from './08-popup-giris-noktalari.js';
-import { call, register } from '../../../core/wrap-registry.js';
+import { saveData } from '@core/app-core-base.js';
+import { fmt, fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB, defaultCurrency } from '@core/state.js';
+import { _krediGecikmeFaizi, _krediTaksitKalan, getKrediKalanBorc, getKrediTaksitler } from '@domain/hesaplamalar.js';
+import { showConfirm, showToast } from '@components/modal-genel.js';
+import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
+import { _hesapVarsayilanVeyaBankaHesabi } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { checkMevduatHesapKapat } from '@pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
+import { odGetDurum, odSetDurum } from '@pages/odeme/01-genel-yardimcilar.js';
+import { odLogEkle } from '@pages/odeme/03-odeme-log.js';
+import { odModalKapat } from '@pages/odeme/04-modal-yasam-dongusu.js';
+import { _odKartModalKaydet, _odKartModalSifirla } from '@pages/odeme/07-kart-odeme-modali.js';
+import { _odModal } from '@pages/odeme/08-popup-giris-noktalari.js';
+import { call, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/06-genel-odeme-modali.js
 // Genel ödeme modalı (kira/maaş/elden/mevduat/kredi durum değiştirme akışı)

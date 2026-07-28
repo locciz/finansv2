@@ -1,24 +1,41 @@
-import { showTab, updateSidebarKartNav } from './app-core-base.js';
-import { fmtDate, fmtTime, localDateStr } from './format.js';
-import { populateCurrencySelects } from '../domain/doviz.js';
-import { gDriveAcRevizyonModal, gDriveInit } from '../services/gdrive.js';
-import { bindMoneyInputs, setDateInputValue } from '../ui/components/money-input.js';
-import { extreTypeChange, openOzelExtreModal } from '../ui/pages/ekstreler/01-ekstre-kesinlestirme.js';
-import { installMobNavShowPageWrap } from '../ui/components/mobile-nav-tema/01-mobil-nav.js';
-import { openExtreDurumModal, openExtreKartModal, openExtreKategoriModal } from '../ui/pages/ekstreler/02-ekstre-render.js';
-import { renderHesapTurTablo } from '../ui/pages/hesaplar/02-hesap-turu-tanimlama.js';
-import { renderHesapTurFiltreler } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { openIslemFiltreModal } from '../ui/pages/islemler/04-islem-filtre.js';
-import { getKart } from '../ui/pages/kartlar/01-kart-data.js';
-import { acKartDetaySayfa, openKartDetayModal } from '../ui/pages/kartlar/03-kart-detay-ortak.js';
-import { _kd2KartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
-import { openKategoriOneriModal, populateKategoriSelects } from '../ui/pages/tanimlamalar/03-kategoriler.js';
-import { renderTumOranTablolari } from '../ui/pages/tanimlamalar/05-genel-oran-tablolari.js';
-import { loadCurrencyConfig, updateParaBirimiPreview } from '../ui/pages/tanimlamalar/06-para-birimi.js';
-import { renderOzet } from '../ui/pages/ozet.js';
-import { openModal } from '../ui/components/modal-genel.js';
-import { showPage } from './app-core-base.js';
-import { register, call, get } from './wrap-registry.js';
+import { inject, provide } from '@core/container.js';
+const _gdrive = inject('services.gdrive');
+import { bindMoneyInputs, setDateInputValue } from '@components/money-input.js';
+import { extreTypeChange, openOzelExtreModal } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { installMobNavShowPageWrap } from '@components/mobile-nav-tema/01-mobil-nav.js';
+import { openExtreDurumModal, openExtreKartModal, openExtreKategoriModal } from '@pages/ekstreler/02-ekstre-render.js';
+import { renderHesapTurTablo } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
+import { renderHesapTurFiltreler } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { openIslemFiltreModal } from '@pages/islemler/04-islem-filtre.js';
+import { getKart } from '@pages/kartlar/01-kart-data.js';
+import { acKartDetaySayfa, openKartDetayModal } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { _kd2KartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { openKategoriOneriModal, populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
+import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { loadCurrencyConfig, updateParaBirimiPreview } from '@pages/tanimlamalar/06-para-birimi.js';
+import { renderOzet } from '@pages/ozet.js';
+import { openModal } from '@components/modal-genel.js';
+
+// core.appCoreBase, core.format, domain.doviz, core.wrapRegistry container'da
+// zaten kayıtlı (Tur 3/4) — inject() ile çözülüyor (dairesel bağımlılık
+// riski + script sırası kırılganlığına karşı, bkz. DI-MIGRATION.md).
+const _appCoreBase = inject('core.appCoreBase');
+const showTab = (...a) => _appCoreBase.showTab(...a);
+const updateSidebarKartNav = (...a) => _appCoreBase.updateSidebarKartNav(...a);
+const showPage = (...a) => _appCoreBase.showPage(...a);
+
+const _coreFormat = inject('core.format');
+const fmtDate = (...a) => _coreFormat.fmtDate(...a);
+const fmtTime = (...a) => _coreFormat.fmtTime(...a);
+const localDateStr = (...a) => _coreFormat.localDateStr(...a);
+
+const _domainDoviz = inject('domain.doviz');
+const populateCurrencySelects = (...a) => _domainDoviz.populateCurrencySelects(...a);
+
+const _wrapRegistry = inject('core.wrapRegistry');
+const register = (...a) => _wrapRegistry.register(...a);
+const call = (...a) => _wrapRegistry.call(...a);
+const get = (...a) => _wrapRegistry.get(...a);
 // NOT: wizard-routing.js BURADAN DOĞRUDAN import EDİLMİYOR — modal-genel.js
 // zaten init.js'i import ediyor, wizard-routing.js de modal-genel.js'i import
 // ediyor; burada bir de wizard-routing.js'i import etmek init.js ↔
@@ -88,7 +105,7 @@ let _pendingKartDeepLink = null;
 // ── 3) DOMContentLoaded ana akışı ────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   installMobNavShowPageWrap(); // showPage wrap'ini burada kur (bkz. 01-mobil-nav.js'deki not)
-  gDriveInit();
+  _gdrive.gDriveInit();
   loadCurrencyConfig(); // DOM hazır olduktan sonra tekrar yükle
   bindMoneyInputs(); // Para formatı inputlarını bağla
   populateKategoriSelects();
@@ -178,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(params.modalKart) openKartDetayModal(params.modalKart, params.modalTab || 'islem');
             break;
           case 'modal-drive-revizyon':
-            if(typeof gDriveAcRevizyonModal === 'function') gDriveAcRevizyonModal();
+            if(typeof _gdrive.gDriveAcRevizyonModal === 'function') _gdrive.gDriveAcRevizyonModal();
             break;
           case 'modal-islem-filtre':
             if(typeof openIslemFiltreModal === 'function') openIslemFiltreModal();
@@ -276,3 +293,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('load', openDash, { once: true });
 })();
+
+// ============================================================
+// DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)
+// @components/*, @pages/* importları HENÜZ silinmedi (ui katmanı henüz
+// taşınmadı). render-core.js bu namespace'i inject('core.init') ile
+// dairesel bağımlılık riski olmadan çözer.
+// ============================================================
+provide('core.init', { _pushHashState, _currentHashPage, _currentHashParams });

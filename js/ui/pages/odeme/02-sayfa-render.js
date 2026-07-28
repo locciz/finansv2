@@ -1,13 +1,13 @@
-import { DB } from '../../../core/state.js';
-import { renderElden } from '../elden.js';
-import { renderIslemler } from '../islemler/03-islem-liste-render.js';
-import { renderKira } from '../kira.js';
-import { renderKmhKredi } from '../krediler/03-kmh-kredi.js';
-import { renderKredi } from '../krediler/04-bireysel-kredi.js';
-import { renderMaas } from '../maas.js';
-import { renderMevduat } from '../mevduat/05-mevduat-liste-render.js';
-import { renderOzet } from '../ozet.js';
-import { register } from '../../../core/wrap-registry.js';
+import { DB } from '@core/state.js';
+import { renderElden } from '@pages/elden.js';
+import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
+import { renderKira } from '@pages/kira.js';
+import { renderKmhKredi } from '@pages/krediler/03-kmh-kredi.js';
+import { renderKredi } from '@pages/krediler/04-bireysel-kredi.js';
+import { renderMaas } from '@pages/maas.js';
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { renderOzet } from '@pages/ozet.js';
+import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/02-sayfa-render.js
 // Ödeme durumu sayfası render

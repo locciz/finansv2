@@ -1,18 +1,23 @@
-import { saveData } from '../../core/app-core-base.js';
-import { tblFiltreMultiToggle, tblFiltreOkuMulti } from '../../core/app-core.js';
-import { DB } from '../../core/state.js';
-import { _scLockBodyScroll, _scUnlockBodyScroll } from './select-to-chips.js';
-import { renderMevduat } from '../pages/mevduat/05-mevduat-liste-render.js';
-import { bankaIkonObj } from '../pages/tanimlamalar/01-genel-yardimcilar.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: dört bağımlılık da (core.appCoreBase,
+// core.appCore, core.state, ui.components.selectToChips) zaten container'a
+// taşınmış katmanlara ait. @pages/* importları o katman henüz taşınmadığı
+// için BİLİNÇLİ OLARAK korunuyor.
+const _appCoreBase = inject('core.appCoreBase');
+const _appCore = inject('core.appCore');
+const _coreState = inject('core.state');
+const _selectToChips = inject('ui.components.selectToChips');
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { bankaIkonObj } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 // ============================================================
 // js/ui/components/mf-popup.js — Çoklu seçimli filtre popup'ı
 // ============================================================
 // Banka gibi çok sayıda seçeneği olan filtreler chip satırına sığmadığı için
 // bunun yerine bir "▾ Banka (n)" tetikleyici düğme + açılan bir popup (arama +
 // onay işaretli liste) kullanılır. Seçimler tblFiltreMultiToggle üzerinden
-// DB.uiFiltreler[sayfa][boyut] içine dizi olarak kaydedilir (kalıcı, Drive'a
+// _coreState.DB.uiFiltreler[sayfa][boyut] içine dizi olarak kaydedilir (kalıcı, Drive'a
 // senkronize edilir) — popup her açıldığında ve her sayfa yüklendiğinde
-// DB'den okunarak hatırlanır. sc-popup-* CSS sınıfları (genel arama popup'ı
+// _coreState.DB'den okunarak hatırlanır. sc-popup-* CSS sınıfları (genel arama popup'ı
 // ile aynı) yeniden kullanılır, sadece kendi DOM'u ve state'i vardır.
 export var _mfPopupState = null;
 export function _ensureMfPopupEl() {
@@ -68,7 +73,7 @@ export function openMfFiltrePopup(sayfa, boyut, title, items, renderFn, triggerE
   document.getElementById('mf-popup-search-wrap').classList.remove('has-value');
   _renderMfPopupList('');
   ov.classList.add('open');
-  _scLockBodyScroll();
+  _selectToChips._scLockBodyScroll();
   setTimeout(() => input.focus(), 30);
 }
 
@@ -76,7 +81,7 @@ export function _renderMfPopupList(q) {
   const st = _mfPopupState;
   if(!st) return;
   const ql = (q||'').trim().toLocaleLowerCase('tr');
-  const secili = tblFiltreOkuMulti(st.sayfa, st.boyut);
+  const secili = _appCore.tblFiltreOkuMulti(st.sayfa, st.boyut);
   const filtered = !ql ? st.items : st.items.filter(it => it.label.toLocaleLowerCase('tr').includes(ql));
   const countEl = document.getElementById('mf-popup-count');
   if(countEl) {
@@ -104,7 +109,7 @@ export function _renderMfPopupList(q) {
 export function _mfPopupToggle(val) {
   const st = _mfPopupState;
   if(!st) return;
-  tblFiltreMultiToggle(st.sayfa, st.boyut, val);
+  _appCore.tblFiltreMultiToggle(st.sayfa, st.boyut, val);
   _renderMfPopupList(document.getElementById('mf-popup-input').value);
   if(typeof st.renderFn === 'function') st.renderFn();
 }
@@ -112,10 +117,10 @@ export function _mfPopupToggle(val) {
 export function _mfPopupClearAll() {
   const st = _mfPopupState;
   if(!st) return;
-  if(!DB.uiFiltreler) DB.uiFiltreler = {};
-  if(!DB.uiFiltreler[st.sayfa]) DB.uiFiltreler[st.sayfa] = {};
-  DB.uiFiltreler[st.sayfa][st.boyut] = [];
-  saveData();
+  if(!_coreState.DB.uiFiltreler) _coreState.DB.uiFiltreler = {};
+  if(!_coreState.DB.uiFiltreler[st.sayfa]) _coreState.DB.uiFiltreler[st.sayfa] = {};
+  _coreState.DB.uiFiltreler[st.sayfa][st.boyut] = [];
+  _appCoreBase.saveData();
   _renderMfPopupList(document.getElementById('mf-popup-input').value);
   if(typeof st.renderFn === 'function') st.renderFn();
 }
@@ -123,7 +128,7 @@ export function _mfPopupClearAll() {
 export function _closeMfPopup() {
   const ov = document.getElementById('mf-popup-overlay');
   if(ov) ov.classList.remove('open');
-  _scUnlockBodyScroll();
+  _selectToChips._scUnlockBodyScroll();
   const trigger = _mfPopupState && _mfPopupState.triggerEl;
   _mfPopupState = null;
   if(trigger && document.body.contains(trigger) && trigger.focus) setTimeout(() => trigger.focus(), 0);
@@ -131,7 +136,7 @@ export function _closeMfPopup() {
 
 export function _bankaFiltrePopupItems(bankaIdList) {
   return bankaIdList.map(id => {
-    const b = (DB.bankalar||[]).find(x=>x.id===id);
+    const b = (_coreState.DB.bankalar||[]).find(x=>x.id===id);
     const ikon = bankaIkonObj(b);
     const icon = ikon.svg
       ? `<span class="bank-logo">${ikon.svg}</span>`
@@ -141,7 +146,7 @@ export function _bankaFiltrePopupItems(bankaIdList) {
 }
 
 export function openMevduatBankaFiltrePopup(triggerEl) {
-  const idler = [...new Set((DB.mevduatlar||[]).map(m=>m.banka).filter(Boolean))];
+  const idler = [...new Set((_coreState.DB.mevduatlar||[]).map(m=>m.banka).filter(Boolean))];
   openMfFiltrePopup('mevduat', 'banka', 'Banka Filtrele', _bankaFiltrePopupItems(idler), renderMevduat, triggerEl);
 }
 
@@ -151,3 +156,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 
+
+// ============================================================
+// [DI-MIGRATION] ui.components.mfPopup — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.components.mfPopup', {
+  get _mfPopupState() { return _mfPopupState; },
+  _ensureMfPopupEl, openMfFiltrePopup, _renderMfPopupList, _mfPopupToggle,
+  _mfPopupClearAll, _closeMfPopup, _bankaFiltrePopupItems,
+  openMevduatBankaFiltrePopup,
+});

@@ -1,15 +1,15 @@
-import { isIsBgunu } from '../../../core/date-utils.js';
-import { fmtDate, localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { getStopajOrani } from '../../../domain/hesaplamalar.js';
-import { showToast } from '../../components/modal-genel.js';
-import { setMoneyInput } from '../../components/money-input.js';
-import { calcMevduatObj } from '../abonelik.js';
-import { _mevGunlukMod, set_mevGunlukMod } from './00-state.js';
-import { calcMevduat } from './01-mevduat-form-wizard.js';
-import { _fillMevVadesizSel, onMevHesapChange, onMevOtoHesapToggle, onMevStratejiChange } from './06-mevduat-hesap-secim-formu.js';
-import { getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { openModal } from '../../components/modal-genel.js';
+import { isIsBgunu } from '@core/date-utils.js';
+import { fmtDate, localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { getStopajOrani } from '@domain/hesaplamalar.js';
+import { showToast } from '@components/modal-genel.js';
+import { setMoneyInput } from '@components/money-input.js';
+import { calcMevduatObj } from '@pages/abonelik.js';
+import { _mevGunlukMod, set_mevGunlukMod } from '@pages/mevduat/00-state.js';
+import { calcMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { _fillMevVadesizSel, onMevHesapChange, onMevOtoHesapToggle, onMevStratejiChange } from '@pages/mevduat/06-mevduat-hesap-secim-formu.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/mevduat/02-mevduat-vadeliye-koyma.js
 // Vadesiz hesaptan vadeliye para aktarma akışı (günlük otomatik dahil)

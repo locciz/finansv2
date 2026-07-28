@@ -1,7 +1,7 @@
-import { _kartOdemeHizliTransferGuncelle } from '../kartlar/08-kart-odeme.js';
-import { _odModalOwnsBodyLock, _odModalSuspendedByTransfer, set_odModalOwnsBodyLock, set_odModalSuspendedByTransfer } from './00-state.js';
-import { _odHesapPopupToggle } from './05-hesap-secim-popup.js';
-import { call, register } from '../../../core/wrap-registry.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { _odModalOwnsBodyLock, _odModalSuspendedByTransfer, set_odModalOwnsBodyLock, set_odModalSuspendedByTransfer } from '@pages/odeme/00-state.js';
+import { _odHesapPopupToggle } from '@pages/odeme/05-hesap-secim-popup.js';
+import { call, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/04-modal-yasam-dongusu.js
 // Ödeme modalının açılış/kapanış yaşam döngüsü

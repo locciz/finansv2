@@ -1,11 +1,11 @@
-import { fmtCur } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { _tutarAsiyorMu, getStopajOrani } from '../../../domain/hesaplamalar.js';
-import { phSet } from '../../components/modal-genel.js';
-import { getMoneyInput } from '../../components/money-input.js';
-import { hesapOptionMetin } from '../hesaplar/01-genel-yardimcilar.js';
-import { _editMevduatEskiTutar, editMevduatId } from './00-state.js';
-import { calcMevduat } from './01-mevduat-form-wizard.js';
+import { fmtCur } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { _tutarAsiyorMu, getStopajOrani } from '@domain/hesaplamalar.js';
+import { phSet } from '@components/modal-genel.js';
+import { getMoneyInput } from '@components/money-input.js';
+import { hesapOptionMetin } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { _editMevduatEskiTutar, editMevduatId } from '@pages/mevduat/00-state.js';
+import { calcMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
 // ============================================================
 // js/ui/pages/mevduat/06-mevduat-hesap-secim-formu.js
 // Mevduat formu içindeki hesap/kaynak/strateji seçim yardımcıları

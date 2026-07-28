@@ -1,59 +1,66 @@
-import { showPage, showTab } from './app-core-base.js';
-import { mobNavGo } from './render-core.js';
-import { call } from './wrap-registry.js';
-import { resetGoruntuAyarlari, setSaatFormat, setTarihFormat } from './format.js';
-import { gDriveAcRevizyonModal, gDriveGeriYukleYerelYedek, gDriveSignIn, gDriveSignOut, gDriveSyncNow } from '../services/gdrive.js';
-import { pbKaynakEkle, tcmbKurlariniGuncelle } from '../services/kur-servisleri.js';
-import { _ibanPopupEkle, _ibanPopupKapat, copyFieldIban } from '../ui/components/iban-ui.js';
-import { closeMiniKisiPopup, kisiIbanEkle, mkpFilterList, mkpSaveKisi, mkpToggleAddForm, openKisiModal, openMiniKisiPopup, saveKisi, toggleKtMode } from '../ui/components/kisiler.js';
-import { kontratPlanBugune, kontratPlanFormKapat, kontratPlanFormKaydet, kontratPlanYilDegistir } from '../ui/components/kontrat-plani.js';
-import { closeMobMore, closeMobileSidebar, toggleMobMore, toggleMobProfile, toggleMobileSidebar } from '../ui/components/mobile-nav-tema/01-mobil-nav.js';
-import { temaSistemeDondur, toggleTheme, updateMobThemeBtn } from '../ui/components/mobile-nav-tema/02-tema.js';
-import { snavMobileBack, snavMobileOpen } from '../ui/components/mobile-side-nav.js';
-import { setMoneyFormat } from '../ui/components/money-input.js';
-import { openTransferModal, swapTransferHesaplar, transferStepBack, transferStepNext, transferTutarTumunuKullan } from '../ui/components/transfer-modal.js';
-import { abStepBack, abStepNext, abTutarTumunuKullan, openAbonelikModal, saveAbonelik } from '../ui/pages/abonelik.js';
-import { asgariKuralEkle, asgariKurallariTemizle } from '../ui/pages/asgari-odeme.js';
-import { clearOzelExtre, openOzelExtreModal, saveOzelExtre } from '../ui/pages/ekstreler/01-ekstre-kesinlestirme.js';
-import { openExtreDurumModal, openExtreKartModal, openExtreKategoriModal } from '../ui/pages/ekstreler/02-ekstre-render.js';
-import { eeConfirmManualKart, eeShowKartPicker } from '../ui/pages/ekstreler/03-ekstre-eslestirme-pdf-import.js';
-import { copyEldenHesapIban, copyEldenKarsiIban, eldenStepBack, eldenStepNext, eldenTutarTumunuKullan, openEldenModal, saveElden } from '../ui/pages/elden.js';
-import { openHesapTurModal, saveHesapTur } from '../ui/pages/hesaplar/02-hesap-turu-tanimlama.js';
-import { hesapStepBack, hesapStepNext, openHesapModal, saveHesap } from '../ui/pages/hesaplar/03-hesap-form-crud.js';
-import { _hesapLogDuzeltAc, saveBakiyeDuzelt } from '../ui/pages/hesaplar/05-bakiye-duzelt.js';
-import { islemAciklamaModalOnayla, openIslemAciklamaModal } from '../ui/pages/islemler/01-aciklama-onerileri.js';
-import { islemTaksitAdim } from '../ui/pages/islemler/02-islem-form-degisiklikleri.js';
-import { setIslemDonemTab } from '../ui/pages/islemler/03-islem-liste-render.js';
-import { clearIslemFiltre, openIslemFiltreModal } from '../ui/pages/islemler/04-islem-filtre.js';
-import { extreKartGeriDon } from '../ui/pages/islemler/05-ekstre-kart-secici.js';
-import { openIslemKategoriModal } from '../ui/pages/islemler/06-islem-kategori-secici.js';
-import { kartDetayGeriDon } from '../ui/pages/kartlar/03-kart-detay-ortak.js';
-import { kdIslemAramaTemizle, kdSwitchTab, kdYeniIslemAc } from '../ui/pages/kartlar/04-kart-detay-v1.js';
-import { kd2BorcOdeAc, kd2DeleteKartFromDetay, kd2EslestirAc, kd2IslemAramaTemizle, kd2LimitGuncelleFromDetay, kd2SwitchTab, kd2ToggleMoreMenu } from '../ui/pages/kartlar/05-kart-detay-v2.js';
-import { kartStepBack, kartStepNext, saveKart } from '../ui/pages/kartlar/06-kart-form.js';
-import { openOrtakGrupModal, saveOrtakGrupModal } from '../ui/pages/kartlar/07-ortak-limit-grubu.js';
-import { kartOdemeKalanTamaminiDoldur, kartOdemeStepBack, kartOdemeStepNext, kartOdemeTutarTumunuKullan, saveKartOdeme } from '../ui/pages/kartlar/08-kart-odeme.js';
-import { _kd2KartId, openKartAltyapiModal, saveKartAltyapi, setEditKartId } from '../ui/pages/kartlar/09-kart-altyapi.js';
-import { copyKiraHesapIban, kiraDepozitoTutarTumunuKullan, kiraStepBack, kiraStepNext, openKiraModal, saveKira } from '../ui/pages/kira.js';
-import { resetKmhTaksitler, resetKrediTaksitler } from '../ui/pages/krediler/01-genel-yardimcilar.js';
-import { naStepBack, naStepNext, openNakitAvansModal, saveNakitAvans } from '../ui/pages/krediler/02-nakit-avans.js';
-import { kmhKrediStepBack, kmhKrediStepNext, openKmhKrediModal, saveKmhKredi } from '../ui/pages/krediler/03-kmh-kredi.js';
-import { krediStepBack, krediStepNext, openKrediModal, saveKredi } from '../ui/pages/krediler/04-bireysel-kredi.js';
-import { openKrediTipModal, saveKrediTip } from '../ui/pages/krediler/05-kredi-tipi-tanimlama.js';
-import { copyMaasHesapIban, maasStepBack, maasStepNext, openMaasModal, saveMaas } from '../ui/pages/maas.js';
-import { mevStepBack, mevStepNext, mevTutarTumunuKullan, saveMevduat } from '../ui/pages/mevduat/01-mevduat-form-wizard.js';
-import { ozetOdSetGecmis, ozetOdSetPeriod, tgHizliAralik } from '../ui/pages/ozet.js';
-import { katOneriEkleSecili, katOneriSelectAll, openKategoriModal, openKategoriOneriModal, saveKategori } from '../ui/pages/tanimlamalar/03-kategoriler.js';
-import { addTbkFaizOrani, iptalTbkFaizDuzenle } from '../ui/pages/tanimlamalar/04-tbk-faiz-oranlari.js';
-import { openOranModal, saveOran } from '../ui/pages/tanimlamalar/05-genel-oran-tablolari.js';
-import { openParaBirimiModal, pbStepBack, pbStepNext, saveParaBirimi } from '../ui/pages/tanimlamalar/06-para-birimi.js';
-import { openBankaModal, saveBanka, seedPresetBankalar } from '../ui/pages/tanimlamalar/07-bankalar.js';
-import { saveSubeForm } from '../ui/pages/tanimlamalar/08-subeler.js';
-import { openUrunTipModal, saveUrunTip } from '../ui/pages/tanimlamalar/09-urun-tipleri.js';
-import { openTatilModal, resmiTatilleriGuncelle, saveTatil } from '../ui/pages/tanimlamalar/10-resmi-tatiller.js';
-import { openTbkAyarModal, tbkSetGecmis, tbkSetPeriod } from '../ui/pages/tbk-detay.js';
-import { confirmTumVeriRestore, exportBankalarJSON, exportKategorilerJSON, exportTumVeriJSON } from '../ui/pages/veri-yonetimi.js';
-import { closeModal, openModal } from '../ui/components/modal-genel.js';
+import { inject } from '@core/container.js';
+// DUAL-MODE CONTAINER KAYDI: aşağıdaki dört bağımlılık zaten container'a
+// taşınmış katmanlara ait (core.appCoreBase, core.renderCore,
+// core.wrapRegistry, core.format), bu yüzden doğrudan import yerine
+// inject() ile tembel çözülüyor. @pages/* ve @components/* importları ise
+// o katmanlar henüz taşınmadığı için BİLİNÇLİ OLARAK korunuyor
+// (bkz. DI-MIGRATION.md).
+const _appCoreBase = inject('core.appCoreBase');
+const _renderCore = inject('core.renderCore');
+const _wrapRegistry = inject('core.wrapRegistry');
+const _format = inject('core.format');
+const _gdrive = inject('services.gdrive');
+const _kurServisleri = inject('services.kurServisleri');
+import { _ibanPopupEkle, _ibanPopupKapat, copyFieldIban } from '@components/iban-ui.js';
+import { closeMiniKisiPopup, kisiIbanEkle, mkpFilterList, mkpSaveKisi, mkpToggleAddForm, openKisiModal, openMiniKisiPopup, saveKisi, toggleKtMode } from '@components/kisiler.js';
+import { kontratPlanBugune, kontratPlanFormKapat, kontratPlanFormKaydet, kontratPlanYilDegistir } from '@components/kontrat-plani.js';
+import { closeMobMore, closeMobileSidebar, toggleMobMore, toggleMobProfile, toggleMobileSidebar } from '@components/mobile-nav-tema/01-mobil-nav.js';
+import { temaSistemeDondur, toggleTheme, updateMobThemeBtn } from '@components/mobile-nav-tema/02-tema.js';
+import { snavMobileBack, snavMobileOpen } from '@components/mobile-side-nav.js';
+import { setMoneyFormat } from '@components/money-input.js';
+import { openTransferModal, swapTransferHesaplar, transferStepBack, transferStepNext, transferTutarTumunuKullan } from '@components/transfer-modal.js';
+import { abStepBack, abStepNext, abTutarTumunuKullan, openAbonelikModal, saveAbonelik } from '@pages/abonelik.js';
+import { asgariKuralEkle, asgariKurallariTemizle } from '@pages/asgari-odeme.js';
+import { clearOzelExtre, openOzelExtreModal, saveOzelExtre } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { openExtreDurumModal, openExtreKartModal, openExtreKategoriModal } from '@pages/ekstreler/02-ekstre-render.js';
+import { eeConfirmManualKart, eeShowKartPicker } from '@pages/ekstreler/03-ekstre-eslestirme-pdf-import.js';
+import { copyEldenHesapIban, copyEldenKarsiIban, eldenStepBack, eldenStepNext, eldenTutarTumunuKullan, openEldenModal, saveElden } from '@pages/elden.js';
+import { openHesapTurModal, saveHesapTur } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
+import { hesapStepBack, hesapStepNext, openHesapModal, saveHesap } from '@pages/hesaplar/03-hesap-form-crud.js';
+import { _hesapLogDuzeltAc, saveBakiyeDuzelt } from '@pages/hesaplar/05-bakiye-duzelt.js';
+import { islemAciklamaModalOnayla, openIslemAciklamaModal } from '@pages/islemler/01-aciklama-onerileri.js';
+import { islemTaksitAdim } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { setIslemDonemTab } from '@pages/islemler/03-islem-liste-render.js';
+import { clearIslemFiltre, openIslemFiltreModal } from '@pages/islemler/04-islem-filtre.js';
+import { extreKartGeriDon } from '@pages/islemler/05-ekstre-kart-secici.js';
+import { openIslemKategoriModal } from '@pages/islemler/06-islem-kategori-secici.js';
+import { kartDetayGeriDon } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { kdIslemAramaTemizle, kdSwitchTab, kdYeniIslemAc } from '@pages/kartlar/04-kart-detay-v1.js';
+import { kd2BorcOdeAc, kd2DeleteKartFromDetay, kd2EslestirAc, kd2IslemAramaTemizle, kd2LimitGuncelleFromDetay, kd2SwitchTab, kd2ToggleMoreMenu } from '@pages/kartlar/05-kart-detay-v2.js';
+import { kartStepBack, kartStepNext, saveKart } from '@pages/kartlar/06-kart-form.js';
+import { openOrtakGrupModal, saveOrtakGrupModal } from '@pages/kartlar/07-ortak-limit-grubu.js';
+import { kartOdemeKalanTamaminiDoldur, kartOdemeStepBack, kartOdemeStepNext, kartOdemeTutarTumunuKullan, saveKartOdeme } from '@pages/kartlar/08-kart-odeme.js';
+import { _kd2KartId, openKartAltyapiModal, saveKartAltyapi, setEditKartId } from '@pages/kartlar/09-kart-altyapi.js';
+import { copyKiraHesapIban, kiraDepozitoTutarTumunuKullan, kiraStepBack, kiraStepNext, openKiraModal, saveKira } from '@pages/kira.js';
+import { resetKmhTaksitler, resetKrediTaksitler } from '@pages/krediler/01-genel-yardimcilar.js';
+import { naStepBack, naStepNext, openNakitAvansModal, saveNakitAvans } from '@pages/krediler/02-nakit-avans.js';
+import { kmhKrediStepBack, kmhKrediStepNext, openKmhKrediModal, saveKmhKredi } from '@pages/krediler/03-kmh-kredi.js';
+import { krediStepBack, krediStepNext, openKrediModal, saveKredi } from '@pages/krediler/04-bireysel-kredi.js';
+import { openKrediTipModal, saveKrediTip } from '@pages/krediler/05-kredi-tipi-tanimlama.js';
+import { copyMaasHesapIban, maasStepBack, maasStepNext, openMaasModal, saveMaas } from '@pages/maas.js';
+import { mevStepBack, mevStepNext, mevTutarTumunuKullan, saveMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
+import { ozetOdSetGecmis, ozetOdSetPeriod, tgHizliAralik } from '@pages/ozet.js';
+import { katOneriEkleSecili, katOneriSelectAll, openKategoriModal, openKategoriOneriModal, saveKategori } from '@pages/tanimlamalar/03-kategoriler.js';
+import { addTbkFaizOrani, iptalTbkFaizDuzenle } from '@pages/tanimlamalar/04-tbk-faiz-oranlari.js';
+import { openOranModal, saveOran } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
+import { openParaBirimiModal, pbStepBack, pbStepNext, saveParaBirimi } from '@pages/tanimlamalar/06-para-birimi.js';
+import { openBankaModal, saveBanka, seedPresetBankalar } from '@pages/tanimlamalar/07-bankalar.js';
+import { saveSubeForm } from '@pages/tanimlamalar/08-subeler.js';
+import { openUrunTipModal, saveUrunTip } from '@pages/tanimlamalar/09-urun-tipleri.js';
+import { openTatilModal, resmiTatilleriGuncelle, saveTatil } from '@pages/tanimlamalar/10-resmi-tatiller.js';
+import { openTbkAyarModal, tbkSetGecmis, tbkSetPeriod } from '@pages/tbk-detay.js';
+import { confirmTumVeriRestore, exportBankalarJSON, exportKategorilerJSON, exportTumVeriJSON } from '@pages/veri-yonetimi.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 
 // [ES module - Aşama 2] Bu dosya, index.html'de eskiden inline onclick="..."
 // olarak tanımlı 359 tıklama işleyicisini addEventListener ile bağlar.
@@ -65,49 +72,49 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-1");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('ozet',this);
+      _appCoreBase.showPage('ozet',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-2");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('kartlar',this);
+      _appCoreBase.showPage('kartlar',this);
     });
   })();
   (function(){
     var el = document.getElementById("nav-islemler");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('islemler',this);
+      _appCoreBase.showPage('islemler',this);
     });
   })();
   (function(){
     var el = document.getElementById("nav-extreler");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('extreler',this);
+      _appCoreBase.showPage('extreler',this);
     });
   })();
   (function(){
     var el = document.getElementById("nav-ekstreeslestir");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('ekstreeslestir',this);
+      _appCoreBase.showPage('ekstreeslestir',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-3");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('mevduat',this);
+      _appCoreBase.showPage('mevduat',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-4");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('hesaplar',this);
+      _appCoreBase.showPage('hesaplar',this);
     });
   })();
   (function(){
@@ -121,70 +128,70 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-5");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('kira',this);
+      _appCoreBase.showPage('kira',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-6");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('maas',this);
+      _appCoreBase.showPage('maas',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-7");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('elden',this);
+      _appCoreBase.showPage('elden',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-8");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('abonelik',this);
+      _appCoreBase.showPage('abonelik',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-9");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('kmhkredi',this);
+      _appCoreBase.showPage('kmhkredi',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-10");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('kredi',this);
+      _appCoreBase.showPage('kredi',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-11");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showPage('tanimlamalar',this);
+      _appCoreBase.showPage('tanimlamalar',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-12");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      gDriveSyncNow();
+      _gdrive.gDriveSyncNow();
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-13");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      gDriveSignOut();
+      _gdrive.gDriveSignOut();
     });
   })();
   (function(){
     var el = document.getElementById("gdrive-signin-btn");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      gDriveSignIn();
+      _gdrive.gDriveSignIn();
     });
   })();
   (function(){
@@ -702,98 +709,98 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-64");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-bankalar',this);
+      _appCoreBase.showTab('tab-bankalar',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-65");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-hesap-turleri',this);
+      _appCoreBase.showTab('tab-hesap-turleri',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-66");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-urun-tipler',this);
+      _appCoreBase.showTab('tab-urun-tipler',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-67");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-kredi-tipleri',this);
+      _appCoreBase.showTab('tab-kredi-tipleri',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-68");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-kart-altyapilari',this);
+      _appCoreBase.showTab('tab-kart-altyapilari',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-69");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-kategoriler',this);
+      _appCoreBase.showTab('tab-kategoriler',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-70");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-kisiler',this);
+      _appCoreBase.showTab('tab-kisiler',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-71");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-tatiller',this);
+      _appCoreBase.showTab('tab-tatiller',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-72");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-asgari-odeme',this);
+      _appCoreBase.showTab('tab-asgari-odeme',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-73");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-nakit-avans',this);
+      _appCoreBase.showTab('tab-nakit-avans',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-74");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-para-birimi-yonetim',this);
+      _appCoreBase.showTab('tab-para-birimi-yonetim',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-75");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-vergi-faiz',this);
+      _appCoreBase.showTab('tab-vergi-faiz',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-76");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-goruntu-ayarlari',this);
+      _appCoreBase.showTab('tab-goruntu-ayarlari',this);
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-77");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      showTab('tab-veri-yonetimi',this);
+      _appCoreBase.showTab('tab-veri-yonetimi',this);
     });
   })();
   (function(){
@@ -926,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("btn-tcmb-guncelle");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      tcmbKurlariniGuncelle(true);
+      _kurServisleri.tcmbKurlariniGuncelle(true);
     });
   })();
   (function(){
@@ -989,105 +996,105 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-102");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('dd/MM/yyyy');
+      _format.setTarihFormat('dd/MM/yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-103");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('dd.MM.yyyy');
+      _format.setTarihFormat('dd.MM.yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-104");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('d.M.yyyy');
+      _format.setTarihFormat('d.M.yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-105");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('MM/dd/yyyy');
+      _format.setTarihFormat('MM/dd/yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-106");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('yyyy-MM-dd');
+      _format.setTarihFormat('yyyy-MM-dd');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-107");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('dd MM yyyy');
+      _format.setTarihFormat('dd MM yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-108");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('yy/MM/dd');
+      _format.setTarihFormat('yy/MM/dd');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-109");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('EEE dd/MM/yyyy');
+      _format.setTarihFormat('EEE dd/MM/yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-110");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('dd/MM/yyyy EEE');
+      _format.setTarihFormat('dd/MM/yyyy EEE');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-111");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('EEEE dd/MM/yyyy');
+      _format.setTarihFormat('EEEE dd/MM/yyyy');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-112");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setTarihFormat('dd/MM/yyyy EEEE');
+      _format.setTarihFormat('dd/MM/yyyy EEEE');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-113");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setSaatFormat('HH:mm');
+      _format.setSaatFormat('HH:mm');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-114");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setSaatFormat('HH:mm:ss');
+      _format.setSaatFormat('HH:mm:ss');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-115");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setSaatFormat('hh:mm A');
+      _format.setSaatFormat('hh:mm A');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-116");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      setSaatFormat('HH.mm');
+      _format.setSaatFormat('HH.mm');
     });
   })();
   (function(){
@@ -1122,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-121");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      resetGoruntuAyarlari();
+      _format.resetGoruntuAyarlari();
     });
   })();
   (function(){
@@ -1143,14 +1150,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-124");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      gDriveAcRevizyonModal();
+      _gdrive.gDriveAcRevizyonModal();
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-125");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      gDriveGeriYukleYerelYedek();
+      _gdrive.gDriveGeriYukleYerelYedek();
     });
   })();
   (function(){
@@ -1276,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-141");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      pbKaynakEkle();
+      _kurServisleri.pbKaynakEkle();
     });
   })();
   (function(){
@@ -1535,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-157");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      call('saveIslem');
+      _wrapRegistry.call('saveIslem');
     });
   })();
   (function(){
@@ -2312,77 +2319,77 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-224");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('kartlar',this,'💳','Kartlar');
+      _renderCore.mobNavGo('kartlar',this,'💳','Kartlar');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-225");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('islemler',this,'⇄','İşlemler');
+      _renderCore.mobNavGo('islemler',this,'⇄','İşlemler');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-226");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('extreler',this,'🧾','Ekstreler');
+      _renderCore.mobNavGo('extreler',this,'🧾','Ekstreler');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-227");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('kira',this,'🏠','Kira');
+      _renderCore.mobNavGo('kira',this,'🏠','Kira');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-228");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('maas',this,'💰','Maaş');
+      _renderCore.mobNavGo('maas',this,'💰','Maaş');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-229");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('elden',this,'💵','Elden');
+      _renderCore.mobNavGo('elden',this,'💵','Elden');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-230");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('kmhkredi',this,'🏦','KMH');
+      _renderCore.mobNavGo('kmhkredi',this,'🏦','KMH');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-231");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('kredi',this,'📋','Kredi');
+      _renderCore.mobNavGo('kredi',this,'📋','Kredi');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-232");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('mevduat',this,'💎','Mevduat');
+      _renderCore.mobNavGo('mevduat',this,'💎','Mevduat');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-233");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('hesaplar',this,'🏧','Hesaplar');
+      _renderCore.mobNavGo('hesaplar',this,'🏧','Hesaplar');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-234");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('ekstreeslestir',this,'🔗','İşlem Eşleştir');
+      _renderCore.mobNavGo('ekstreeslestir',this,'🔗','İşlem Eşleştir');
     });
   })();
   (function(){
@@ -2396,14 +2403,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("rf-oc-236");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('abonelik',this,'🔄','Abonelik');
+      _renderCore.mobNavGo('abonelik',this,'🔄','Abonelik');
     });
   })();
   (function(){
     var el = document.getElementById("rf-oc-237");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('tanimlamalar',this,'⚙️','Ayarlar');
+      _renderCore.mobNavGo('tanimlamalar',this,'⚙️','Ayarlar');
     });
   })();
   (function(){
@@ -2417,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("mobnav-ozet");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      mobNavGo('ozet',this,'📊','Özet');
+      _renderCore.mobNavGo('ozet',this,'📊','Özet');
     });
   })();
   (function(){
@@ -2473,7 +2480,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("transfer-log-filtre-btn");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      call('openTransferLogFiltrePopup', this);
+      _wrapRegistry.call('openTransferLogFiltrePopup', this);
     });
   })();
   (function(){
@@ -2515,7 +2522,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById("transfer-step-save-btn");
     if (!el) return;
     el.addEventListener('click', function(event) {
-      call('saveTransfer');
+      _wrapRegistry.call('saveTransfer');
     });
   })();
   (function(){

@@ -1,23 +1,32 @@
-import { saveData } from '../core/app-core-base.js';
-import { isIsBgunu } from '../core/date-utils.js';
-import { fmtCur, fmtDate, localDateStr, uid } from '../core/format.js';
-import { DB } from '../core/state.js';
-import { showToast } from '../ui/components/modal-genel.js';
-import { calcMevduatObj } from '../ui/pages/abonelik.js';
-import { mevduatTumunuVadesizeAktar, mevduatYenile, mevduatYenileAnaPara } from '../ui/pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
-import { renderMevduat } from '../ui/pages/mevduat/05-mevduat-liste-render.js';
-import { odOdendiMi } from '../ui/pages/odeme/01-genel-yardimcilar.js';
-import { getBanka, getTatilSet } from '../ui/pages/tanimlamalar/01-genel-yardimcilar.js';
-import { _lGet__hesap_entegrasyon_motoru as _lGet, _lKey__hesap_entegrasyon_motoru as _lKey, _lSet__hesap_entegrasyon_motoru as _lSet } from './hesap-entegrasyon-motoru.js';
-import { renderHesaplar } from '../ui/pages/hesaplar/04-hesap-liste-render.js';
-import { register } from '../core/wrap-registry.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _hesapEntegrasyonMotoru = inject('domain.hesapEntegrasyonMotoru');
+const _wrapRegistry = inject('core.wrapRegistry');
+// core.appCoreBase, core.dateUtils, core.format container'da kayıtlı
+// (Tur 4) — bu turda çevrildi (madde 5).
+const _appCoreBase = inject('core.appCoreBase');
+const saveData = (...a) => _appCoreBase.saveData(...a);
+const _dateUtils = inject('core.dateUtils');
+const isIsBgunu = (...a) => _dateUtils.isIsBgunu(...a);
+const _coreFormat = inject('core.format');
+const fmtCur = (...a) => _coreFormat.fmtCur(...a);
+const fmtDate = (...a) => _coreFormat.fmtDate(...a);
+const localDateStr = (...a) => _coreFormat.localDateStr(...a);
+const uid = (...a) => _coreFormat.uid(...a);
+import { showToast } from '@components/modal-genel.js';
+import { calcMevduatObj } from '@pages/abonelik.js';
+import { mevduatTumunuVadesizeAktar, mevduatYenile, mevduatYenileAnaPara } from '@pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
+import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
+import { odOdendiMi } from '@pages/odeme/01-genel-yardimcilar.js';
+import { getBanka, getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 // ============================================================
 // js/domain/mevduat-oto-yenileme.js
 // İş mantığı: vadesi dolan mevduatın otomatik yenilenmesi stratejisi. "mobile-nav-tema.js" içine gömülüydü, buraya taşındı.
 // Kod SATIR SATIR aynı kaldı; sadece dosya sınırı/gruplama değişti.
 // ============================================================
 function mevduatOtoStratejiUygula(mevId) {
-  const mev = (DB.mevduatlar||[]).find(x=>x.id===mevId);
+  const mev = (_coreState.DB.mevduatlar||[]).find(x=>x.id===mevId);
   if(!mev) return false;
   const strateji = mev.strateji;
   if(!strateji) return false;
@@ -38,13 +47,13 @@ function mevduatOtoStratejiUygula(mevId) {
 }
 // [KALDIRILDI] "export { mevduatOtoStratejiUygula as mevduatOtoStratejiUygula__mevduat_oto_yenileme }"
 // hiçbir dosya tarafından import edilmiyordu (ölü kod taraması, 2026-07).
-// Fonksiyonun kendisi ve register() çağrısı hâlâ kullanımda.
+// Fonksiyonun kendisi ve _wrapRegistry.register() çağrısı hâlâ kullanımda.
 // [ES module] eskiden bu fonksiyonun window.mevduatOtoStratejiUygula
 // ataması mobile-nav-tema.js'de yapılıyordu; artık taban burada register
 // edilir. abonelik.js (DOMContentLoaded'da) bunun üzerine kendi wrap'ini
 // (yenile_tum tam otomatik mantığı) register eder; 04-mevduat-otomasyon.js
 // gibi çağıranlar call('mevduatOtoStratejiUygula', ...) kullanır.
-register('mevduatOtoStratejiUygula', mevduatOtoStratejiUygula);
+_wrapRegistry.register('mevduatOtoStratejiUygula', mevduatOtoStratejiUygula);
 
 // Strateji 1'in TAM OTOMATİK versiyonu (mevduatYenileAnaParaOtomatik'in eşleniği):
 // ana para + net faiz birlikte → aynı banka/faiz/vade bilgileriyle yeni vadeli
@@ -54,16 +63,16 @@ register('mevduatOtoStratejiUygula', mevduatOtoStratejiUygula);
 // olarak listede kalır (Model A — bkz. mevduatYenileAnaParaOtomatik).
 
 export function mevduatYenileTumOtomatik(mevId) {
-  const m = (DB.mevduatlar||[]).find(x=>x.id===mevId);
+  const m = (_coreState.DB.mevduatlar||[]).find(x=>x.id===mevId);
   if(!m) return false;
 
-  const lk = _lKey('mevduat', mevId, null);
-  if(_lGet(lk) != null) return false; // zaten işlenmiş
+  const lk = _hesapEntegrasyonMotoru._lKey__hesap_entegrasyon_motoru('mevduat', mevId, null);
+  if(_hesapEntegrasyonMotoru._lGet__hesap_entegrasyon_motoru(lk) != null) return false; // zaten işlenmiş
 
   const yeniTutar = m.nihai != null ? m.nihai : calcMevduatObj(m).nihai;
 
   // Eski vadeli hesabı kapat + bakiyesini sıfırla (ana para + faiz yeni hesaba taşınacak)
-  const eskiHesap = m.hesapId ? (DB.hesaplar||[]).find(h=>h.id===m.hesapId) : null;
+  const eskiHesap = m.hesapId ? (_coreState.DB.hesaplar||[]).find(h=>h.id===m.hesapId) : null;
   if(eskiHesap && eskiHesap.durum !== 'kapali') {
     eskiHesap.durum = 'kapali';
     eskiHesap.bakiye = 0;
@@ -81,8 +90,8 @@ export function mevduatYenileTumOtomatik(mevId) {
     durum: 'aktif',
     not: `Otomatik yenileme (ana para + faiz) — ${fmtDate(m.bitis)}`,
   };
-  if(!DB.hesaplar) DB.hesaplar = [];
-  DB.hesaplar.push(yeniHesap);
+  if(!_coreState.DB.hesaplar) _coreState.DB.hesaplar = [];
+  _coreState.DB.hesaplar.push(yeniHesap);
 
   const yeniMev = {
     id: uid(),
@@ -120,10 +129,10 @@ export function mevduatYenileTumOtomatik(mevId) {
     yeniMev.faiz = brutFaiz - stopajTutar;
     yeniMev.nihai = yeniMev.tutar + yeniMev.faiz;
   }
-  if(!DB.mevduatlar) DB.mevduatlar = [];
-  DB.mevduatlar.push(yeniMev);
+  if(!_coreState.DB.mevduatlar) _coreState.DB.mevduatlar = [];
+  _coreState.DB.mevduatlar.push(yeniMev);
 
-  _lSet(lk, yeniTutar);
+  _hesapEntegrasyonMotoru._lSet__hesap_entegrasyon_motoru(lk, yeniTutar);
   // Eski mevduat kaydı artık kapanmış/geçmiş — "Yaklaşan Ödemeler" ve dashboard'daki
   // "Vade Doldu" aksiyon kartında bir daha "Bekliyor" olarak görünmesin diye işaretle.
   if(!odOdendiMi(m.odDurum)) {
@@ -145,23 +154,23 @@ export function mevduatYenileTumOtomatik(mevId) {
 // isterse hâlâ dashboard kartındaki butondan erişilebilir durumda kalır.
 
 export function mevduatYenileAnaParaOtomatik(mevId) {
-  const m = (DB.mevduatlar||[]).find(x=>x.id===mevId);
+  const m = (_coreState.DB.mevduatlar||[]).find(x=>x.id===mevId);
   if(!m || !m.vadesizHesapId) return false;
-  const vadesizHesap = (DB.hesaplar||[]).find(h=>h.id===m.vadesizHesapId);
+  const vadesizHesap = (_coreState.DB.hesaplar||[]).find(h=>h.id===m.vadesizHesapId);
   if(!vadesizHesap) return false;
 
-  const lk = _lKey('mevduat', mevId, null);
-  if(_lGet(lk) != null) return false; // zaten işlenmiş
+  const lk = _hesapEntegrasyonMotoru._lKey__hesap_entegrasyon_motoru('mevduat', mevId, null);
+  if(_hesapEntegrasyonMotoru._lGet__hesap_entegrasyon_motoru(lk) != null) return false; // zaten işlenmiş
 
   // 1) Faiz net tutarını vadesiz hesaba aktar
   const faizTutar = m.faiz || 0;
   if(faizTutar > 0.001) {
     vadesizHesap.bakiye = (vadesizHesap.bakiye||0) + faizTutar;
   }
-  _lSet(lk, faizTutar);
+  _hesapEntegrasyonMotoru._lSet__hesap_entegrasyon_motoru(lk, faizTutar);
 
   // 2) Eski vadeli hesabı kapat + bakiyesini sıfırla (ana para yeni hesaba taşınacak)
-  const eskiHesap = m.hesapId ? (DB.hesaplar||[]).find(h=>h.id===m.hesapId) : null;
+  const eskiHesap = m.hesapId ? (_coreState.DB.hesaplar||[]).find(h=>h.id===m.hesapId) : null;
   if(eskiHesap && eskiHesap.durum !== 'kapali') {
     eskiHesap.durum = 'kapali';
     eskiHesap.bakiye = 0;
@@ -179,8 +188,8 @@ export function mevduatYenileAnaParaOtomatik(mevId) {
     durum: 'aktif',
     not: `Otomatik yenileme — ${fmtDate(m.bitis)}`,
   };
-  if(!DB.hesaplar) DB.hesaplar = [];
-  DB.hesaplar.push(yeniHesap);
+  if(!_coreState.DB.hesaplar) _coreState.DB.hesaplar = [];
+  _coreState.DB.hesaplar.push(yeniHesap);
 
   const yeniMev = {
     id: uid(),
@@ -221,8 +230,8 @@ export function mevduatYenileAnaParaOtomatik(mevId) {
     yeniMev.faiz = brutFaiz - stopajTutar;
     yeniMev.nihai = yeniMev.tutar + yeniMev.faiz;
   }
-  if(!DB.mevduatlar) DB.mevduatlar = [];
-  DB.mevduatlar.push(yeniMev);
+  if(!_coreState.DB.mevduatlar) _coreState.DB.mevduatlar = [];
+  _coreState.DB.mevduatlar.push(yeniMev);
 
   // Eski mevduat kaydı artık kapanmış/geçmiş — "Yaklaşan Ödemeler" ve dashboard'daki
   // "Vade Doldu" aksiyon kartında bir daha "Bekliyor" olarak görünmesin diye işaretle.
@@ -238,6 +247,13 @@ export function mevduatYenileAnaParaOtomatik(mevId) {
   return true;
 }
 
+// ============================================================
+// [DI-MIGRATION] domain.mevduatOtoYenileme — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.mevduatOtoYenileme', {
+  mevduatYenileTumOtomatik, mevduatYenileAnaParaOtomatik,
+});
 
 // Bakiye işlem geçmişi paneli (hesaplar sayfasına eklenebilir)
 

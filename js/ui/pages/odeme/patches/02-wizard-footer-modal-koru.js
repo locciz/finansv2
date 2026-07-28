@@ -1,6 +1,6 @@
-import { _kartOdemeHizliTransferGuncelle } from '../../kartlar/08-kart-odeme.js';
-import { getCloseModal, setCloseModal } from '../../../components/modal-genel.js';
-import { call, get, register } from '../../../../core/wrap-registry.js';
+import { _kartOdemeHizliTransferGuncelle } from '@pages/kartlar/08-kart-odeme.js';
+import { getCloseModal, setCloseModal } from '@components/modal-genel.js';
+import { call, get, register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/odeme/patches/02-wizard-footer-modal-koru.js
 // Wizard footer'dan transfer açılınca modal state'ini koru

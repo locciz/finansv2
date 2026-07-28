@@ -1,35 +1,36 @@
-import { saveData } from '../../core/app-core-base.js';
-import { addDaysStr } from '../../core/date-utils.js';
-import { fmt, fmtCur, fmtCurShort, fmtDate, localDateStr } from '../../core/format.js';
-import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '../../core/state.js';
-import { paraBirimiCevirGuvenli, pbRenkAl } from '../../domain/doviz.js';
-import { _krediTaksitKalan, calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getBireyselKrediKalan, getBireyselKrediTaksitler, getExtreDonemi, getIslemTaksitliste, getKrediKalanBorc, getKrediTaksitler, getMaasOdemeGunu, getStopajOrani } from '../../domain/hesaplamalar.js';
-import { renderTcmbGecmis } from '../../services/kur-servisleri.js';
-import { renderOzetBakiyeUyarilar } from '../components/mobile-nav-tema/03-bakiye-izleme-paneli.js';
-import { renderOzetProvizyonUyarilar } from '../components/mobile-nav-tema/04-provizyon-uyarilari.js';
-import { mevduatAksiyonErteGiz, mevduatTumunuVadesizeAktar, mevduatYenile, mevduatYenileAnaPara } from './mevduat/03-mevduat-yenileme-ve-kapama.js';
-import { call, register, has } from '../../core/wrap-registry.js';
-import { setDateInputValue } from '../components/money-input.js';
-import { normalizeAllDeposits } from './tbk-detay.js';
-import { applyHesapAksiyonChips, kartAltyapiLogoHtml } from '../components/select-to-chips.js';
-import { openTransferModal } from '../components/transfer-modal.js';
-import { renderOzetGrafikler } from './abonelik.js';
-import { kesinlesmeyiBekleyenDonemler, kesinlestirEkstre, kesinlestirTumBekleyenler } from './ekstreler/01-ekstre-kesinlestirme.js';
-import { _ekstreBekleyenKartHtml } from './ekstreler/02-ekstre-render.js';
-import { openNakitLogModal } from './hesaplar/06-hesap-log.js';
-import { hesapOptionMetin, hesapOtomatikGunlukKontrol } from './hesaplar/01-genel-yardimcilar.js';
-import { editIslemId } from './islemler/03-islem-liste-render.js';
-import { getKartCurrency, getKartDefaultCurrency, getKartKullanim, getKartRenk, getKartStatementAmount, getKartStatementCurrency, getKartToplamLimit, kartDonemHesapla, kartOdemeTarihiEfektif } from './kartlar/01-kart-data.js';
-import { openKartDetayModal } from './kartlar/03-kart-detay-ortak.js';
-import { getOrtakGrupKullanim } from './kartlar/07-ortak-limit-grubu.js';
-import { kiraPayInMonth } from './kira.js';
-import { getKmhHesap } from './krediler/03-kmh-kredi.js';
-import { gunlukVadeliyeKoy, vadeliyeKoy } from './mevduat/02-mevduat-vadeliye-koyma.js';
-import { mevduatOtomatikVadeKontrol, mevduatYaklasanOdemedeGoster } from './mevduat/04-mevduat-otomasyon.js';
-import { _mevGizliAksiyonlar } from './mevduat/06-mevduat-hesap-secim-formu.js';
-import { odFiilenGerceklesenTutar, odGetDurum, odIptalMi, odKartDonemOverride, odKartToggleBtn, odKiraMaasOverride, odOdendiMi, odPlanlananTutar, odToggleBtn } from './odeme/01-genel-yardimcilar.js';
-import { _odHesapVeYon } from './odeme/06-genel-odeme-modali.js';
-import { bankaIkonObj, getBanka, getTatilSet } from './tanimlamalar/01-genel-yardimcilar.js';
+import { saveData } from '@core/app-core-base.js';
+import { addDaysStr } from '@core/date-utils.js';
+import { fmt, fmtCur, fmtCurShort, fmtDate, localDateStr } from '@core/format.js';
+import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
+import { paraBirimiCevirGuvenli, pbRenkAl } from '@domain/doviz.js';
+import { _krediTaksitKalan, calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getBireyselKrediKalan, getBireyselKrediTaksitler, getExtreDonemi, getIslemTaksitliste, getKrediKalanBorc, getKrediTaksitler, getMaasOdemeGunu, getStopajOrani } from '@domain/hesaplamalar.js';
+import { inject } from '@core/container.js';
+const _kurServisleri = inject('services.kurServisleri');
+import { renderOzetBakiyeUyarilar } from '@components/mobile-nav-tema/03-bakiye-izleme-paneli.js';
+import { renderOzetProvizyonUyarilar } from '@components/mobile-nav-tema/04-provizyon-uyarilari.js';
+import { mevduatAksiyonErteGiz, mevduatTumunuVadesizeAktar, mevduatYenile, mevduatYenileAnaPara } from '@pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
+import { call, register, has } from '@core/wrap-registry.js';
+import { setDateInputValue } from '@components/money-input.js';
+import { normalizeAllDeposits } from '@pages/tbk-detay.js';
+import { applyHesapAksiyonChips, kartAltyapiLogoHtml } from '@components/select-to-chips.js';
+import { openTransferModal } from '@components/transfer-modal.js';
+import { renderOzetGrafikler } from '@pages/abonelik.js';
+import { kesinlesmeyiBekleyenDonemler, kesinlestirEkstre, kesinlestirTumBekleyenler } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { _ekstreBekleyenKartHtml } from '@pages/ekstreler/02-ekstre-render.js';
+import { openNakitLogModal } from '@pages/hesaplar/06-hesap-log.js';
+import { hesapOptionMetin, hesapOtomatikGunlukKontrol } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { editIslemId } from '@pages/islemler/03-islem-liste-render.js';
+import { getKartCurrency, getKartDefaultCurrency, getKartKullanim, getKartRenk, getKartStatementAmount, getKartStatementCurrency, getKartToplamLimit, kartDonemHesapla, kartOdemeTarihiEfektif } from '@pages/kartlar/01-kart-data.js';
+import { openKartDetayModal } from '@pages/kartlar/03-kart-detay-ortak.js';
+import { getOrtakGrupKullanim } from '@pages/kartlar/07-ortak-limit-grubu.js';
+import { kiraPayInMonth } from '@pages/kira.js';
+import { getKmhHesap } from '@pages/krediler/03-kmh-kredi.js';
+import { gunlukVadeliyeKoy, vadeliyeKoy } from '@pages/mevduat/02-mevduat-vadeliye-koyma.js';
+import { mevduatOtomatikVadeKontrol, mevduatYaklasanOdemedeGoster } from '@pages/mevduat/04-mevduat-otomasyon.js';
+import { _mevGizliAksiyonlar } from '@pages/mevduat/06-mevduat-hesap-secim-formu.js';
+import { odFiilenGerceklesenTutar, odGetDurum, odIptalMi, odKartDonemOverride, odKartToggleBtn, odKiraMaasOverride, odOdendiMi, odPlanlananTutar, odToggleBtn } from '@pages/odeme/01-genel-yardimcilar.js';
+import { _odHesapVeYon } from '@pages/odeme/06-genel-odeme-modali.js';
+import { bankaIkonObj, getBanka, getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 // Bu dosya, orijinal 02-core-app-engine.js içinden çıkarılan
 // fonksiyonları içerir. İçerik değiştirilmeden taşındı.
 
@@ -107,7 +108,7 @@ export function tgHizliAralik(gun) {
     const d = new Date(); d.setDate(d.getDate() - gun);
     setDateInputValue(baslangicEl, localDateStr(d));
   }
-  renderTcmbGecmis();
+  _kurServisleri.renderTcmbGecmis();
 }
 
 export function fillSnapshotGaps(todayStr, todayV, todayB) {

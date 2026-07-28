@@ -1,13 +1,13 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { phSet, showConfirm, showToast } from '../../components/modal-genel.js';
-import { _restoreKatFiltreFromDB } from '../../components/tablo-filtre-sirala.js';
-import { _katFilter, set_katFilter } from '../ekstreler/02-ekstre-render.js';
-import { onEldenTurChange } from '../elden.js';
-import { renderIslemKategoriChips } from '../islemler/06-islem-kategori-secici.js';
-import { KAT_ONERILER, KAT_TUR_STIL, editKategoriId, setEditKategoriId } from './00-state.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { phSet, showConfirm, showToast } from '@components/modal-genel.js';
+import { _restoreKatFiltreFromDB } from '@components/tablo-filtre-sirala.js';
+import { _katFilter, set_katFilter } from '@pages/ekstreler/02-ekstre-render.js';
+import { onEldenTurChange } from '@pages/elden.js';
+import { renderIslemKategoriChips } from '@pages/islemler/06-islem-kategori-secici.js';
+import { KAT_ONERILER, KAT_TUR_STIL, editKategoriId, setEditKategoriId } from '@pages/tanimlamalar/00-state.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/03-kategoriler.js
 // Gelir/gider kategorileri CRUD + kategori önerisi

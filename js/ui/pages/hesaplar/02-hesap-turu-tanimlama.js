@@ -1,13 +1,13 @@
-import { saveData } from '../../../core/app-core-base.js';
-import { localDateStr, uid } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { getStopajOrani } from '../../../domain/hesaplamalar.js';
-import { showConfirm, validateRequiredFields } from '../../components/modal-genel.js';
-import { editHesapTurId, setEditHesapTurId } from './00-state.js';
-import { hesapTuruRenk } from './01-genel-yardimcilar.js';
-import { renderHesapTurFiltreler } from './04-hesap-liste-render.js';
-import { _renkKolonHtml, _tanimBadgeHtml } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { closeModal, openModal } from '../../components/modal-genel.js';
+import { saveData } from '@core/app-core-base.js';
+import { localDateStr, uid } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { getStopajOrani } from '@domain/hesaplamalar.js';
+import { showConfirm, validateRequiredFields } from '@components/modal-genel.js';
+import { editHesapTurId, setEditHesapTurId } from '@pages/hesaplar/00-state.js';
+import { hesapTuruRenk } from '@pages/hesaplar/01-genel-yardimcilar.js';
+import { renderHesapTurFiltreler } from '@pages/hesaplar/04-hesap-liste-render.js';
+import { _renkKolonHtml, _tanimBadgeHtml } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { closeModal, openModal } from '@components/modal-genel.js';
 // ============================================================
 // js/ui/pages/hesaplar/02-hesap-turu-tanimlama.js
 // Hesap türü tanımlama CRUD'u

@@ -1,6 +1,7 @@
-import { ALL_CURRENCIES, CURRENCY_CONFIG, defaultCurrency, replaceObjectContents } from '../core/state.js';
-import { getTcmbKur } from '../services/kur-servisleri.js';
-import { renderParaBirimiGrid } from '../ui/pages/tanimlamalar/06-para-birimi.js';
+import { inject } from '@core/container.js';
+const _coreState = inject('core.state');
+const _kurServisleri = inject('services.kurServisleri');
+import { renderParaBirimiGrid } from '@pages/tanimlamalar/06-para-birimi.js';
 // ============================================================
 // js/domain/doviz.js — Döviz çevrimi, para birimi renk paleti,
 // para birimi select/dropdown doldurma yardımcıları
@@ -28,7 +29,7 @@ export function paraBirimiCevir(tutar, kaynakPb, hedefPb, tarihStr) {
   if (kaynakPb === 'TRY') {
     tutarTry = tutar;
   } else {
-    const kurKaynak = getTcmbKur(kaynakPb, tarihStr);
+    const kurKaynak = _kurServisleri.getTcmbKur(kaynakPb, tarihStr);
     const oranKaynak = kurKaynak && (kurKaynak.satis || kurKaynak.alis);
     if (!oranKaynak) return null; // kur bulunamadı — çevrilemez
     tutarTry = tutar * oranKaynak;
@@ -36,7 +37,7 @@ export function paraBirimiCevir(tutar, kaynakPb, hedefPb, tarihStr) {
 
   // TRY -> Hedef
   if (hedefPb === 'TRY') return tutarTry;
-  const kurHedef = getTcmbKur(hedefPb, tarihStr);
+  const kurHedef = _kurServisleri.getTcmbKur(hedefPb, tarihStr);
   const oranHedef = kurHedef && (kurHedef.satis || kurHedef.alis);
   if (!oranHedef) return null;
   return tutarTry / oranHedef;
@@ -52,7 +53,7 @@ export function paraBirimiCevirGuvenli(tutar, kaynakPb, hedefPb, tarihStr) {
 }
 
 export function pbRenkAl(pb) {
-  const ozelRenk = CURRENCY_CONFIG[pb] && CURRENCY_CONFIG[pb].renk;
+  const ozelRenk = _coreState.CURRENCY_CONFIG[pb] && _coreState.CURRENCY_CONFIG[pb].renk;
   if(ozelRenk) return { bg: ozelRenk+'22', border: ozelRenk+'55', text: ozelRenk };
   if(PB_RENK_PALETI[pb]) return PB_RENK_PALETI[pb];
   let hash = 0;
@@ -62,8 +63,8 @@ export function pbRenkAl(pb) {
 }
 
 export function buildCurrencyOptions(selectedCode) {
-  return ALL_CURRENCIES.map(c => {
-    const cfg = CURRENCY_CONFIG[c.code] || {};
+  return _coreState.ALL_CURRENCIES.map(c => {
+    const cfg = _coreState.CURRENCY_CONFIG[c.code] || {};
     const ico = cfg.icon || cfg.flag || '';
     const ad  = cfg.ad || c.code;
     const sym = cfg.symbol || c.code;
@@ -75,7 +76,7 @@ export function buildCurrencyOptions(selectedCode) {
 
 // Bir <select>'i para birimi seçenekleriyle doldurur; mevcut seçili değeri
 // korur (yoksa fallback'e döner). islem-para-birimi hariç tüm select'ler
-// bu kalıbı kullanır (islem-para-birimi her zaman defaultCurrency'e sabitlenir).
+// bu kalıbı kullanır (islem-para-birimi her zaman _coreState.defaultCurrency'e sabitlenir).
 export function _fillCurrencySelectKeepingValue(id, opts, fallback) {
   const el = document.getElementById(id);
   if(!el) return;
@@ -86,22 +87,22 @@ export function _fillCurrencySelectKeepingValue(id, opts, fallback) {
 
 export function populateCurrencySelects() {
   const opts = buildCurrencyOptions();
-  // islem para birimi — her zaman defaultCurrency'e sabitlenir (önceki değeri korumaz)
+  // islem para birimi — her zaman _coreState.defaultCurrency'e sabitlenir (önceki değeri korumaz)
   const islemPb = document.getElementById('islem-para-birimi');
-  if(islemPb) { islemPb.innerHTML = opts; islemPb.value = defaultCurrency; }
+  if(islemPb) { islemPb.innerHTML = opts; islemPb.value = _coreState.defaultCurrency; }
   // varsayılan para birimi (chip grid)
   renderParaBirimiGrid();
-  // diğer tüm formlar: mevcut seçimi koru, yoksa defaultCurrency'e düş
-  _fillCurrencySelectKeepingValue('mev-para-birimi', opts, defaultCurrency);
-  _fillCurrencySelectKeepingValue('kira-para-birimi-manual', opts, defaultCurrency);
-  _fillCurrencySelectKeepingValue('maas-para-birimi-manual', opts, defaultCurrency);
-  _fillCurrencySelectKeepingValue('hesap-para-birimi', opts, defaultCurrency);
-  _fillCurrencySelectKeepingValue('elden-para-birimi', opts, defaultCurrency);
+  // diğer tüm formlar: mevcut seçimi koru, yoksa _coreState.defaultCurrency'e düş
+  _fillCurrencySelectKeepingValue('mev-para-birimi', opts, _coreState.defaultCurrency);
+  _fillCurrencySelectKeepingValue('kira-para-birimi-manual', opts, _coreState.defaultCurrency);
+  _fillCurrencySelectKeepingValue('maas-para-birimi-manual', opts, _coreState.defaultCurrency);
+  _fillCurrencySelectKeepingValue('hesap-para-birimi', opts, _coreState.defaultCurrency);
+  _fillCurrencySelectKeepingValue('elden-para-birimi', opts, _coreState.defaultCurrency);
 }
 
 export function rebuildAllCurrencies() {
-  replaceObjectContents(ALL_CURRENCIES, Object.keys(CURRENCY_CONFIG).map(code => {
-    const cfg = CURRENCY_CONFIG[code];
+  _coreState.replaceObjectContents(_coreState.ALL_CURRENCIES, Object.keys(_coreState.CURRENCY_CONFIG).map(code => {
+    const cfg = _coreState.CURRENCY_CONFIG[code];
     return {
       code,
       symbol: cfg.symbol || code,
@@ -118,4 +119,14 @@ export function _fillPbManualSelect(selectId, currentCode) {
   sel.innerHTML = buildCurrencyOptions();
   if(currentCode) sel.value = currentCode;
 }
+
+// ============================================================
+// [DI-MIGRATION] domain.doviz — container'a kayıt
+// ============================================================
+import { provide } from '@core/container.js';
+provide('domain.doviz', {
+  paraBirimiCevir, paraBirimiCevirGuvenli, pbRenkAl, buildCurrencyOptions,
+  _fillCurrencySelectKeepingValue, populateCurrencySelects, rebuildAllCurrencies,
+  _fillPbManualSelect, PB_RENK_PALETI, _PB_RENK_FALLBACK_PALET,
+});
 

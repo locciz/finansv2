@@ -1,14 +1,14 @@
-import { fmtCur, fmtDate, localDateStr } from '../../../core/format.js';
-import { DB } from '../../../core/state.js';
-import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '../../../domain/hesaplamalar.js';
-import { phSet } from '../../components/modal-genel.js';
-import { isEkstreKesinlesmis } from '../ekstreler/01-ekstre-kesinlestirme.js';
-import { call } from '../../../core/wrap-registry.js';
-import { AY_KISA_TR, AY_UZUN_TR, GUN_UZUN_TR, _islemDonemTab, set_islemDonemTab } from './00-state.js';
-import { persistIslemFiltreToDB, renderIslemFiltreBadge, renderIslemFiltreGrids, restoreIslemFiltreFromDB } from './04-islem-filtre.js';
-import { getKart, getKartCurrency, getKartRenk } from '../kartlar/01-kart-data.js';
-import { getBanka, getTatilSet } from '../tanimlamalar/01-genel-yardimcilar.js';
-import { editIslem } from './07-islem-modal-crud.js';
+import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { DB } from '@core/state.js';
+import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
+import { phSet } from '@components/modal-genel.js';
+import { isEkstreKesinlesmis } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
+import { call } from '@core/wrap-registry.js';
+import { AY_KISA_TR, AY_UZUN_TR, GUN_UZUN_TR, _islemDonemTab, set_islemDonemTab } from '@pages/islemler/00-state.js';
+import { persistIslemFiltreToDB, renderIslemFiltreBadge, renderIslemFiltreGrids, restoreIslemFiltreFromDB } from '@pages/islemler/04-islem-filtre.js';
+import { getKart, getKartCurrency, getKartRenk } from '@pages/kartlar/01-kart-data.js';
+import { getBanka, getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { editIslem } from '@pages/islemler/07-islem-modal-crud.js';
 // ============================================================
 // js/ui/pages/islemler/03-islem-liste-render.js
 // İşlem listesi render (gün başlıkları, satırlar, istatistik şeridi)
