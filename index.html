@@ -4447,6 +4447,14 @@
   }
 }
 </script>
+<!-- core.wrapRegistry'yi register eden wrap-registry.js, önceden hiçbir
+     yerde doğrudan <script> olarak yüklenmiyordu — yalnızca bazı sayfa
+     modülleri tarafından import ediliyordu. Bu da, o sayfalardan önce
+     sırada olan (ör. modal-genel.js, app-core-base.js, transfer-modal.js
+     gibi) modüllerin top-level'da _wrapRegistry.register(...) çağırdığında
+     namespace'in henüz register olmamış olmasına yol açıyordu. Artık en
+     başta, doğrudan yükleniyor. -->
+<script type="module" src="js/core/wrap-registry.js?v=33"></script>
 <script type="module" src="js/core/format.js?v=33"></script>
 <script type="module" src="js/core/date-utils.js?v=33"></script>
 <script type="module" src="js/core/constants.js?v=33"></script>

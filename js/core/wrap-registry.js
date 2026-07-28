@@ -44,9 +44,16 @@ export function call(name, ...args) {
 // [DI-MIGRATION] Bu modül (action wrap zinciri) container'a
 // 'core.wrapRegistry' namespace'i olarak da kaydedilir — böylece container
 // üzerinden çalışan yeni servisler `resolve('core.wrapRegistry').call(...)`
-// diyerek eskisiyle aynı zincire erişebilir. Dairesel import'tan kaçınmak
-// için container.js'i dinamik olarak import ediyoruz (top-level'da değil).
+// diyerek eskisiyle aynı zincire erişebilir.
+// container.js hiçbir modülü import etmeyen bir yaprak (leaf) dosya olduğu
+// için burada dairesel import riski yok; bu yüzden STATİK import kullanıyoruz.
+// Önceden dinamik `import('@core/container.js').then(...)` kullanılıyordu,
+// bu ise register'ı bir mikrotask sonrasına erteliyordu. Bu gecikme
+// yüzünden, modal-genel.js gibi kendi top-level (senkron) kodunda
+// `inject('core.wrapRegistry').register(...)` çağıran modüller, script
+// sırası doğru olsa bile "core.wrapRegistry namespace'i kayıtlı değil"
+// hatası fırlatıyordu. Statik import ile provide() bu dosyanın modül
+// evaluation'ı sırasında SENKRON çalışır.
 // ============================================================
-import('@core/container.js').then(({ provide }) => {
-  provide('core.wrapRegistry', { register, get, has, call });
-});
+import { provide } from '@core/container.js';
+provide('core.wrapRegistry', { register, get, has, call });

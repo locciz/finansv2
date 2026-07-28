@@ -1,4 +1,4 @@
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 const _kurServisleri = inject('services.kurServisleri');
 // DUAL-MODE CONTAINER KAYDI: core.appCoreBase, core.format, core.init,
 // core.renderCore, core.state, domain.doviz, domain.ibanUtils,
@@ -664,8 +664,16 @@ if (document.readyState === 'loading') {
 // dolayısıyla ayrı bir wrap katmanına gerek kalmadı.
 
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
-// için wrap-registry'ye kaydediliyor.
-_wrapRegistry.register('openModal', _openModalBase);
+// için wrap-registry'ye kaydediliyor. wrap-registry.js kendi container
+// kaydını ('core.wrapRegistry') dinamik import().then(...) ile ASENKRON
+// yaptığı için, bu dosya modül grafiği yüklenirken senkron/top-level olarak
+// buraya doğrudan _wrapRegistry.register(...) çağırırsa (Proxy get handler
+// hemen resolve() tetikler) namespace henüz kayıtlı olmayabilir ve
+// "core.wrapRegistry namespace'i kayıtlı değil" hatası fırlatılır.
+// whenReady ile namespace hazır olana kadar erteliyoruz.
+whenReady('core.wrapRegistry', () => {
+  _wrapRegistry.register('openModal', _openModalBase);
+});
 
 // [ES module] Eskiden bu dosyanın DIŞINDAKİ ~40 dosya `import { openModal }`
 // ile TABAN tanımı doğrudan çağırıyordu — bu yüzden select-to-chips.js gibi

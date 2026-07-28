@@ -16,7 +16,7 @@
 //   - Rota satırının solunda yapılabilirlik rozeti (yeşil/kırmızı ikon)
 //   - Boş durum için ikonlu, bağlama duyarlı mesaj (filtre/arama farkı)
 // ============================================================
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: altı bağımlılık da (core.appCoreBase,
 // core.appCore, core.format, core.state, ui.components.mfPopup,
 // ui.components.modalGenel, core.wrapRegistry, ui.components.transferModal)
@@ -250,8 +250,10 @@ function renderTransferLog() {
   });
 }
 
-_wrapRegistry.register('renderTransferLog', renderTransferLog);
-_wrapRegistry.register('openTransferLogFiltrePopup', openTransferLogFiltrePopup);
+whenReady('core.wrapRegistry', () => {
+  _wrapRegistry.register('renderTransferLog', renderTransferLog);
+  _wrapRegistry.register('openTransferLogFiltrePopup', openTransferLogFiltrePopup);
+});
 
 export { renderTransferLog };
 

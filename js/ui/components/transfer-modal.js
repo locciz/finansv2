@@ -1,4 +1,4 @@
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: dokuz bağımlılık da (core.appCoreBase,
 // core.appCore, core.format, core.state, domain.doviz,
 // domain.hesapEntegrasyonMotoru, ui.components.modalGenel,
@@ -319,8 +319,12 @@ export function transferStepGoto(step) {
   if (step === 2) _updateTransferTutarTumBtn();
   if (step === TRANSFER_STEP_COUNT) { _transferOzetDoldur(); _wrapRegistry.call('renderTransferLog'); }
 }
-_wrapRegistry.register('wizardStepGoto:modal-transfer', transferStepGoto);
-_wrapRegistry.register('wizardCurrentStep:modal-transfer', () => _transferCurrentStep);
+// core.wrapRegistry, index.html'de bu dosyadan SONRA yüklenebiliyor;
+// whenReady ile register olana kadar bekleyip sonra kaydediyoruz.
+whenReady('core.wrapRegistry', () => {
+  _wrapRegistry.register('wizardStepGoto:modal-transfer', transferStepGoto);
+  _wrapRegistry.register('wizardCurrentStep:modal-transfer', () => _transferCurrentStep);
+});
 
 // ── Seçili kaynağın kullanılabilir bakiyesini döndürür (hesap: bakiye + KMH, nakit: nakit bakiyesi) ──
 export function _transferKaynakKullanilabilirBakiye() {
@@ -394,7 +398,9 @@ export function transferStepNext() {
   transferStepGoto(_transferCurrentStep + 1);
 }
 
-_wrapRegistry.register('wizardStepNext:modal-transfer', transferStepNext);
+whenReady('core.wrapRegistry', () => {
+  _wrapRegistry.register('wizardStepNext:modal-transfer', transferStepNext);
+});
 
 
 export function transferStepBack() {
@@ -587,7 +593,9 @@ function saveTransfer() {
 // kendisi ve _wrapRegistry.register('saveTransfer', ...) çağrısı hâlâ kullanımda.
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
-_wrapRegistry.register('saveTransfer', saveTransfer);
+whenReady('core.wrapRegistry', () => {
+  _wrapRegistry.register('saveTransfer', saveTransfer);
+});
 
 // ── Transfer Logu ────────────────────────────────────────────
 // [KALDIRILDI] Bu bölümde eskiden _transferLogFiltreLabelGuncelle() ve

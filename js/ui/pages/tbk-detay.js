@@ -1042,16 +1042,34 @@ export { normalizeAllDeposits };
   // henüz initialize olmamış olabiliyor → "Cannot access ... before
   // initialization". setTimeout(...,0) ile bir sonraki task'a erteleyerek
   // tüm modüllerin yüklenmesini garanti ediyoruz.
-  setTimeout(function installTbkModalScrollFixWraps(){
-    ['openTransferModal','renderTransferLog','tbkAyDetayAc','tbkAyDetayFiltreUygula','calcKmhKredi','calcKredi','renderKmhKredi','renderKredi'].forEach(wrapRegistryAction);
-    (function wrapShowPage(){
-      const old = getShowPage();
-      if(typeof old !== 'function' || old._tbkModalScrollFixWrapped) return;
-      setShowPage(wrapDirect(old));
-    })();
-    wrapRegistryAction('openModal');
-    wrapRegistryAction('closeModal');
-  }, 0);
+  function installTbkModalScrollFixWraps(){
+    try {
+      ['openTransferModal','renderTransferLog','tbkAyDetayAc','tbkAyDetayFiltreUygula','calcKmhKredi','calcKredi','renderKmhKredi','renderKredi'].forEach(wrapRegistryAction);
+      (function wrapShowPage(){
+        const old = getShowPage();
+        if(typeof old !== 'function' || old._tbkModalScrollFixWrapped) return;
+        setShowPage(wrapDirect(old));
+      })();
+      wrapRegistryAction('openModal');
+      wrapRegistryAction('closeModal');
+    } catch (e) {
+      // Circular import zinciri (veri-yonetimi.js <-> app-core-base.js)
+      // nedeniyle bu blok tetiklendiğinde app-core-base.js henüz tam
+      // evaluate olmamış olabilir (_currentShowPage TDZ'de) — kısa bir süre
+      // sonra tekrar dene. setTimeout(...,0) her zaman yeterli olmuyor;
+      // window 'load' sonrası tüm modüller kesin evaluate olmuş olur.
+      setTimeout(installTbkModalScrollFixWraps, 30);
+    }
+  }
+  // [ES module] render-core.js#installRenderOverrides ile aynı desen:
+  // top-level/senkron çağrı yerine, modül grafiğinin kesin olarak tam
+  // evaluate edildiği 'load' event'ini (veya zaten geçtiyse hemen) kullan.
+  // setTimeout(...,0) tek başına circular import sırasını garanti etmiyordu.
+  if (document.readyState === 'complete') {
+    setTimeout(installTbkModalScrollFixWraps, 0);
+  } else {
+    window.addEventListener('load', function(){ installTbkModalScrollFixWraps(); }, { once: true });
+  }
 
   document.addEventListener('click', function(){ setTimeout(refresh,0); }, true);
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') setTimeout(refresh,80); }, true);
