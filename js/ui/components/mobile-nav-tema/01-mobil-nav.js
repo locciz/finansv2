@@ -1,4 +1,4 @@
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: üç bağımlılık da (core.appCoreBase,
 // core.state, core.wrapRegistry) zaten container'a taşınmış katmanlara
 // ait, bu yüzden inject() ile tembel çözülüyor.
@@ -331,7 +331,10 @@ export function installMobNavShowPageWrap() {
 // Sayfa yüklendiğinde dinamik slotları hemen kur (Drive verisi hazır olunca applyMigrations
 // zaten _coreState.DB.navStats'ı geri yükleyecek, ardından renderAll → mobNavRenderDynSlots çağrılır)
 document.addEventListener('DOMContentLoaded', function() {
-  mobNavRenderDynSlots(false);
+  // state.js (core.state'i register eden dosya) index.html'de bu dosyadan
+  // SONRA yükleniyor; DOMContentLoaded anında bile henüz register olmamış
+  // olabiliyor. whenReady, container'da hazır olana kadar bekler.
+  whenReady('core.state', () => mobNavRenderDynSlots(false));
 });
 
 

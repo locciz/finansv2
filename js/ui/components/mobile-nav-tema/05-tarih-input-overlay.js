@@ -1,4 +1,4 @@
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: core.format ve core.state zaten container'a
 // taşınmış katmanlara ait, bu yüzden inject() ile tembel çözülüyor. Bu,
 // dosyanın aşağıdaki yorumda bahsedilen dairesel bağımlılık zincirini
@@ -334,15 +334,15 @@ const _coreState = inject('core.state');
   }
 export { applyToAll };
 
+  // index.html'de core.state'i register eden state.js, bu dosyadan
+  // (05-tarih-input-overlay.js) SONRA yükleniyor. Tek bir microtask/
+  // DOMContentLoaded beklemesi yetersiz kalabiliyordu: o an state.js henüz
+  // hiç çalışmamış olabiliyordu. whenReady, container'da 'core.state'
+  // register olana kadar kısa aralıklarla tekrar dener.
   if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyToAll);
+    document.addEventListener('DOMContentLoaded', () => whenReady('core.state', applyToAll));
   } else {
-    // Circular import zinciri (state.js → app-core-base.js →
-    // 05-tarih-input-overlay.js → state.js) nedeniyle, bu modül evaluate
-    // olduğu anda state.js henüz tam init olmamış olabilir (_coreState.FORMAT_CONFIG
-    // undefined). Top-level çağrıyı bir microtask'a erteleyerek tüm modül
-    // grafiğinin evaluate'inin bitmesini bekliyoruz.
-    Promise.resolve().then(applyToAll);
+    whenReady('core.state', applyToAll);
   }
 
   // Modal açılışlarında tarih overlay'lerini yenileme davranışı artık

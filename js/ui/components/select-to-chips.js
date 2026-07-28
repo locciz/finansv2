@@ -1192,7 +1192,15 @@ export function wireAllMoneyCurButtons() {
 // tamamlanmasına yetecek kadar bekliyoruz; aksi hâlde chip render sırasında
 // seçenekler henüz gelmemiş (boş state) olabiliyor.
 (function patchOpenModal() {
-  const _orig = _wrapRegistry.get('openModal');
+  let _orig;
+  try {
+    _orig = _wrapRegistry.get('openModal');
+  } catch (e) {
+    // core.wrapRegistry henüz container'a register olmadı (script sırası /
+    // henüz yüklenmedi) — biraz sonra tekrar dene.
+    setTimeout(patchOpenModal, 50);
+    return;
+  }
   if (typeof _orig !== 'function') { setTimeout(patchOpenModal, 50); return; }
   _wrapRegistry.register('openModal', function(id) {
     _orig.apply(this, arguments);

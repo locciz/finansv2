@@ -140,3 +140,24 @@ export function _resetForTests() {
 export function listRegistered() {
   return Object.keys(registry).sort();
 }
+
+/**
+ * Bir namespace register olana kadar callback'i erteler, sonra çağırır.
+ * index.html'de bazı modüller (ör. state.js) kendisine ihtiyaç duyan
+ * modüllerden SONRA yüklendiği için, DOMContentLoaded / microtask gibi
+ * tek seferlik beklemeler yetersiz kalabiliyor (o an namespace hâlâ
+ * register olmamış olabilir). Bu yardımcı, namespace hazır olana kadar
+ * kısa aralıklarla (varsayılan 30ms) tekrar dener.
+ *
+ *   whenReady('core.state', () => { ...applyToAll()... });
+ */
+export function whenReady(name, callback, retryMs = 30) {
+  function attempt() {
+    if (has(name)) {
+      callback();
+    } else {
+      setTimeout(attempt, retryMs);
+    }
+  }
+  attempt();
+}
