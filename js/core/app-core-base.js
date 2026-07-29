@@ -1,23 +1,27 @@
 import { inject } from '@core/container.js';
-const _gdrive = inject('services.gdrive');
-const _format = inject('core.format');
-const _coreState = inject('core.state');
-const _doviz = inject('domain.doviz');
-const _wrapRegistry = inject('core.wrapRegistry');
-// [BUG FIX] init.js VE render-core.js importları BİLİNÇLİ OLARAK yukarıdaki
-// const atamalarından SONRAYA taşındı. Sebep: bu iki import da kendi
-// zincirleri üzerinden (init.js -> 01-ekstre-kesinlestirme.js -> state.js;
-// render-core.js -> 03-kart-detay-ortak.js -> state.js) döngüsel olarak
-// state.js'i tetikliyor. state.js'in loadData() (top-level, senkron) çağrısı
-// defaultKartAltyapilari() üzerinden bu dosyanın (kendi modülü içindeki)
-// _format sabitini kullanıyor. import ifadeleri dosyada nerede yazılırsa
-// yazılsın motor onları YAZILIŞ SIRASINA göre evaluate eder (hoisting sadece
-// binding görünürlüğünü etkiler, yan etki sırasını değil) — bu yüzden
-// init.js/render-core.js importları _format tanımından önceyken, henüz
-// _format tanımlanmadan state.js'in loadData() zinciri _format'a erişip
-// "Cannot access '_format' before initialization" TDZ hatası veriyordu.
-// Artık _format vb. tüm inject() sabitleri tanımlandıktan SONRA bu importlar
-// yapılıyor; aynı döngüler yine oluşur ama bu kez _format zaten hazır.
+// [BUG FIX] Bu değerler önceden modül-seviyesi `const _format = inject(...)`
+// olarak tanımlanıyordu. Node ile doğrulandı: ES modüllerde `import`
+// deklarasyonları, dosyada nerede yazılırsa yazılsın, kod akışındaki TÜM
+// diğer top-level ifadelerden (const/let dahil) ÖNCE evaluate edilir
+// (hoisting). Yani bu importlardan SONRA yazılan `import { _pushHashState }
+// from '@core/init.js'` gibi satırlar bile, YUKARIDAKİ const atamalarından
+// ÖNCE çalışıyordu — çünkü hepsi "import" olarak hoist ediliyor. init.js
+// zinciri (init.js -> 01-ekstre-kesinlestirme.js -> state.js) veya
+// render-core.js zinciri (-> 03-kart-detay-ortak.js -> state.js) döngüsel
+// olarak state.js'in loadData() (top-level, senkron) çağrısını tetikliyor;
+// bu da defaultKartAltyapilari() üzerinden _format'a erişiyor — ama _format
+// henüz TDZ'de (const atamaları importlardan sonra çalışır). Import
+// sırasını değiştirmek bu yüzden ÇÖZÜM DEĞİL: hangi sırada olursa olsun
+// TÜM importlar, TÜM const atamalarından önce çalışıyor.
+// GERÇEK ÇÖZÜM: modül-seviyesi `const` yerine, her ihtiyaç anında
+// inject()'i çağıran fonksiyonlar kullanmak. inject() kendisi sadece bir
+// fonksiyon çağrısı (Proxy döndürür, TDZ'ye tabi değil), sorun sadece
+// SONUCUNU modül-seviyesinde bir isme bağlamaktı.
+const getGdrive = () => inject('services.gdrive');
+const getFormat = () => inject('core.format');
+const getCoreState = () => inject('core.state');
+const getDoviz = () => inject('domain.doviz');
+const getWrapRegistry = () => inject('core.wrapRegistry');
 import { _pushHashState } from '@core/init.js';
 import { renderPage } from '@core/render-core.js';
 import { openModal } from '@components/modal-genel.js';
@@ -109,8 +113,8 @@ export function applyMigrations(d) {
   d = {...defaultData(), ...d};
 
   // ── _coreState.FORMAT_CONFIG ve para birimi Drive verisinden uygula ─────────────────
-  if(d._formatConfig) _coreState.setFORMAT_CONFIG({..._coreState.FORMAT_CONFIG, ...d._formatConfig});
-  if(d._currency)     _coreState.setDefaultCurrency(d._currency);
+  if(d._formatConfig) getCoreState().setFORMAT_CONFIG({...getCoreState().FORMAT_CONFIG, ...d._formatConfig});
+  if(d._currency)     getCoreState().setDefaultCurrency(d._currency);
 
   // ── Kredi kartı altyapısı tanımları yoksa varsayılanları ekle ────────────
   if(!d.kartAltyapilari || !d.kartAltyapilari.length) {
@@ -190,27 +194,27 @@ export function defaultKartAltyapilari() {
   // tanımlanıyor ama bu fonksiyon her zaman runtime'da çağrıldığı için erişilebilir.
   const logoOf = (id) => (typeof ALTYAPI_LOGOLAR !== 'undefined' ? (ALTYAPI_LOGOLAR.find(l => l.id === id) || {}).svg : null) || undefined;
   return [
-    {id: _format.uid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
-    {id: _format.uid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
-    {id: _format.uid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
-    {id: _format.uid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
+    {id: getFormat().uid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
+    {id: getFormat().uid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
+    {id: getFormat().uid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
+    {id: getFormat().uid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
   ];
 }
 
 export function saveData() {
   // Drive senkronu aynen korunur; ayrıca standalone/test kullanımında veri kaybolmasın
   // diye güvenli local fallback tutulur. localStorage kapalıysa sessiz geçilir.
-  try { localStorage.setItem('finans_local_db_v90', JSON.stringify(_coreState.DB)); } catch(e) {}
+  try { localStorage.setItem('finans_local_db_v90', JSON.stringify(getCoreState().DB)); } catch(e) {}
 
-  _gdrive.setGDirty(true);
-  if (typeof _gdrive.gDriveReady === 'function' && _gdrive.gDriveReady()) {
+  getGdrive().setGDirty(true);
+  if (typeof getGdrive().gDriveReady === 'function' && getGdrive().gDriveReady()) {
     clearTimeout(gSaveTimer);
-    gSaveTimer = setTimeout(() => _gdrive.gDriveSaveNow(), 1500);
+    gSaveTimer = setTimeout(() => getGdrive().gDriveSaveNow(), 1500);
   }
 }
 // [ES module] taban tanım, odeme/patches zincirinin hook/wrap edebilmesi
 // için wrap-registry'ye kaydediliyor.
-_wrapRegistry.register('saveData', saveData);
+getWrapRegistry().register('saveData', saveData);
 
 export function defaultData() {
   return {
@@ -251,7 +255,7 @@ export function defaultData() {
 }
 
 export function updateSidebarKartNav() {
-  const hasKart = _coreState.DB.kartlar && _coreState.DB.kartlar.length > 0;
+  const hasKart = getCoreState().DB.kartlar && getCoreState().DB.kartlar.length > 0;
   const navIslemler = document.getElementById('nav-islemler');
   const navExtreler = document.getElementById('nav-extreler');
   if(navIslemler) navIslemler.style.display = hasKart ? '' : 'none';
@@ -318,7 +322,7 @@ function showPageBase(id, btn) {
 export function renderAll() {
   // Tüm populate/select'leri güncelle
   loadCurrencyConfig();
-  _doviz.populateCurrencySelects();
+  getDoviz().populateCurrencySelects();
   populateKategoriSelects();
   populateEldenHesapSelect();
   populateEldenKisiSelect();
@@ -373,12 +377,12 @@ export function showTab(id, btn) {
 
   _pushHashState('tanimlamalar', {tab: id});
   if(id==='tab-para-birimi' || id==='tab-para-birimi-yonetim') {
-    _doviz.populateCurrencySelects();
+    getDoviz().populateCurrencySelects();
   }
   if(id==='tab-goruntu-ayarlari') {
-    _doviz.populateCurrencySelects();
+    getDoviz().populateCurrencySelects();
     updateParaBirimiPreview();
-    _format.loadGoruntuAyarlariUI();
+    getFormat().loadGoruntuAyarlariUI();
   }
   if(id==='tab-kisiler') {
     renderKisilerGrid();
@@ -389,11 +393,11 @@ export function showTab(id, btn) {
     renderAsgariEsikPbSelect();
     asgariKosulTurChange();
     bindMoneyInputs(document.getElementById('tab-asgari-odeme'));
-    if(!_coreState.ALL_CURRENCIES.length) _doviz.rebuildAllCurrencies();
+    if(!getCoreState().ALL_CURRENCIES.length) getDoviz().rebuildAllCurrencies();
     const pbSel = document.getElementById('asgari-prev-pb');
     if(pbSel) {
-      pbSel.innerHTML = _coreState.ALL_CURRENCIES.map(c=>`<option value="${c.code}">${c.code}${c.symbol && c.symbol!==c.code ? ' · '+c.symbol : ''}</option>`).join('');
-      pbSel.value = _coreState.defaultCurrency;
+      pbSel.innerHTML = getCoreState().ALL_CURRENCIES.map(c=>`<option value="${c.code}">${c.code}${c.symbol && c.symbol!==c.code ? ' · '+c.symbol : ''}</option>`).join('');
+      pbSel.value = getCoreState().defaultCurrency;
     }
     asgariOnizle();
   }
