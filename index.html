@@ -4566,8 +4566,14 @@
 <script type="module" src="js/ui/pages/tbk-detay.js?v=33"></script>
 <script type="module" src="js/services/gdrive.js?v=33"></script>
 <script type="module" src="js/services/kur-servisleri.js?v=33"></script>
-<script type="module" src="js/core/app-core.js?v=33"></script>
+<!-- [BUG FIX] state.js burada, app-core.js'den ÖNCE yüklenmeli: app-core.js
+     boot() fonksiyonu (DOMContentLoaded/senkron) _coreState.DB'ye erişince
+     inject('core.state') Proxy'si resolve('core.state') tetikler; state.js
+     henüz provide('core.state', ...) çağırmadıysa "core.state namespace'i
+     kayıtlı değil" hatası fırlar. Script tag sırası eskiden tersti
+     (app-core.js -> state.js), düzeltildi. -->
 <script type="module" src="js/core/state.js?v=33"></script>
+<script type="module" src="js/core/app-core.js?v=33"></script>
 <script type="module" src="js/core/init.js?v=33"></script>
 <script type="module" src="js/core/wizard-routing.js?v=33"></script>
 <script type="module" src="js/core/onclick-bootstrap.js?v=33"></script>
