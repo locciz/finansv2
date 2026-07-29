@@ -562,14 +562,24 @@ export const entegre = {
 
 // ============================================================
 // [DI-MIGRATION] domain.hesapEntegrasyonMotoru — container'a kayıt
+// [BUG FIX] _lKey/_lGet/_lSet, `export { _lKey as _lKey__hesap_entegrasyon_motoru }`
+// şeklinde bir İSİM DEĞİŞTİRME (rename) export'u ile dışa açılıyor — bu satır
+// modül içinde `_lKey__hesap_entegrasyon_motoru` adında YENİ bir binding
+// yaratmaz, sadece dışa açılan ismi değiştirir. O yüzden bu dosyanın kendi
+// scope'unda o isim tanımlı değil ve aşağıdaki shorthand property
+// (`{ _lKey__hesap_entegrasyon_motoru }`) "is not defined" hatası veriyordu.
+// Gerçek lokal isimler (_lKey/_lGet/_lSet) kullanılıp obje key'i eskisiyle
+// aynı tutuluyor ki container üzerinden resolve edenler etkilenmesin.
 // ============================================================
 import { provide } from '@core/container.js';
 provide('domain.hesapEntegrasyonMotoru', {
   _bakiyeDelta, _nakitBakiyeDelta, entKiraYansit, entMaasYansit, entEldenYansit,
   entMevduatYansit, entKmhYansit, entDepozitoYansit, entKrediYansit,
   entIslemHesabaYansit, _sync, _updateTopbarBakiye, _initEntegre, entegre,
-  _lKey__hesap_entegrasyon_motoru, _lGet__hesap_entegrasyon_motoru,
-  _lSet__hesap_entegrasyon_motoru, _otoBakiyeGuncelle__hesap_entegrasyon_motoru,
+  _lKey__hesap_entegrasyon_motoru: _lKey,
+  _lGet__hesap_entegrasyon_motoru: _lGet,
+  _lSet__hesap_entegrasyon_motoru: _lSet,
+  _otoBakiyeGuncelle__hesap_entegrasyon_motoru,
 });
 
 // ═══════════════════════════════════════════════════════════
