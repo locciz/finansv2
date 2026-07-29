@@ -3,7 +3,7 @@ import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 import { attachAllIbanValidations } from '@components/iban-ui.js';
 import { applyToAll } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
 import { bindKartlarToolbarEvents, kartlarFiltreOku, kartlarToolbarHtml } from '@pages/kartlar/09-kart-altyapi.js';
-import { inject, provide } from '@core/container.js';
+import { inject, provide, whenReady as whenReadyFn } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: aşağıdaki dört bağımlılık zaten container'a
 // taşınmış katmanlara ait (core.appCoreBase, core.state,
 // domain.hesapEntegrasyonMotoru, core.wrapRegistry), bu yüzden doğrudan
@@ -469,7 +469,20 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     }, '_dbShapeFix');
   }
 
-  function boot(){
+// [BUG FIX] boot(), DOMContentLoaded/senkron/'load' event'lerinden biriyle
+// tetikleniyordu ve içeride _coreState.DB'ye (inject('core.state') proxy'si
+// üzerinden) erişiyordu. index.html'de state.js script tag sırası doğru
+// olsa bile, 06-para-birimi.js gibi state.js'in kendi import zincirinin
+// derinliği/olası dairesel importlar yüzünden state.js'in provide('core.state', ...)
+// satırı, boot()'un tetiklendiği andan SONRA çalışabiliyordu — script tag
+// sırası tek başına modül EVALUATION sırasını garanti etmiyor. Çözüm:
+// script sırasına güvenmek yerine, container'ın kendi whenReady() yardımcısı
+// ile 'core.state' gerçekten register olana kadar bekle.
+function bootWhenReady(){
+  whenReadyFn('core.state', boot);
+}
+
+function boot(){
     normalizeDb(_coreState.DB);
     patchFactories();
     patchFilterHelpers();
@@ -502,9 +515,9 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
   };
   W.normalizeDbPrefs = function(){ return normalizeDb(_coreState.DB); };
 
-  if(DOC.readyState === 'loading') DOC.addEventListener('DOMContentLoaded', boot, { once:true });
-  else boot();
-  W.addEventListener('load', boot, { once:true });
+  if(DOC.readyState === 'loading') DOC.addEventListener('DOMContentLoaded', bootWhenReady, { once:true });
+  else bootWhenReady();
+  W.addEventListener('load', bootWhenReady, { once:true });
 })();
 
 // ── Birleşik "procedural pass" sistemi ───────────────────────────────────
