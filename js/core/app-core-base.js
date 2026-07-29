@@ -1,27 +1,20 @@
 import { inject } from '@core/container.js';
-// [BUG FIX] Bu değerler önceden modül-seviyesi `const _format = inject(...)`
-// olarak tanımlanıyordu. Node ile doğrulandı: ES modüllerde `import`
-// deklarasyonları, dosyada nerede yazılırsa yazılsın, kod akışındaki TÜM
-// diğer top-level ifadelerden (const/let dahil) ÖNCE evaluate edilir
-// (hoisting). Yani bu importlardan SONRA yazılan `import { _pushHashState }
-// from '@core/init.js'` gibi satırlar bile, YUKARIDAKİ const atamalarından
-// ÖNCE çalışıyordu — çünkü hepsi "import" olarak hoist ediliyor. init.js
-// zinciri (init.js -> 01-ekstre-kesinlestirme.js -> state.js) veya
-// render-core.js zinciri (-> 03-kart-detay-ortak.js -> state.js) döngüsel
-// olarak state.js'in loadData() (top-level, senkron) çağrısını tetikliyor;
-// bu da defaultKartAltyapilari() üzerinden _format'a erişiyor — ama _format
-// henüz TDZ'de (const atamaları importlardan sonra çalışır). Import
-// sırasını değiştirmek bu yüzden ÇÖZÜM DEĞİL: hangi sırada olursa olsun
-// TÜM importlar, TÜM const atamalarından önce çalışıyor.
-// GERÇEK ÇÖZÜM: modül-seviyesi `const` yerine, her ihtiyaç anında
-// inject()'i çağıran fonksiyonlar kullanmak. inject() kendisi sadece bir
-// fonksiyon çağrısı (Proxy döndürür, TDZ'ye tabi değil), sorun sadece
-// SONUCUNU modül-seviyesinde bir isme bağlamaktı.
-const getGdrive = () => inject('services.gdrive');
-const getFormat = () => inject('core.format');
-const getCoreState = () => inject('core.state');
-const getDoviz = () => inject('domain.doviz');
-const getWrapRegistry = () => inject('core.wrapRegistry');
+// [BUG FIX] Bir önceki deneme `const getFormat = () => inject(...)` ile
+// TDZ'yi çözmeye çalışmıştı, ama `const` bildirimi ne içerirse içersin
+// (bir fonksiyon olsa bile) yine TDZ'ye tabidir — tanım satırına
+// ulaşılmadan referans alınamaz. Import'lar (state.js döngüsü üzerinden
+// gelen çağrılar dahil) TÜM const/let atamalarından önce hoist edildiği
+// için, `const getFormat = ...` satırı henüz çalışmadan defaultKartAltyapilari()
+// çağrılabiliyor ve "Cannot access 'getFormat' before initialization" hatası
+// oluşuyordu. KESİN ÇÖZÜM: `const ... = () => ...` yerine `function` BİLDİRİMİ
+// (declaration) kullanmak — function declarations JS'de TAMAMEN hoisted'dır
+// ve TDZ'ye tabi değildir; modülün en başında, herhangi bir kod çalışmadan
+// önce bile çağrılabilirler.
+function getGdrive() { return inject('services.gdrive'); }
+function getFormat() { return inject('core.format'); }
+function getCoreState() { return inject('core.state'); }
+function getDoviz() { return inject('domain.doviz'); }
+function getWrapRegistry() { return inject('core.wrapRegistry'); }
 import { _pushHashState } from '@core/init.js';
 import { renderPage } from '@core/render-core.js';
 import { openModal } from '@components/modal-genel.js';
