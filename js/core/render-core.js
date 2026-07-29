@@ -10,7 +10,13 @@ import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablol
 // çözülüyor; app-core-base.js <-> init.js dairesel bağımlılığına karşı
 // resolve() değil inject() kullanılıyor (bkz. DI-MIGRATION.md).
 const _appCoreBase = inject('core.appCoreBase');
-const NAV_BTN_ID_BY_PAGE = _appCoreBase.NAV_BTN_ID_BY_PAGE;
+// [BUG FIX] Önceden `const NAV_BTN_ID_BY_PAGE = _appCoreBase.NAV_BTN_ID_BY_PAGE;`
+// top-level'da (modül yüklenirken, senkron) Proxy property'sine erişiyordu.
+// inject() tembel/lazy olacak şekilde tasarlanmıştı, ama bu satır o tembelliği
+// boşa çıkarıp anında resolve('core.appCoreBase') tetikliyordu — script sırası
+// garanti olsa bile modül EVALUATION sırası (özellikle dairesel importlarla)
+// bunu garanti etmiyor. Artık her erişimde taze okuyan bir getter kullanılıyor.
+const getNavBtnIdByPage = () => _appCoreBase.NAV_BTN_ID_BY_PAGE;
 const getShowPage = (...a) => _appCoreBase.getShowPage(...a);
 const setShowPage = (...a) => _appCoreBase.setShowPage(...a);
 
@@ -135,7 +141,7 @@ function syncNavActive(pageId, btn){
     // [ES module] Eskiden onclick attribute içeriği okunarak eşleştiriliyordu;
     // onclick temizliği sonrası HTML'de bu attribute yok, sabit id haritası
     // (NAV_BTN_ID_BY_PAGE) kullanılıyor.
-    const navBtnId = NAV_BTN_ID_BY_PAGE[pageId];
+    const navBtnId = getNavBtnIdByPage()[pageId];
     const navBtn = navBtnId ? document.getElementById(navBtnId) : null;
     if(navBtn) navBtn.classList.add('active');
   }

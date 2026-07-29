@@ -11,8 +11,12 @@ const _coreFormat = inject('core.format');
 const fmtCur = (...a) => _coreFormat.fmtCur(...a);
 const localDateStr = (...a) => _coreFormat.localDateStr(...a);
 const _coreConstants = inject('core.constants');
-const BEKLEMEDE_SAYILAN_DURUMLAR = _coreConstants.BEKLEMEDE_SAYILAN_DURUMLAR;
-const ODENMIS_SAYILAN_DURUMLAR = _coreConstants.ODENMIS_SAYILAN_DURUMLAR;
+// [BUG FIX] Önceden top-level'da _coreConstants.BEKLEMEDE_SAYILAN_DURUMLAR /
+// ODENMIS_SAYILAN_DURUMLAR olarak anında okunuyordu — bu, inject()'in tembel
+// (lazy) Proxy'sini modül evaluation sırasında senkron resolve() tetikleyerek
+// boşa çıkarıyordu. Kullanım noktalarında çağrılan getter'lara çevrildi.
+const getBeklemedeSayilanDurumlar = () => _coreConstants.BEKLEMEDE_SAYILAN_DURUMLAR;
+const getOdenmisSayilanDurumlar = () => _coreConstants.ODENMIS_SAYILAN_DURUMLAR;
 import { showToast } from '@components/modal-genel.js';
 import { isEkstreKesinlesmis } from '@pages/ekstreler/01-ekstre-kesinlestirme.js';
 import { getKart } from '@pages/kartlar/01-kart-data.js';
@@ -206,11 +210,11 @@ export function entKmhYansit(krediId, taksitNo, durum, tutar) {
   const lk = _lKey('kmh', krediId, taksitNo);
   const eski = _lGet(lk) || 0;
 
-  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
+  if (!durum || getBeklemedeSayilanDurumlar().includes(durum)) {
     if (eski !== 0) { _bakiyeDelta(hesapId, eski); _lDel(lk); _sync(); } // geri ver
     return;
   }
-  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
+  if (getOdenmisSayilanDurumlar().includes(durum)) {
     const yeni = tutar || kr.aylikTaksit || 0;
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;
@@ -235,11 +239,11 @@ export function entDepozitoYansit(kiraId, key, durum, tutar) {
   const eski = _lGet(lk) || 0;
   const uygula = (delta) => isNakit ? _nakitBakiyeDelta(pb, delta) : _bakiyeDelta(hesapId, delta);
 
-  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
+  if (!durum || getBeklemedeSayilanDurumlar().includes(durum)) {
     if (eski !== 0) { uygula(-eski * yon); _lDel(lk); _sync(); }
     return;
   }
-  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
+  if (getOdenmisSayilanDurumlar().includes(durum)) {
     const yeni = (tutar !== undefined && tutar !== null) ? tutar : ((kira.depozito && kira.depozito.tutar) || 0);
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;
@@ -259,11 +263,11 @@ export function entKrediYansit(krediId, taksitNo, durum, tutar) {
   const eski = _lGet(lk) || 0;
   const uygula = (delta) => isNakit ? _nakitBakiyeDelta(pb, delta) : _bakiyeDelta(kr.hesapId, delta);
 
-  if (!durum || BEKLEMEDE_SAYILAN_DURUMLAR.includes(durum)) {
+  if (!durum || getBeklemedeSayilanDurumlar().includes(durum)) {
     if (eski !== 0) { uygula(eski); _lDel(lk); _sync(); }
     return;
   }
-  if (ODENMIS_SAYILAN_DURUMLAR.includes(durum)) {
+  if (getOdenmisSayilanDurumlar().includes(durum)) {
     const yeni = tutar || kr.aylikTaksit || 0;
     const delta = yeni - eski;
     if (Math.abs(delta) < 0.001) return;

@@ -867,8 +867,30 @@ function boot(){
 
   // ---- Merkezi RAF scheduler: tüm pass'leri tek karede, sırayla çalıştırır ----
   let rafId = 0;
+  // [BUG FIX] runAllPasses içindeki pass'ler (syncMoreMenuActive,
+  // forceNativeKartToolbar, applyDateOverlaysProcedural, vb.) inject() ile
+  // 'core.appCoreBase' / 'core.state' gibi namespace'lere erişiyor. schedule()
+  // sayfa zaten yüklüyken (`else schedule('boot')`, aşağıda) anında
+  // requestAnimationFrame ile tetiklendiği için, modül grafiğindeki diğer
+  // dosyaların (state.js, app-core-base.js) provide() çağrıları henüz
+  // çalışmamış olabiliyordu — script tag sırası veya DOMContentLoaded/'load'
+  // gibi tek seferlik zamanlamalar bunu garanti etmiyor. runAllPasses'in
+  // gövdesini çalıştırmadan önce ilgili namespace'lerin gerçekten register
+  // olduğunu whenReady ile doğruluyoruz; hazır değilse kısa aralıklarla
+  // tekrar dener (bu tek seferlik bir bariyer, her frame'de tekrar kontrol
+  // maliyeti yaratmaz çünkü whenReady namespace'ler bir kez hazır olduktan
+  // sonra artık asla tekrar "kayıtsız" duruma dönmez).
+  let _passesGateReady = false;
+  function runAllPassesGated(reason){
+    if (_passesGateReady) { runAllPasses(reason); return; }
+    whenReadyFn('core.appCoreBase', function(){
+      whenReadyFn('core.state', function(){
+        _passesGateReady = true;
+        runAllPasses(reason);
+      });
+    });
+  }
   function runAllPasses(reason){
-    rafId = 0;
     perfPass.run(reason);
     tableLabelPass.run();
     simpleChipScrollPass.run();
@@ -878,7 +900,7 @@ function boot(){
   }
   function schedule(reason){
     if(rafId) return;
-    rafId = (W.requestAnimationFrame || function(cb){ return setTimeout(cb, 16); })(function(){ runAllPasses(reason); });
+    rafId = (W.requestAnimationFrame || function(cb){ return setTimeout(cb, 16); })(function(){ rafId = 0; runAllPassesGated(reason); });
   }
 
   // ---- Render fonksiyonlarını TEK bir listeyle, TEK seferde sarmala ----

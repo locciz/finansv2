@@ -1,4 +1,4 @@
-import { inject } from '@core/container.js';
+import { inject, whenReady } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: core.format, core.state, ui.components.
 // tarihInputOverlay, core.wrapRegistry zaten container'a taşınmış
 // katmanlara ait. @pages/* importları o katman henüz taşınmadığı için
@@ -468,7 +468,11 @@ export function setDateInputValue(elOrId, value) {
   // ayraç formatlama + focus/blur davranışı diğer tutar alanlarıyla tutarlı olsun diye).
   bindMoneyInputs(bg);
   // od-pop-tarih'i diğer date inputlar gibi date-wrap overlay'e sar
-  setTimeout(() => { _tarihInputOverlay.applyToAll(); }, 0);
+  // [BUG FIX] setTimeout(...,0) tek başına 'ui.components.tarihInputOverlay'in
+  // register olduğunu garanti etmiyordu (bu IIFE modül evaluation sırasında,
+  // yani diğer script'lerin provide() çağrılarından önce çalışabiliyordu).
+  // whenReady ile namespace hazır olana kadar erteleniyor.
+  whenReady('ui.components.tarihInputOverlay', () => { _tarihInputOverlay.applyToAll(); });
   // Dışına tıklayınca kapat
   bg.addEventListener('click', function(e){ if(e.target===bg) odModalKapat(); });
 })();
