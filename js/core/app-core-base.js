@@ -186,11 +186,24 @@ export function defaultKartAltyapilari() {
   // ALTYAPI_LOGOLAR (Visa/Mastercard/Troy/Amex hazır SVG logoları) daha sonra
   // tanımlanıyor ama bu fonksiyon her zaman runtime'da çağrıldığı için erişilebilir.
   const logoOf = (id) => (typeof ALTYAPI_LOGOLAR !== 'undefined' ? (ALTYAPI_LOGOLAR.find(l => l.id === id) || {}).svg : null) || undefined;
+  // [BUG FIX] Bu fonksiyon defaultData() -> loadData() zincirinden çok erken
+  // (uygulama açılışında, modül yükleme sırasında) çağrılabiliyor. O anda
+  // core.format container'a henüz provide() edilmemiş olabilir (format.js
+  // kendi provide() satırına ulaşmadan önce bu fonksiyon tetiklenmiş olabilir).
+  // getFormat().uid() TÜM format modülünü resolve etmeye çalışıp erken hata
+  // fırlatıyordu; halbuki burada sadece basit bir benzersiz id üretimi
+  // gerekiyor. Container hazırsa gerçek uid()'i kullan, değilse aynı
+  // algoritmayı yerel bir fallback ile üret — böylece yükleme sırası
+  // kırılganlığından tamamen bağımsız hale gelir.
+  const safeUid = () => {
+    try { return getFormat().uid(); }
+    catch (e) { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+  };
   return [
-    {id: getFormat().uid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
-    {id: getFormat().uid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
-    {id: getFormat().uid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
-    {id: getFormat().uid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
+    {id: safeUid(), ad: 'Visa', kod: 'VISA', logo: logoOf('visa')},
+    {id: safeUid(), ad: 'Mastercard', kod: 'MASTERCARD', logo: logoOf('mastercard')},
+    {id: safeUid(), ad: 'Troy', kod: 'TROY', logo: logoOf('troy')},
+    {id: safeUid(), ad: 'American Express', kod: 'AMEX', logo: logoOf('amex')}
   ];
 }
 
