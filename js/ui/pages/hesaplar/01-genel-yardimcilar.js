@@ -3,11 +3,27 @@ import { localDateStr } from '@core/format.js';
 import { DB } from '@core/state.js';
 import { _gunlukVadeliAcOtomatik } from '@pages/mevduat/02-mevduat-vadeliye-koyma.js';
 import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
+import {
+  hesapTuruRenk,
+  _hesapBankayaAitMi,
+  _hesaplariIlgiliBankayaGoreSirala,
+  _hesapVarsayilanVeyaBankaHesabi,
+  _hesapOptgroupHtml,
+  hesapOptionMetin,
+  getAktifHesapOptionsByPb,
+} from '@domain/hesap-yardimcilar.js';
 // ============================================================
 // js/ui/pages/hesaplar/01-genel-yardimcilar.js
 // [FAZ 1 REFACTOR] Saf fonksiyonlar @domain/hesap-yardimcilar.js'e taşındı.
 // Burada yalnızca yan etkili hesapOtomatikGunlukKontrol (saveData/render
 // çağırdığı için) ve geriye dönük uyumluluk re-export'ları kaldı.
+// [BUG FIX] Önceden `export { X, Y } from '...'` şeklinde doğrudan
+// re-export kullanılıyordu — bu, bu dosyanın kendi scope'unda X/Y adında
+// bir binding YARATMAZ, sadece pass-through yapar. Aşağıdaki
+// provide(...) çağrısı bu isimleri lokal olarak kullanmaya çalışınca
+// "is not defined" hatası veriyordu. Çözüm: önce normal import ile
+// isimleri bu modülün scope'una al, sonra hem export et hem provide()'da
+// kullan.
 // ============================================================
 export {
   hesapTuruRenk,
@@ -17,7 +33,7 @@ export {
   _hesapOptgroupHtml,
   hesapOptionMetin,
   getAktifHesapOptionsByPb,
-} from '@domain/hesap-yardimcilar.js';
+};
 
 export function hesapOtomatikGunlukKontrol() {
   if(!DB.hesaplar) return false;
