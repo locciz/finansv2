@@ -1,6 +1,15 @@
-import { saveData } from '@core/app-core-base.js';
+// [BUG FIX] Önceden `import { saveData } from '@core/app-core-base.js';`
+// vardı. Bu, format.js -> app-core-base.js döngüsel importuna yol açıyordu:
+// format.js kendi provide('core.format', ...) satırına (dosya sonu)
+// ulaşmadan önce app-core-base.js'i import ediyor, o da (kendi zinciri
+// üzerinden) state.js'in loadData()'sını tetikliyor, bu da
+// defaultKartAltyapilari() -> getFormat() -> resolve('core.format')
+// çağırıyordu — ama format.js henüz provide() satırına ulaşmadığı için
+// "core.format namespace'i kayıtlı değil" hatası oluşuyordu. saveData artık
+// container üzerinden lazy resolve ediliyor, statik import kaldırıldı.
 import { inject } from '@core/container.js';
 const _coreState = inject('core.state');
+function getAppCoreBase() { return inject('core.appCoreBase'); }
 const _wrapRegistry = inject('core.wrapRegistry');
 import { showToast } from '@components/modal-genel.js';
 import { refreshDateOverlays } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
@@ -185,7 +194,7 @@ export function saveFormatConfig() {
   // Sadece _coreState.DB'ye yaz, saveData Drive'a gönderir
   if(typeof _coreState.DB !== 'undefined') {
     _coreState.DB._formatConfig = _coreState.FORMAT_CONFIG;
-    if(typeof saveData === 'function') saveData();
+    if(typeof getAppCoreBase().saveData === 'function') getAppCoreBase().saveData();
   }
 }
 
