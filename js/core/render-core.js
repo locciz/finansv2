@@ -1,4 +1,4 @@
-import { inject, provide } from '@core/container.js';
+import { inject, provide, whenReady } from '@core/container.js';
 import { openModal } from '@components/modal-genel.js';
 import { kartDetayGeriDon } from '@pages/kartlar/03-kart-detay-ortak.js';
 import { closeMobileSidebar, closeMobMore, mobNavRenderDynSlots, mobNavSyncActive, mobNavTrack } from '@components/mobile-nav-tema/01-mobil-nav.js';
@@ -241,16 +241,26 @@ export function installRenderOverrides(){
 // veriyordu. Aşağıdaki setTimeout(...,80) ve DOMContentLoaded/load
 // dinleyicileri zaten aynı kurulumu güvenli bir şekilde (modül grafiği
 // tamamen değerlendirildikten sonra) yapıyor; ayrıca senkron çağrıya gerek yok.
+// [BUG FIX] installRenderOverrides() içindeki setShowPage/getShowPage,
+// inject('core.appCoreBase') proxy'si üzerinden çözülüyor. Aşağıdaki
+// setTimeout(...,80) gibi erken tetiklenen çağrılar, 'core.appCoreBase'
+// namespace'i henüz register olmadan çalışabiliyordu (script sırası veya
+// döngüsel importlar modül evaluation zamanlamasını garanti etmiyor).
+// installRenderOverrides()'ı doğrudan çağırmak yerine, namespace hazır
+// olana kadar bekleyen bu sarmalayıcı kullanılıyor.
+function installRenderOverridesWhenReady(){
+  whenReady('core.appCoreBase', installRenderOverrides);
+}
 document.addEventListener('click', function(e){
   const nav = e.target && e.target.closest && e.target.closest('.nav-btn,.mob-nav-btn,.mob-more-item');
   if(!nav) return;
-  setTimeout(function(){ installRenderOverrides(); }, 20);
+  setTimeout(function(){ installRenderOverridesWhenReady(); }, 20);
 }, true);
 if(document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function(){ installRenderOverrides(); }, { once:true });
+  document.addEventListener('DOMContentLoaded', function(){ installRenderOverridesWhenReady(); }, { once:true });
 }
-window.addEventListener('load', function(){ installRenderOverrides(); }, { once:true });
-[80,250,700,1300].forEach(function(ms){ setTimeout(installRenderOverrides, ms); });
+window.addEventListener('load', function(){ installRenderOverridesWhenReady(); }, { once:true });
+[80,250,700,1300].forEach(function(ms){ setTimeout(installRenderOverridesWhenReady, ms); });
 
 // ============================================================
 // DUAL-MODE CONTAINER KAYDI (bkz. DI-MIGRATION.md)

@@ -1,11 +1,24 @@
 import { _pushHashState } from '@core/init.js';
-import { renderPage } from '@core/render-core.js';
 import { inject } from '@core/container.js';
 const _gdrive = inject('services.gdrive');
 const _format = inject('core.format');
 const _coreState = inject('core.state');
 const _doviz = inject('domain.doviz');
 const _wrapRegistry = inject('core.wrapRegistry');
+// [BUG FIX] render-core.js importu BİLİNÇLİ OLARAK yukarıdaki const
+// atamalarından SONRAYA taşındı. Sebep: render-core.js -> 03-kart-detay-ortak.js
+// -> state.js döngüsü, state.js'in loadData() (top-level, senkron) çağrısını
+// tetikliyor; bu da defaultKartAltyapilari() üzerinden bu dosyanın (kendi
+// modülü içindeki) _format sabitini kullanmaya çalışıyor. import ifadeleri
+// dosyada nerede yazılırsa yazılsın motor onları YAZILIŞ SIRASINA göre
+// evaluate eder (hoisting sadece binding görünürlüğünü etkiler, yan etki
+// sırasını değil) — bu yüzden render-core.js importu satır 2'deyken, henüz
+// _format (eski satır 5) tanımlanmadan state.js'in loadData() zinciri
+// _format'a erişip "Cannot access '_format' before initialization" TDZ
+// hatası veriyordu. Artık _format vb. tüm inject() sabitleri tanımlandıktan
+// SONRA render-core.js import ediliyor; aynı döngü yine oluşur ama bu kez
+// _format zaten hazır olduğu için sorun çıkmaz.
+import { renderPage } from '@core/render-core.js';
 import { openModal } from '@components/modal-genel.js';
 import { refreshDateOverlays } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
 import { renderKisilerGrid } from '@components/kisiler.js';
