@@ -42,7 +42,7 @@ import { _updateEldenTutarHint, onEldenHesapChange, onEldenKarsiIbanInput, onEld
 import { onHesapOtoGunlukToggleChange, onHesapTurChange } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
 import { filterHesapLog } from '@pages/hesaplar/06-hesap-log.js';
 import { onIslemAciklamaModalInput } from '@pages/islemler/01-aciklama-onerileri.js';
-import { onIslemKartChange, onIslemProvizyonManuelDegisti, onIslemTaksitChange } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { onIslemKartChange, onIslemTaksitChange } from '@pages/islemler/02-islem-form-degisiklikleri.js';
 import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
 import { renderIslemKategoriChips } from '@pages/islemler/06-islem-kategori-secici.js';
 import { kdIslemAramaDegisti, kdIslemSiralamaDegisti } from '@pages/kartlar/04-kart-detay-v1.js';
@@ -108,7 +108,6 @@ window.onHesapTurChange = onHesapTurChange;
 window.onIbanInput = onIbanInput;
 window.onIslemAciklamaModalInput = onIslemAciklamaModalInput;
 window.onIslemKartChange = onIslemKartChange;
-window.onIslemProvizyonManuelDegisti = onIslemProvizyonManuelDegisti;
 window.onKartOdemeHesapChange = onKartOdemeHesapChange;
 window.onKartOrtakGrupChange = onKartOrtakGrupChange;
 window.onKiraGunChange = onKiraGunChange;

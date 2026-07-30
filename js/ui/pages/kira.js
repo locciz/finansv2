@@ -12,6 +12,7 @@ import { _markFieldError, checkManuelKarsiTarafAndSave, phSet, phUpdate, showCon
 import { bindMoneyInputs, getMoneyInput, setDateInputValue, setMoneyInput, updateModalMoneyWraps } from '@components/money-input.js';
 import { swizBakiyeHintGuncelle, swizOzetSatirHtmlKisa, swizUpdateStepIndicator } from '@components/step-wizard.js';
 import { bindTblFiltreChips, tblFiltreChipsHtml, tblFiltreChipsMultiHtml, tblFiltreClearHtml, tblFiltreClearMultiHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
+import { applyChipsToContainer, wireAllMoneyCurButtons } from '@components/select-to-chips.js';
 import { getAktifHesapOptionsByPb } from '@pages/hesaplar/01-genel-yardimcilar.js';
 import { openKontratPlan } from '@components/kontrat-plani.js';
 import { odEfektifDurum, odGetDurum, odKiraMaasOverride, odPlanlananTutar, odToggleBtn } from '@pages/odeme/01-genel-yardimcilar.js';
@@ -177,6 +178,13 @@ export function openKiraModal(id=null) {
   }
   bindMoneyInputs(document.getElementById('modal-kira'));
   openModal('modal-kira');
+  // NOT: openModal() kendi başına popup dönüşümünü (applyChipsToContainer) ve
+  // para birimi rozeti butonunu (wireAllMoneyCurButtons) tetiklemeyebiliyor —
+  // openModal patch'inin 'core.wrapRegistry' register zamanlamasına bağlı
+  // (bkz. elden.js'deki aynı fix). Burada da manuel tetikliyoruz, aksi hâlde
+  // kira-para-birimi-manual rozeti tıklanınca popup hiç açılmıyordu.
+  const _kiraModalEl = document.getElementById('modal-kira');
+  if (_kiraModalEl) setTimeout(() => { applyChipsToContainer(_kiraModalEl); wireAllMoneyCurButtons(); }, 80);
 }
 
 export function kiraStepGoto(step) {

@@ -1171,3 +1171,75 @@ container'a taşımak) BAĞIMSIZ bir temizlik — ayrı bir tur olarak ele
 alınmalı, DI-MIGRATION sayaçlarını (14/78) etkilemez.
 
 
+## Tur 19'da tamamlanan — canlı hata: eksik onIslemTarihiChange + statik-input-bridge.js başlatıldı
+Kullanıcı ekranında canlı hata: `Uncaught ReferenceError: onIslemTarihiChange
+is not defined`, `05-tarih-input-overlay.js:360`'daki `dispatchEvent(new
+Event('change'))` üzerinden geliyordu. Kök neden Tur 17'dekiyle AYNI kategori
+(eksik `window.X` ataması) ama Tur 18'de kurulan kural gereği bu sefer
+`window`'a EKLEMEDİK — DOĞRU (ES-module-native) çözüm uygulandı.
+
+**Kritik ayrım netleştirildi:** `index.html:2446`'daki
+`onchange="calcTaksit(false);onIslemTarihiChange()"` — bu STATİK bir
+kullanım (Tur 18'in notundaki "kalan ~75 fonksiyon, 131 kullanım" grubundan),
+DİNAMİK değil. Ayrıca birden fazla ifade içeriyor (`;` ile ayrılmış 2 fonksiyon
+çağrısı) — bu, Tur 18'in `data-oc-handler` (tek fonksiyon çağıran) delegasyon
+mekanizmasına UYMUYOR. Bu yüzden yeni, ayrı bir mekanizma gerekti.
+
+**Yapılan değişiklik — yeni dosya `js/core/static-input-bridge.js`:**
+`onclick-bootstrap.js`'nin `onclick` için kullandığı deseni (`DOMContentLoaded`
++ `getElementById` + `addEventListener`) `change`/`input` olaylarına
+uygulayan, `window` KULLANMAYAN bir bridge dosyası oluşturuldu. Bu, Tur
+18'deki `global-input-bridge.js` (dinamik, event-delegation) ile
+`onclick-bootstrap.js` (statik, id-bazlı click) arasındaki BOŞLUĞU dolduruyor
+— statik onchange/oninput için id-bazlı doğrudan bağlama (delegation'a
+gerek yok, elementler zaten DOM'da sabit).
+
+- `index.html`'de `id="islem-tarih"` ve `id="islem-provizyon-tarihi"`
+  elementlerinin inline `onchange="..."` attribute'ları KALDIRILDI (id'ler
+  korundu).
+- `static-input-bridge.js`, bu iki elementi `getElementById` ile bulup
+  `addEventListener('change', ...)` ile bağlıyor; içeride sırasıyla
+  `calcTaksit(false)` + `onIslemTarihiChange()` ve `onIslemProvizyonManuelDegisti()`
+  + `calcTaksit(true)` çağrılıyor — davranış birebir korundu, sadece bağlama
+  yöntemi değişti.
+- `calcTaksit` `inject('domain.hesaplamalar')` üzerinden (zaten container'da,
+  Tur 3/4), `onIslemProvizyonManuelDegisti`/`onIslemTarihiChange` normal ES
+  `import` ile alındı (dairesellik yok, doğrulandı).
+- `global-input-bridge.js`'den artık gereksiz hale gelen
+  `onIslemProvizyonManuelDegisti` importu ve `window.onIslemProvizyonManuelDegisti`
+  ataması KALDIRILDI (bu fonksiyon `index.html`'de artık BAŞKA hiçbir statik
+  yerde kullanılmıyordu, doğrulandı). `window.onIslemKartChange` ve
+  `window.calcTaksit` DOKUNULMADI çünkü hâlâ başka statik satırlarda
+  (`islem-kart` select'i, `islem-tutar`/`islem-taksit` input'ları)
+  kullanılıyorlar.
+
+**Doğrulama:** Dairesellik kontrolü (`02-islem-form-degisiklikleri.js`'nin
+`static-input-bridge.js`'yi geri import etmediği); `vm.SourceTextModule` ile
+proje geneli syntax kontrolü (0 hata); `index.html`'deki 2 satırın
+gerçekten `onchange`'siz kaldığı `grep` ile doğrulandı; `applyToAll()`'ın
+`dispatchEvent(new Event('change'))` mekanizmasının hem eski inline
+attribute hem yeni `addEventListener` ile eşit çalıştığı (DOM standart
+event mekanizması, ikisini ayırt etmez) teyit edildi.
+
+Cache-bust: `?v=37` → `?v=38` (154→154 sayımıyla doğrulandı — yeni eklenen
+`static-input-bridge.js` script tag'i dahil 154 toplam referans).
+
+**Gerçek sayı:** `grep -c "^window\." js/core/global-input-bridge.js` →
+80 (Tur 18 sonunda 82'ydi, bu turda 2 tanesi daha — `onIslemProvizyonManuelDegisti`
+kaldırıldı, `onIslemTarihiChange` zaten hiç window'a girmedi).
+
+**Sıradaki tur için not — statik `window.X` temizliğinin gerçek kapsamı
+netleşti:** Tur 18'in notundaki "81 fonksiyon, 131 kullanım" tahmini kabaca
+doğruydu, ama bu turda görüldüğü gibi bunların bir kısmı (en az 7 satır,
+yukarıda `grep -oE` ile bulundu) BİRDEN FAZLA `;`-ayrılmış ifade içeriyor —
+bunlar `data-oc-handler` (Tur 18) yerine `static-input-bridge.js` (Tur 19)
+deseniyle taşınmalı. Basit tek-fonksiyonlu statik satırlar ise
+`onclick-bootstrap.js`'nin otomatik-üretim yaklaşımıyla toplu taşınabilir.
+Öncelik: önce çok-ifadeli 7 satırı (`kira-depozito-tutar-wrap` IIFE'si,
+`ab-tutar-wrap` IIFE'si, `calcMevduat` kombinasyonları, `onEldenKarsiIbanInput`
++ `syncEldenManuelIban` vb.) `static-input-bridge.js`'ye taşımak, sonra
+kalan tek-fonksiyonlu ~74 satırı otomatik/toplu şekilde aynı dosyaya
+eklemek. Bu iş DI-MIGRATION'ın ana hedefinden bağımsız, ayrı bir tur.
+
+
+
