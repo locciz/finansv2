@@ -47,12 +47,10 @@ export var FORMAT_CONFIG = {
 export var ALL_CURRENCIES = [];
 
 // ==== Paylaşılan (2+ dosyada kullanılan) modül state'i — burada kalıyor ====
-export var DB = loadData();
-
-// DEFAULT_CURRENCY_CONFIG ve DB tanımlandıktan sonra yükle
-loadCurrencyConfig();
-
-loadFormatConfig();
+// NOT: DB henüz loadData() ile doldurulmadı (aşağıda), ama referansı burada
+// oluşturuluyor ki provide('core.state', ...) çağrısı loadData()'dan ÖNCE
+// yapılabilsin (bkz. aşağıdaki [BUG FIX] notu).
+export var DB = {};
 
 // [ES module] DB/CURRENCY_CONFIG/FORMAT_CONFIG/ALL_CURRENCIES gibi paylaşılan
 // state'ler, orijinal kodda bazı yerlerde TAMAMEN YENİ bir obje/array ile
@@ -98,6 +96,16 @@ export function setFORMAT_CONFIG(v) { FORMAT_CONFIG = v; }
 // register etmek yeterli, sonradan tekrar provide etmeye gerek yok.
 // defaultCurrency ise primitive olduğundan container'a "getter" fonksiyonu
 // olarak konur; her resolve() çağrısında güncel değeri okur.
+//
+// [BUG FIX] Bu provide() çağrısı ÖNCEDEN dosyanın en altındaydı, ama
+// loadData()/loadCurrencyConfig()/loadFormatConfig() (aşağıda) — hatta bu
+// dosyanın kendi üst seviyesinde — 'core.state' namespace'ini resolve etmeye
+// çalışıyordu ve henüz kayıtlı olmadığı için "container: 'core.state'
+// namespace'i kayıtlı değil" hatasıyla çöküyordu. Nesnelerin KİMLİĞİ burada
+// sabitlendiği (içerikleri henüz boş/varsayılan olsa da) için provide()
+// çağrısını olabildiğince ERKEN yapmak güvenli — aşağıdaki loadData() vb.
+// çağrılar içerikleri sonradan `replaceObjectContents` ile dolduruyor ve dış
+// dosyalardaki referanslar aynı objeye bakmaya devam ediyor.
 // ============================================================
 provide('core.state', {
   BANKA_SUBELER,
@@ -110,3 +118,13 @@ provide('core.state', {
   setDefaultCurrency,
   setFORMAT_CONFIG,
 });
+
+// ==== DB'yi asıl veriyle doldur (Drive/localStorage'dan yükle) ====
+// NOT: DB nesnesinin KİMLİĞİ yukarıda zaten provide edildi; burada sadece
+// İÇERİĞİNİ dolduruyoruz ki container'daki referans güncel kalsın.
+replaceObjectContents(DB, loadData());
+
+// DEFAULT_CURRENCY_CONFIG ve DB doldurulduktan sonra yükle
+loadCurrencyConfig();
+
+loadFormatConfig();
