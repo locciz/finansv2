@@ -3,7 +3,7 @@ import { renderHesaplar } from '@pages/hesaplar/04-hesap-liste-render.js';
 import { attachAllIbanValidations } from '@components/iban-ui.js';
 import { applyToAll } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
 import { bindKartlarToolbarEvents, kartlarFiltreOku, kartlarToolbarHtml } from '@pages/kartlar/09-kart-altyapi.js';
-import { inject, provide, resolve, whenReady as whenReadyFn } from '@core/container.js';
+import { has, inject, provide, resolve, whenReady as whenReadyFn } from '@core/container.js';
 // DUAL-MODE CONTAINER KAYDI: aşağıdaki dört bağımlılık zaten container'a
 // taşınmış katmanlara ait (core.appCoreBase, core.state,
 // domain.hesapEntegrasyonMotoru, core.wrapRegistry), bu yüzden doğrudan
@@ -412,12 +412,22 @@ let _tblFiltrePersistenceInstalled = false; // sadece yazılıyor; başka dosya 
     // veriyordu. `inject('core.appCoreBase')`'in döndürdüğü proxy'ye YAZMAK
     // da güvenli değil (Proxy'nin varsayılan set tuzağı, gerçek nesne yerine
     // boş bir hedef objeye yazar) — bu yüzden gerçek nesneyi `resolve()` ile
-    // alıp ONA yazıyoruz.
-    const realAppCoreBase = resolve('core.appCoreBase');
-    if(typeof realAppCoreBase.saveData === 'function' && !onceFlag(realAppCoreBase.saveData, '_dbShapeFix')){
-      const oldSave = realAppCoreBase.saveData;
-      realAppCoreBase.saveData = mark(function(){ normalizeDb(_coreState.DB); return oldSave.apply(this, arguments); }, '_dbShapeFix');
-    }
+    // alıp ONA yazıyoruz. AMA: bootWhenReady() yalnızca 'core.state'
+    // kayıtlı olmasını bekliyor, 'core.appCoreBase' değil — yani boot()
+    // (ve onun çağırdığı patchFactories()) app-core-base.js kendi provide()
+    // satırına ulaşmadan çalışabiliyor ve resolve() burada "namespace kayıtlı
+    // değil" hatasıyla çöküyordu. Hazır değilse whenReady ile ERTELİYORUZ ki
+    // yama sessizce kaybolmasın — app-core-base.js kayıt olur olmaz aynı yama
+    // (bir kereye mahsus, onceFlag korumalı) uygulanır.
+    const applySaveDataPatch = function(){
+      const realAppCoreBase = resolve('core.appCoreBase');
+      if(typeof realAppCoreBase.saveData === 'function' && !onceFlag(realAppCoreBase.saveData, '_dbShapeFix')){
+        const oldSave = realAppCoreBase.saveData;
+        realAppCoreBase.saveData = mark(function(){ normalizeDb(_coreState.DB); return oldSave.apply(this, arguments); }, '_dbShapeFix');
+      }
+    };
+    if (has('core.appCoreBase')) applySaveDataPatch();
+    else whenReadyFn('core.appCoreBase', applySaveDataPatch);
   }
 
   function tblFiltreKaydet(sayfa, boyut, deger){ return prefSet(sayfa, boyut, deger); }
