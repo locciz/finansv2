@@ -139,12 +139,10 @@ export function _taksitPlaniRowsRender(tip, container, rowsEl, taksitData, aylik
     return `<div class="tp-row${isPast ? ' tp-past' : ''}">
       <div class="tp-no">${i+1}</div>
       <input type="date" class="tp-input" value="${t.tarih}" data-date-compact="1"
-        data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tarih"
-        onchange="onTaksitChange(this, '${tip}', ${i}, 'tarih')">
+        data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tarih" data-oc-handler="onTaksitChange" data-oc-event="change">
       <div class="tp-donem" data-taksit-idx="${i}" data-taksit-tip="${tip}">${t.tarih ? (()=>{ const d=new Date(t.tarih+'T00:00:00'); return d.toLocaleDateString('tr-TR',{month:'short',year:'numeric'}); })() : '—'}</div>
       <input type="text" inputmode="decimal" id="${tip}-tak-tutar-${i}" class="tp-input tp-input-tutar money-input${isModified ? ' tp-modified' : ''}" value="${tutarDisplay}" data-decimals="2"
-        data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tutar"
-        oninput="onTaksitChange(this, '${tip}', ${i}, 'tutar')" data-orig="${aylikStr}">
+        data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tutar" data-oc-handler="onTaksitChange" data-oc-event="input" data-orig="${aylikStr}">
       <button class="tp-del tp-reset-btn" title="Bu taksiti standarda sıfırla" data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-tarih="${t.tarih}" data-orig="${aylikStr}">↺</button>
     </div>`;
   }).join('');

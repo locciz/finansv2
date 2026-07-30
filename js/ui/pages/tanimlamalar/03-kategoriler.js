@@ -1,9 +1,27 @@
 import { saveData } from '@core/app-core-base.js';
 import { uid } from '@core/format.js';
-import { DB } from '@core/state.js';
+import { inject } from '@core/container.js';
+// [DI-MIGRATION] core.state zaten container'da kayıtlı. Bu dosyada
+// DB.kategoriler.push(...) / DB.kategoriler = ... gibi doğrudan MUTASYONLAR
+// var, bu yüzden container'daki gerçek nesneyle aynı kimlikte kalmak kritik
+// (bkz. Tur 3'teki "kritik doğrulama" notu). `const _coreState = inject(...)`
+// YERİNE fonksiyon-getter kullanılıyor: bu dosya elden.js ve
+// islemler/06-islem-kategori-secici.js ile DAİRESEL olduğu için (aşağıdaki
+// nota bakın), top-level const/var TDZ/circular-reentry riskine açık olurdu
+// (bkz. DI-MIGRATION.md'deki geçmiş format.js/state.js hataları). Function
+// declaration hoisted olduğu için döngüsel yeniden-girişte bile güvenli.
+function getCoreState() { return inject('core.state'); }
 import { phSet, showConfirm, showToast } from '@components/modal-genel.js';
 import { _restoreKatFiltreFromDB } from '@components/tablo-filtre-sirala.js';
 import { _katFilter, set_katFilter } from '@pages/ekstreler/02-ekstre-render.js';
+// [NOT] elden.js VE islemler/06-islem-kategori-secici.js, BU dosyayı da
+// geri import ediyor (dairesel: elden.js → onEldenTurChange, 06-islem-...js
+// → renderIslemKategoriChips). Bu importların KENDİSİ sorun değil — ES
+// module "live binding" TDZ'ye tabi değildir, isim modül evaluation'ı
+// bitmeden çağrılsa bile (fonksiyon gövdesi içinde, top-level'da değil)
+// güncel değeri okur. Asıl risk bunları top-level bir const/var'a YENİDEN
+// ATAMAK olurdu (bkz. yukarıdaki core.state notu) — o yüzden burada
+// SARMALAMADAN, doğrudan import edilen isimleriyle kullanılıyorlar.
 import { onEldenTurChange } from '@pages/elden.js';
 import { renderIslemKategoriChips } from '@pages/islemler/06-islem-kategori-secici.js';
 import { KAT_ONERILER, KAT_TUR_STIL, editKategoriId, setEditKategoriId } from '@pages/tanimlamalar/00-state.js';
@@ -28,7 +46,7 @@ export function seçKategoriChip(id) {
 export function renderKategoriOzetStrip() {
   const strip = document.getElementById('kategori-ozet-strip');
   if(!strip) return;
-  const tum = DB.kategoriler||[];
+  const tum = getCoreState().DB.kategoriler||[];
   const gider = tum.filter(k=>k.tur==='gider').length;
   const gelir = tum.filter(k=>k.tur==='gelir').length;
   const diger = tum.length - gider - gelir;
@@ -47,7 +65,7 @@ export function renderKategoriOzetStrip() {
 export function renderKategoriGrid() {
   _restoreKatFiltreFromDB();
   renderKategoriOzetStrip();
-  const cats = (DB.kategoriler||[]).filter(k => !_katFilter || k.tur === _katFilter);
+  const cats = (getCoreState().DB.kategoriler||[]).filter(k => !_katFilter || k.tur === _katFilter);
   const grid = document.getElementById('kategori-grid');
   if(!grid) return;
 
@@ -99,9 +117,9 @@ export function renderKategoriGrid() {
 
 export function filterKategoriTur(tur, btnEl) {
   set_katFilter(tur);
-  if(!DB.uiFiltreler) DB.uiFiltreler = {};
-  if(!DB.uiFiltreler.kategoriler) DB.uiFiltreler.kategoriler = {};
-  if(DB.uiFiltreler.kategoriler.tur !== tur) { DB.uiFiltreler.kategoriler.tur = tur; saveData(); }
+  if(!getCoreState().DB.uiFiltreler) getCoreState().DB.uiFiltreler = {};
+  if(!getCoreState().DB.uiFiltreler.kategoriler) getCoreState().DB.uiFiltreler.kategoriler = {};
+  if(getCoreState().DB.uiFiltreler.kategoriler.tur !== tur) { getCoreState().DB.uiFiltreler.kategoriler.tur = tur; saveData(); }
   renderKategoriGrid();
 }
 
@@ -109,7 +127,7 @@ export function editKategori(id) { openKategoriModal(id); }
 
 export function deleteKategori(id) {
   showConfirm('Bu kategoriyi silmek istiyor musunuz?', () => {
-    DB.kategoriler = (DB.kategoriler||[]).filter(k=>k.id!==id);
+    getCoreState().DB.kategoriler = (getCoreState().DB.kategoriler||[]).filter(k=>k.id!==id);
     saveData();
     renderKategoriGrid();
     populateKategoriSelects();
@@ -123,14 +141,14 @@ export function katOneriSelectAll(val) {
 export function katOneriEkleSecili() {
   const checks = document.querySelectorAll('.kat-oneri-check:checked');
   if (!checks.length) { showToast('Lütfen en az bir kategori seçin', 'error'); return; }
-  if (!DB.kategoriler) DB.kategoriler = [];
+  if (!getCoreState().DB.kategoriler) getCoreState().DB.kategoriler = [];
   let eklenen = 0;
   checks.forEach(cb => {
     const o = KAT_ONERILER[+cb.dataset.idx];
     if (!o) return;
-    const mevcut = new Set(DB.kategoriler.map(_katKey));
+    const mevcut = new Set(getCoreState().DB.kategoriler.map(_katKey));
     if (mevcut.has(_katKey(o))) return;
-    DB.kategoriler.push({ id: uid(), ad: o.ad, ikon: o.ikon, tur: o.tur });
+    getCoreState().DB.kategoriler.push({ id: uid(), ad: o.ad, ikon: o.ikon, tur: o.tur });
     eklenen++;
   });
   saveData();
@@ -143,7 +161,7 @@ export function katOneriEkleSecili() {
 export function getKategoriOpts(tur, sadeceAbonelik) {
   // tur: 'gider' | 'gelir' | '' (hepsi)
   // sadeceAbonelik: true ise sadece aboneligeUygun !== false olan kategoriler listelenir
-  let cats = (DB.kategoriler||[]).filter(k => !tur || k.tur === tur || k.tur === 'diger');
+  let cats = (getCoreState().DB.kategoriler||[]).filter(k => !tur || k.tur === tur || k.tur === 'diger');
   if (sadeceAbonelik) cats = cats.filter(k => k.aboneligeUygun !== false);
   return cats.map(k => `<option value="${k.id}">${k.ikon||''} ${k.ad}</option>`).join('');
 }
@@ -152,7 +170,7 @@ export function getKategoriOptsAbonelik(seciliId) {
   // Abonelik formunda kullanılacak gider kategorileri: aboneligeUygun !== false olanlar.
   // Eğer düzenlenen kaydın mevcut kategorisi artık abonelik-dışı işaretlenmişse, listeden
   // kaybolmasın diye yine de eklenir (kapatılmasın diye).
-  const cats = (DB.kategoriler||[]).filter(k => k.tur === 'gider' || k.tur === 'diger');
+  const cats = (getCoreState().DB.kategoriler||[]).filter(k => k.tur === 'gider' || k.tur === 'diger');
   const uygun = cats.filter(k => k.aboneligeUygun !== false);
   let list = uygun;
   if (seciliId && !uygun.some(k => k.id === seciliId)) {
@@ -179,7 +197,7 @@ export function populateKategoriSelects() {
 export function openKategoriModal(id) {
   setEditKategoriId(id || null);
   if(id) {
-    const k = (DB.kategoriler||[]).find(x=>x.id===id);
+    const k = (getCoreState().DB.kategoriler||[]).find(x=>x.id===id);
     if(!k) return;
     document.getElementById('kategori-modal-title').textContent = 'Kategori Düzenle';
     document.getElementById('kat-ikon').value = k.ikon||'';
@@ -202,12 +220,12 @@ export function saveKategori() {
   const tur  = document.getElementById('kat-tur').value;
   const aboneligeUygun = document.getElementById('kat-abonelik').checked;
   if(!ad) { showToast('Kategori adı zorunlu', 'error'); return; }
-  if(!DB.kategoriler) DB.kategoriler = [];
+  if(!getCoreState().DB.kategoriler) getCoreState().DB.kategoriler = [];
   if(editKategoriId) {
-    const idx = DB.kategoriler.findIndex(k=>k.id===editKategoriId);
-    if(idx>=0) DB.kategoriler[idx] = {...DB.kategoriler[idx], ad, ikon, tur, aboneligeUygun};
+    const idx = getCoreState().DB.kategoriler.findIndex(k=>k.id===editKategoriId);
+    if(idx>=0) getCoreState().DB.kategoriler[idx] = {...getCoreState().DB.kategoriler[idx], ad, ikon, tur, aboneligeUygun};
   } else {
-    DB.kategoriler.push({id: uid(), ad, ikon, tur, aboneligeUygun});
+    getCoreState().DB.kategoriler.push({id: uid(), ad, ikon, tur, aboneligeUygun});
   }
   setEditKategoriId(null);
   saveData();
@@ -220,7 +238,7 @@ export function saveKategori() {
 export function _katKey(k) { return (k.ad||'').trim().toLocaleLowerCase('tr') + '|' + (k.tur||''); }
 
 export function openKategoriOneriModal() {
-  const mevcut = new Set((DB.kategoriler||[]).map(_katKey));
+  const mevcut = new Set((getCoreState().DB.kategoriler||[]).map(_katKey));
   const eksikler = KAT_ONERILER.filter(o => !mevcut.has(_katKey(o)));
   const list = document.getElementById('kategori-oneri-list');
   if (!list) return;
@@ -258,4 +276,26 @@ export function openKategoriOneriModal() {
   }
   openModal('modal-kategori-oneri');
 }
+
+// ============================================================
+// [DI-MIGRATION] ui.pages.tanimlamalarKategoriler — container'a kayıt
+// ------------------------------------------------------------
+// Dual-mode: yukarıdaki importlar KORUNDU (henüz taşınmamış katmanlar:
+// @core/app-core-base.js, @core/format.js, @components/modal-genel.js,
+// @components/tablo-filtre-sirala.js, @pages/ekstreler/02-ekstre-render.js,
+// @pages/elden.js, @pages/islemler/06-islem-kategori-secici.js,
+// @pages/tanimlamalar/00-state.js — BİLİNÇLİ OLARAK inject()'e çevrilmedi).
+// Yalnızca core.state (zaten container'da) fonksiyon-getter üzerinden
+// okunuyor (bkz. yukarıdaki getCoreState() notu — dairesel import riski).
+// Dışarıdaki tüketiciler artık resolve('ui.pages.tanimlamalarKategoriler')
+// veya inject(...) kullanabilir.
+// ============================================================
+import { provide } from '@core/container.js';
+provide('ui.pages.tanimlamalarKategoriler', {
+  seçKategoriChip, renderKategoriOzetStrip, renderKategoriGrid,
+  filterKategoriTur, editKategori, deleteKategori, katOneriSelectAll,
+  katOneriEkleSecili, getKategoriOpts, getKategoriOptsAbonelik,
+  populateKategoriSelects, openKategoriModal, saveKategori, _katKey,
+  openKategoriOneriModal,
+});
 

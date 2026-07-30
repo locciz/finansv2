@@ -11,11 +11,15 @@ const _bankaVerisi = inject('domain.bankaVerisi');
 const _ibanUtils = inject('domain.ibanUtils');
 const _ibanUi = inject('ui.components.ibanUi');
 const _modalGenel = inject('ui.components.modalGenel');
+// [DI-MIGRATION] ui.pages.tanimlamalarKategoriler (Tur 15'te taşındı). Bu
+// dosya ile 03-kategoriler.js arasında dairesellik YOK — top-level const
+// güvenli.
+const _tanimlamalarKategoriler = inject('ui.pages.tanimlamalarKategoriler');
+const populateKategoriSelects = (...a) => _tanimlamalarKategoriler.populateKategoriSelects(...a);
 import { populateEldenKisiSelect } from '@pages/elden.js';
 import { populateKiraKisiSelects } from '@pages/kira.js';
 import { populateMaasKisiSelects } from '@pages/maas.js';
 import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
-import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
 // ============================================================
 // js/ui/components/kisiler.js — Kişiler/Karşı Taraflar yönetimi
 // (Kişiler sayfası modalı + formlarda kullanılan Mini Kişi Popup'ı)

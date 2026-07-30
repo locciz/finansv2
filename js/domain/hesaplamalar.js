@@ -548,11 +548,9 @@ export function calcTaksit(preserveManuel=false) {
     return `<div class="tp-row${isPast ? ' tp-past' : ''}">
       <div class="tp-no">${i+1}</div>
       <input type="date" class="tp-input" value="${t.tarih}" data-date-compact="1"
-        data-islem-taksit-field="tarih" data-islem-taksit-idx="${i}"
-        onchange="onIslemTaksitChange(this, ${i}, 'tarih')">
+        data-islem-taksit-field="tarih" data-islem-taksit-idx="${i}" data-oc-handler="onIslemTaksitChange" data-oc-event="change">
       <input type="text" inputmode="decimal" id="islem-tak-tutar-${i}" class="tp-input tp-input-tutar money-input${isModified ? ' tp-modified' : ''}" value="${tutarDisplay}" data-decimals="2"
-        data-islem-taksit-field="tutar" data-islem-taksit-idx="${i}"
-        oninput="onIslemTaksitChange(this, ${i}, 'tutar')" data-orig="${aylikStr}">
+        data-islem-taksit-field="tutar" data-islem-taksit-idx="${i}" data-oc-handler="onIslemTaksitChange" data-oc-event="input" data-orig="${aylikStr}">
       <button class="tp-del tp-reset-tek-btn" title="Sıfırla" data-idx="${i}" data-tarih="${calcIslemTakTarih(ilkTarih, i)}" data-aylik="${aylikStr}">↺</button>
     </div>`;
   }).join('');

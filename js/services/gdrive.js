@@ -131,7 +131,7 @@ export async function gDriveOnizleRevizyon(revisionId) {
       ${doluAlanlar.length ? `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap">
           <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700">Veri Önizlemesi</span>
-          <select id="vy-rev-onizleme-secim" onchange="vyRevSecAlan(this.value)" style="font-size:12px;padding:4px 8px;max-width:220px">
+          <select id="vy-rev-onizleme-secim" data-oc-handler="vyRevSecAlan" data-oc-event="change" style="font-size:12px;padding:4px 8px;max-width:220px">
             ${doluAlanlar.map(f=>`<option value="${f.k}">${f.ikon||''} ${f.ad} (${f.count})</option>`).join('')}
           </select>
         </div>

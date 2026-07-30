@@ -434,7 +434,7 @@ export function setDateInputValue(elOrId, value) {
           </label>
           <div id="od-gecikme-oran-wrap" style="display:none;margin:-2px 0 6px">
             <label class="od-field-lbl">Bu Taksit İçin Gecikme Faiz Oranı (% Aylık)</label>
-            <input class="od-field-inp" id="od-gecikme-oran" type="number" step="0.01" min="0" placeholder="Tanımlamalar'daki genel oran kullanılır" oninput="_odModalKrediAlanlariAyarla('gecikti')">
+            <input class="od-field-inp" id="od-gecikme-oran" type="number" step="0.01" min="0" placeholder="Tanımlamalar'daki genel oran kullanılır" data-oc-handler="_odModalKrediAlanlariAyarla" data-oc-arg="gecikti" data-oc-event="input">
           </div>
           <div>
             <label class="od-field-lbl">Not</label>

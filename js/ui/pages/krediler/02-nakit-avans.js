@@ -240,7 +240,7 @@ export function calcNakitAvans() {
     ${rows.map((r,i)=>`<div class="tp-row${r.tarih<todayStr?' tp-past':''}">
       <div class="tp-no">${i+1}</div>
       <input type="date" class="tp-input" value="${r.tarih}" data-na-taksit-field="tarih" data-na-idx="${i}">
-      <input type="number" step="0.01" class="tp-input tp-input-tutar" value="${r.tutar}" data-na-taksit-field="tutar" data-na-idx="${i}" oninput="onNaTaksitChange(this)">
+      <input type="number" step="0.01" class="tp-input tp-input-tutar" value="${r.tutar}" data-na-taksit-field="tutar" data-na-idx="${i}" data-oc-handler="onNaTaksitChange" data-oc-event="input">
       <button class="tp-del na-reset-tek-btn" title="Sıfırla" data-idx="${i}" data-tarih="${rows[i].tarih}" data-tutar="${rows[i].tutar}">↺</button>
     </div>`).join('')}
     <div class="tp-footer">
@@ -466,7 +466,7 @@ export function renderNakitAvansTavanlar() {
       </div>
       <div class="money-wrap" data-symbol="${sym}" data-code="" data-own-currency="1">
         <input id="na-tavan-${code}" type="text" class="money-input na-tavan-input" data-decimals="2" placeholder="Sınırsız"
-          data-cur="${code}" oninput="autoSaveNakitAvansTavan(this)">
+          data-cur="${code}" data-oc-handler="autoSaveNakitAvansTavan" data-oc-event="input">
       </div>
     </div>`;
   }).join('');

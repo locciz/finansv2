@@ -10,7 +10,6 @@ import { openIslemFiltreModal } from '@pages/islemler/04-islem-filtre.js';
 import { getKart } from '@pages/kartlar/01-kart-data.js';
 import { acKartDetaySayfa, openKartDetayModal } from '@pages/kartlar/03-kart-detay-ortak.js';
 import { _kd2KartId } from '@pages/kartlar/09-kart-altyapi.js';
-import { openKategoriOneriModal, populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
 import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
 import { loadCurrencyConfig, updateParaBirimiPreview } from '@pages/tanimlamalar/06-para-birimi.js';
 import { renderOzet } from '@pages/ozet.js';
@@ -31,6 +30,13 @@ const localDateStr = (...a) => _coreFormat.localDateStr(...a);
 
 const _domainDoviz = inject('domain.doviz');
 const populateCurrencySelects = (...a) => _domainDoviz.populateCurrencySelects(...a);
+
+// [DI-MIGRATION] ui.pages.tanimlamalarKategoriler (Tur 15'te taşındı). Bu
+// dosya (init.js) ile 03-kategoriler.js DAİRESEL DEĞİL — top-level const
+// güvenli.
+const _tanimlamalarKategoriler = inject('ui.pages.tanimlamalarKategoriler');
+const openKategoriOneriModal = (...a) => _tanimlamalarKategoriler.openKategoriOneriModal(...a);
+const populateKategoriSelects = (...a) => _tanimlamalarKategoriler.populateKategoriSelects(...a);
 
 const _wrapRegistry = inject('core.wrapRegistry');
 const register = (...a) => _wrapRegistry.register(...a);

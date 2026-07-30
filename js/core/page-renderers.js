@@ -23,7 +23,6 @@ import { renderAbonelik } from '@pages/abonelik.js';
 
 // stableRenderAll içinde ayrıca isimle çağrılan "hazırlık" fonksiyonları
 import { loadCurrencyConfig } from '@pages/tanimlamalar/06-para-birimi.js';
-import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
 import { populateEldenHesapSelect, populateEldenKisiSelect } from '@pages/elden.js';
 import { renderHesapTurFiltreler } from '@pages/hesaplar/04-hesap-liste-render.js';
 import { provide, inject } from '@core/container.js';
@@ -34,6 +33,11 @@ const _domainDoviz = inject('domain.doviz');
 const _appCoreBase = inject('core.appCoreBase');
 const populateCurrencySelects = (...args) => _domainDoviz.populateCurrencySelects(...args);
 const updateSidebarKartNav = (...args) => _appCoreBase.updateSidebarKartNav(...args);
+// [DI-MIGRATION] ui.pages.tanimlamalarKategoriler (Tur 15'te taşındı). Bu
+// dosya ile 03-kategoriler.js arasında dairesellik YOK — top-level const
+// güvenli.
+const _tanimlamalarKategoriler = inject('ui.pages.tanimlamalarKategoriler');
+const populateKategoriSelects = (...args) => _tanimlamalarKategoriler.populateKategoriSelects(...args);
 
 export const pageRenderers = {
   renderOzet, renderKartlar, renderIslemler, renderExtreler, renderMevduat,

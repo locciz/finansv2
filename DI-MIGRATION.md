@@ -831,7 +831,107 @@ günlük vadeli otomatik yenileme davranışı ve hesap türü renk/optgroup
 görünümleri (transfer modalı, hesap formu, özet sayfası) görsel olarak test
 edilmeli.
 
-## Henüz YAPILMADI (bir sonraki turlar)
+## Tur 15'te tamamlanan — dairesel bağımlılıklı bir sayfa dosyası güvenle taşındı (14/78)
+Tur 14'ün önerdiği 2 adaydan (`tanimlamalar/03-kategoriler.js` fan-in 12/4
+kendi import, `kartlar/08-kart-odeme.js` fan-in 11/13 kendi import — yüksek)
+daha yönetilebilir olan **`tanimlamalar/03-kategoriler.js`** seçildi.
+
+**Kritik ön-tarama (yeni: bu tur eklendi):** Taşımadan ÖNCE bu dosyayı
+tüketen 12 dosyanın HER BİRİNİN kendi import listesi tarandı
+(`grep -rl "from '@pages/tanimlamalar/03-kategoriler.js'" js/`, ardından her
+sonucun `grep -n "^import "` çıktısı). **Gerçek dairesellik bulundu:**
+`elden.js` (→ `getKategoriOpts`/`populateKategoriSelects` alıyor, kendisi
+`onEldenTurChange` sağlıyor) ve `islemler/06-islem-kategori-secici.js`
+(→ `seçKategoriChip` alıyor, kendisi `renderIslemKategoriChips` sağlıyor)
+bu dosyayı GERİ import ediyor. Bu iki modül henüz container'a taşınmadığı
+için `inject()` ile çözülemiyorlardı — dual-mode gereği statik import
+KORUNDU, ama üzerlerine top-level `const`/`var` SARILMADI (TDZ/circular-
+reentry riskine karşı; bkz. DI-MIGRATION.md'deki format.js/state.js
+geçmişindeki hatalar). `core.state` (zaten container'da, DB üzerinde
+doğrudan mutasyon var) ise `getCoreState()` fonksiyon-getter'ı (hoisted
+function declaration) ile okunuyor — aynı sebepten top-level const
+kullanılmadı.
+
+- `tanimlamalar/03-kategoriler.js` → `ui.pages.tanimlamalarKategoriler`
+  (dual-mode, kendi importları KORUNDU: `@core/app-core-base.js`,
+  `@core/format.js`, `@components/modal-genel.js`,
+  `@components/tablo-filtre-sirala.js`, `@pages/ekstreler/02-ekstre-render.js`,
+  `@pages/elden.js`, `@pages/islemler/06-islem-kategori-secici.js`,
+  `@pages/tanimlamalar/00-state.js` — hiçbiri henüz container'a taşınmadığı
+  için BİLİNÇLİ OLARAK `inject()`'e çevrilmedi). Yalnızca `core.state`
+  (zaten container'da) `getCoreState()` fonksiyon-getter'ına çevrildi;
+  gövdedeki 24 `DB.` kullanımı `getCoreState().DB.` oldu (mekanik regex
+  replace, sadece import bloğundan SONRASI hedeflendi ki yorum satırları
+  bozulmasın).
+- 15 export edilen fonksiyon (`seçKategoriChip`, `renderKategoriOzetStrip`,
+  `renderKategoriGrid`, `filterKategoriTur`, `editKategori`, `deleteKategori`,
+  `katOneriSelectAll`, `katOneriEkleSecili`, `getKategoriOpts`,
+  `getKategoriOptsAbonelik`, `populateKategoriSelects`, `openKategoriModal`,
+  `saveKategori`, `_katKey`, `openKategoriOneriModal`) tek bir obje içinde
+  `provide('ui.pages.tanimlamalarKategoriler', {...})` edildi.
+- Bu dosyayı tüketen 12 dosya (`core/app-core-base.js`, `core/init.js`,
+  `core/onclick-bootstrap.js`, `core/page-renderers.js`,
+  `ui/components/kisiler.js`, `ui/pages/abonelik.js`,
+  `ui/pages/ekstreler/03-ekstre-eslestirme-pdf-import.js`, `ui/pages/elden.js`,
+  `ui/pages/islemler/06-islem-kategori-secici.js`,
+  `ui/pages/islemler/07-islem-modal-crud.js`,
+  `ui/pages/tanimlamalar/02-ana-sayfa.js`, `ui/pages/veri-yonetimi.js`) —
+  dual-mode gereği BİLİNÇLİ OLARAK dokunulmadı, kendi turlarında `inject()`'e
+  çevrilecekler.
+
+**Kritik doğrulama yapıldı (bu tur genişletildi):**
+- Çift-prefix taraması (`getCoreState().getCoreState()`, `DB.DB` vb.) bu
+  dosyada yapıldı — bulunmadı.
+- **YENİ:** Değiştirilen dosyada kullanılan-ama-tanımsız identifier taraması
+  yapıldı (import listesi + kendi `function` tanımları ile karşılaştırıldı,
+  yorum satırlarından gelen yanlış-pozitifler elle elendi) — eksik import
+  bulunmadı.
+- `node --experimental-vm-modules` + `vm.SourceTextModule` ile TÜM proje
+  (125 dosya, tek tek `fs.readdirSync` ile taranarak) syntax doğrulandı —
+  0 hata.
+- `grep -n "src=\".*03-kategoriler.js" index.html` ile dosyanın script tag'i
+  zaten mevcuttu, doğrulandı (bu dosya yeni oluşturulmadı, sadece düzenlendi).
+
+Cache-bust: `?v=33` → `?v=34` (index.html'deki 153 referansın tamamı
+`sed` ile toplu güncellendi, öncesi/sonrası sayım ile doğrulandı: 153 → 0
+eski, 153 yeni).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\([\"']ui\.pages\." js/ui/pages
+| wc -l` → 14 (Tur 11'deki 8 + Tur 12'deki 3 + Tur 13'teki 1 + Tur 14'teki 1
++ bu turdaki 1).
+
+**Metodolojik not — geçmişteki 4 hata sınıfına karşı ön-tarama artık
+standart:** Bu tur, taşımadan ÖNCE dairesellik taramasını checklist'e resmen
+ekledi (bkz. yukarı: tüketicilerin import listeleri tek tek okundu). Bu,
+önceki turlarda YOKTU ve tam olarak bu eksiklik yüzünden format.js/state.js/
+app-core.js'de üst üste TDZ, circular-reentry ve `inject()` proxy'sine
+sessiz yazma hataları yaşanmıştı (canlıda kullanıcı ekranında patladılar).
+Bundan sonraki HER tur için: bir dosya taşınmadan önce (a) o dosyanın
+tükettiği VE (b) o dosyayı tüketen dosyaların import listeleri karşılıklı
+taranmalı; kesişim varsa (dairesellik), o bağımlılık ASLA top-level
+const/var'a sarılmamalı.
+
+**Sıradaki tur için not:** 78 dosyadan 14'ü tamamlandı, 64 kaldı. Kalan 3
+"yüksek fan-in, çok importlu" hedef: `kartlar/08-kart-odeme.js` (fan-in 11,
+13 kendi import), `hesaplar/04-hesap-liste-render.js` (fan-in 23, 6+ kendi
+import), `islemler/03-islem-liste-render.js` (fan-in 18, 6+ kendi import).
+Bunlardan önce, bu üç dosyanın KENDİ import listelerindeki alt-bağımlılıklar
+(`@domain/*`, `@components/*` — bir kısmı zaten container'da) `inject()`'e
+çevrilerek kapsam küçültülebilir mi diye önce ayrı ayrı incelenmeli
+(`grep -n "^import "` her biri için). Ayrıca artık taşınan 14 dosyanın
+TÜKETİCİLERİNİ (toplamda 12+14+... onlarca dosya) `inject()`'e çevirme turu
+da paralel bir seçenek — DI-MIGRATION.md madde 2'deki büyük temizlik adımı
+için bu, daha küçük/güvenli parçalara bölünebilir (örn. sadece
+`ui.pages.tanimlamalarKategoriler`'i tüketen 12 dosyayı bir turda çevir).
+
+**ÖNEMLİ — bu ortamda yapılamayan doğrulama:** Kategoriler sayfası (grid,
+filtre chip'leri, kategori ekle/düzenle/sil modalı, öneri modalı, abonelik
+kategori select'i) teslimden önce yerelde/GitHub Pages'te uçtan uca test
+edilmeli — özellikle `elden.js` ve `islemler/06-islem-kategori-secici.js`
+ile olan dairesel etkileşim (kategori seçince İşlemler/Elden Ödeme
+formlarının doğru güncellenmesi).
+
+
 1. `js/ui/pages/*` (en büyük hacim, ~1.4M) → container'a taşı. Bu katman
    çok sayıda alt-dizin/dosya içeriyor (odeme/, kartlar/, islemler/,
    hesaplar/, mevduat/, tanimlamalar/, ekstreler/, vb.) — önce bağımlılık
@@ -868,3 +968,206 @@ edilmeli.
 - [ ] `node --check` ile TÜM değişen dosyaları doğrula.
 - [ ] `index.html`'de `?v=N` artır (AGENTS.md kuralı).
 - [ ] Bu dosyada (DI-MIGRATION.md) "tamamlanan" listesini güncelle.
+
+## Tur 16'da tamamlanan — ui.pages.tanimlamalarKategoriler'in tüketicileri kısmen çevrildi (4/12)
+NOT: Bu bölüm önceki oturumda bir str_replace hatası (yanlış eşleşen
+old_str) yüzünden DI-MIGRATION.md'ye YAZILAMAMIŞTI, ama kod değişiklikleri
+(app-core-base.js/init.js/page-renderers.js/kisiler.js) kalıcıydı — bu tur
+kontrol edilip doğrulandıktan sonra kayıt SONRADAN eklendi.
+
+Tur 15'in notundaki iki seçenekten (yeni büyük sayfa taşımak vs. Tur 15'te
+taşınan `ui.pages.tanimlamalarKategoriler` namespace'inin tüketicilerini
+çevirmek) İKİNCİSİ seçildi.
+
+**Ön-tarama:** `03-kategoriler.js`'yi tüketen 12 dosyanın import listesi
+okundu, iki kritere göre ayrıştırıldı: (1) tüketici zaten container'da mı
+(`provide()` var mı) — sadece 4 dosya evet (`app-core-base.js`, `init.js`,
+`page-renderers.js`, `kisiler.js`); (2) bu 4 dosyadan biri `03-kategoriler.js`
+tarafından GERİ import ediliyor mu (dairesellik) — yalnızca `app-core-base.js`
+(saveData/populateKategoriSelects karşılıklı). Kalan 8 tüketici henüz
+kendileri taşınmadığı için dual-mode gereği dokunulmadı.
+
+**Yapılan değişiklikler:**
+- `core/app-core-base.js`: dairesel olduğu için `function getTanimlamalarKategoriler()
+  { return inject(...); }` (fonksiyon-getter, mevcut `getFormat()` vb. ile
+  aynı pattern). Kullanım: `getTanimlamalarKategoriler().populateKategoriSelects()`.
+- `core/init.js`, `core/page-renderers.js`, `ui/components/kisiler.js`:
+  dairesellik yok, `const _tanimlamalarKategoriler = inject(...)` + sarmalayıcı
+  fonksiyon (`(...a) => _tanimlamalarKategoriler.fn(...a)`) — dosyalardaki
+  diğer namespace'lerle aynı stil.
+
+**Doğrulama:** 4 dosyada eski statik import satırının silindiği doğrulandı;
+çift-prefix taraması yapıldı (temiz); `vm.SourceTextModule` ile proje geneli
+syntax kontrolü (0 hata); `saveData`'nın hâlâ doğru export edildiği teyit
+edildi (ilk denemede `init.js`'de `_domainDoviz`/`populateCurrencySelects`
+bloğu yanlışlıkla silinmişti — büyük bir str_replace'in old_str'i niyet
+edilenden fazla satırı kapsamıştı — fark edilip DÜZELTİLDİ).
+
+**Gerçek sayı:** `grep -rl "from '@pages/tanimlamalar/03-kategoriler.js'" js/
+| wc -l` → 8 (12'den 4'ü çevrildi). Taşınan sayfa sayısı (14/78) DEĞİŞMEDİ —
+bu tur yeni sayfa taşımadı, sadece mevcut namespace'in tüketicilerini
+`inject()`'e çevirdi.
+
+## Tur 17'de tamamlanan — global-input-bridge.js'de eksik 6 fonksiyon eklendi (canlı hata düzeltmesi)
+Kullanıcı ekranında canlı hata: `Uncaught ReferenceError: onTaksitChange is
+not defined` — `krediler/01-genel-yardimcilar.js`'de taksit tarih/tutar
+input'larına inline `onchange="onTaksitChange(...)"` / `oninput="onTaksitChange(...)"`
+yazılmış, ama `onTaksitChange` bir ES module export'u olduğu için `window`
+üzerinde görünmüyordu. Projenin bunun için özel bir mekanizması var:
+`js/core/global-input-bridge.js` — inline `onchange`/`oninput` attribute'larında
+çağrılan TÜM fonksiyonları import edip `window.X = X` ile global'e bağlıyor
+(onclick-bootstrap.js'nin `onclick` için yaptığının oninput/onchange
+karşılığı). `onTaksitChange` bu köprü dosyasında eksikti.
+
+**Kapsamlı tarama yapıldı (tek fonksiyonla sınırlı kalınmadı):** Projedeki
+TÜM `onchange="fn("` / `oninput="fn("` kalıpları regex ile çıkarıldı
+(122 ham eşleşme → onclick'ler ayıklanınca 7'ye indi), `global-input-bridge.js`'deki
+mevcut `window.X = ` atamalarıyla karşılaştırıldı. `kartlarAramaDegisti` bir
+yorum satırından gelen sahte-pozitifti (kod artık kullanmıyor), elendi.
+Gerçekten eksik olan 6 fonksiyon bulundu (`onTaksitChange` dahil):
+- `onTaksitChange` ← `@pages/krediler/01-genel-yardimcilar.js`
+- `_odModalKrediAlanlariAyarla` ← `@pages/odeme/06-genel-odeme-modali.js`
+- `autoSaveNakitAvansTavan` ← `@pages/krediler/02-nakit-avans.js`
+- `onIslemTaksitChange` ← `@pages/islemler/02-islem-form-degisiklikleri.js`
+- `onNaTaksitChange` ← `@pages/krediler/02-nakit-avans.js`
+- `vyRevSecAlan` ← `@pages/veri-yonetimi.js`
+
+Hepsi `global-input-bridge.js`'ye eklendi: ya mevcut aynı-dosya import
+satırına (3 tanesi: `islemler/02-islem-form-degisiklikleri.js`,
+`krediler/02-nakit-avans.js` — 2 fonksiyon, `veri-yonetimi.js`) ya da yeni
+satır olarak alfabetik/dizin sırasına uygun yere (`krediler/01-genel-yardimcilar.js`,
+`odeme/06-genel-odeme-modali.js`) eklendi, ardından `window.X = X;`
+atamaları da alfabetik sıraya eklendi.
+
+**Doğrulama:** Her 6 fonksiyon için import+window ataması sayısının TAM 1
+olduğu `grep -c` ile doğrulandı. Bu 5 kaynak dosyanın (`onTaksitChange`'in
+kendi dosyası dahil) `global-input-bridge.js`'yi GERİ import etmediği
+(dairesellik yok) doğrulandı. `vm.SourceTextModule` ile proje geneli syntax
+kontrolü — 0 hata.
+
+Cache-bust: index.html zaten `?v=35`'teydi (önceki oturumdan, Tur 16'nın
+kod değişiklikleriyle birlikte yapılmış ama MD kaydı eksikti) → bu turda
+`?v=36`'ya çıkarıldı, 153→153 sayımıyla doğrulandı.
+
+**Metodolojik not:** Bu tur, DI-MIGRATION ile DOĞRUDAN ilgili olmayan ama
+AYNI KÖKTEN (ES module export'larının window'a otomatik yazılmaması) gelen
+bir hata sınıfını ele aldı. Bundan sonra yeni bir `export function` inline
+`onchange`/`oninput`/`onclick` HTML'inde kullanılacaksa, MUTLAKA ilgili
+köprü dosyasına (`global-input-bridge.js` ya da `onclick-bootstrap.js`)
+eklendiğinden emin olunmalı — aksi halde syntax kontrolü bunu YAKALAMAZ
+(çünkü hata yalnızca tarayıcıda, o input'a etkileşim olduğunda ortaya çıkar).
+
+**Sıradaki tur için not:** DI-MIGRATION'ın ana hedefi hâlâ geçerli (78
+dosyadan 14'ü tamamlandı, 64 kaldı; `ui.pages.tanimlamalarKategoriler`'in
+kalan 8 tüketicisi ya da 3 büyük hedef sayfa). Ayrıca bu tur bulunan
+kapsamlı-tarama yöntemi (`grep -roE 'on(change|input)="[a-zA-Z_]...'` +
+`comm -23` ile bridge dosyasıyla karşılaştırma) ileride tekrar
+çalıştırılabilir — yeni eklenen/değiştirilen sayfa dosyalarında benzer
+eksiklikler oluşmadığından emin olmak için, özellikle DI-MIGRATION
+turlarında bir dosya düzenlenirken YENİ bir inline onchange/oninput
+eklenmişse.
+
+## Tur 18'de tamamlanan — DİNAMİK onchange/oninput'lar window'dan event delegation'a geçirildi (6/6 fonksiyon)
+Kullanıcı geri bildirimi: `window.X = X` deseninin (Tur 17'de eklenen 6
+fonksiyon dahil) ES module mantığına aykırı olduğu, gerçek bir çözüm
+istendiği belirtildi. Bu tur, Tur 17'de `window`'a bağlanan 6 fonksiyonu
+(`onTaksitChange`, `_odModalKrediAlanlariAyarla`, `autoSaveNakitAvansTavan`,
+`onIslemTaksitChange`, `onNaTaksitChange`, `vyRevSecAlan`) TAMAMEN
+`window`'suz hale getirdi.
+
+**Kapsam netleştirmesi (önemli ayrım):** Projede inline `onchange`/`oninput`
+iki tamamen farklı kategoride:
+1. **Dinamik** (JS template string'lerinde, `innerHTML` ile her render'da
+   yeniden üretilen HTML) — 6 fonksiyon, 8 kullanım yeri
+   (`hesaplamalar.js`, `krediler/01-genel-yardimcilar.js`,
+   `krediler/02-nakit-avans.js`, `money-input.js`, `gdrive.js`). BU TUR
+   BUNLARI ÇÖZDÜ.
+2. **Statik** (`index.html`'de sabit, sayfa yüklenirken hep aynı elementte
+   duran) — 81 benzersiz fonksiyon, 131 kullanım yeri. Bu, geriye kalan
+   `window.X = X` satırlarının (yaklaşık 75) NEDENİ — `onclick-bootstrap.js`'nin
+   `onclick` için yaptığı `rf-oc-N` + `DOMContentLoaded` + `getElementById`
+   + `addEventListener` deseninin `onchange`/`oninput` KARŞILIĞI HENÜZ
+   YAZILMADI. BU TUR BUNLARA DOKUNMADI (ayrı, daha büyük bir iş —
+   `index.html`'in kendisinin düzenlenmesini gerektiriyor).
+
+**Neden `window` kullanılıyordu:** Tarayıcı, `onchange="fn(...)"` gibi bir
+HTML attribute'unu native olarak `window.fn` fonksiyonunu arayarak
+çalıştırır. ES module `export function fn()` otomatik olarak `window`'a
+yazılmaz — bu yüzden Tur 17 (ve önceki turlar) bir "köprü" dosyasıyla
+(`global-input-bridge.js`, `onclick-bootstrap.js`) fonksiyonları elle
+`window`'a bağlamıştı. Bu ÇALIŞIR ama ES module'ün kapsam izolasyonu
+felsefesine aykırı ve global namespace kirliliği yaratır.
+
+**Gerçek ES-module-native çözüm — event delegation:** `window`'a hiç
+yazmadan, DOM olaylarını modül scope'unda tutmanın standart yolu, HTML'e
+inline JS string'i gömmek yerine bir `data-*` attribute ile İŞARETLEMEK ve
+tek bir merkezi `document.addEventListener('change'/'input', ...)`
+dinleyicisiyle bu işaretleri okuyup doğru (import edilmiş, modül-scope'lu)
+fonksiyonu çağırmak. `event.target.closest('[data-oc-handler]')` dinamik
+olarak yeniden üretilen elementlerde bile YENİDEN BAĞLAMA gerektirmez
+(document seviyesinde bir kere kurulur).
+
+**Yapılan değişiklikler:**
+- 6 kullanım yerinde `onchange="fn(this, args...)"` / `oninput="fn(this)"`
+  kaldırıldı, yerine üç yeni data-attribute eklendi:
+  - `data-oc-handler="fnAdi"` — hangi fonksiyonun çağrılacağı.
+  - `data-oc-event="change"` veya `"input"` — orijinal event tipi (davranış
+    birebir korunsun diye; örn. tarih input'u sadece `change`'de,
+    tutar input'u sadece `input`'ta tetiklenmeliydi).
+  - `data-oc-arg="gecikti"` — sadece `_odModalKrediAlanlariAyarla` için,
+    sabit string argümanı taşımak amacıyla.
+  - Diğer parametreler (idx/field/tip/cur) ZATEN mevcut data-attribute'lardı
+    (`data-islem-taksit-idx`, `data-taksit-tip`, `data-cur` vb.) — yeniden
+    icat edilmedi, doğrudan `el.dataset.X` ile okunuyor.
+- `global-input-bridge.js`'nin başlık yorumu güncellendi (artık `window`
+  köprüsü değil, delegation mekanizması olduğunu açıklıyor).
+- 6 fonksiyonun `window.X = X` satırı kaldırıldı; yerine dosyanın sonuna
+  bir `HANDLERS` map'i (her fonksiyonun orijinal imzasına uygun küçük bir
+  sarmalayıcı: `el` → doğru argümanları `el.dataset`'ten kurup gerçek
+  fonksiyonu çağırma) ve TEK bir `_dispatchOcEvent` + 2 adet
+  `document.addEventListener('change'|'input', _dispatchOcEvent)` eklendi.
+
+**Kritik doğrulama yapıldı:**
+- Her 6 fonksiyon için `HANDLERS` map key'i ile obje-literal içinde AYNI
+  isimli import edilen fonksiyonun çakışıp çakışmadığı `node -e` ile canlı
+  test edildi — çakışma YOK (obje key'i string, import ismi ayrı scope).
+- `data-*` attribute isimlerinin `.dataset` camelCase karşılıklarının
+  (`data-islem-taksit-idx` → `dataset.islemTaksitIdx` vb.) `HANDLERS`
+  map'indeki kullanımla birebir eşleştiği `node -e` ile simüle edilerek
+  doğrulandı.
+- `data-oc-event` filtresi eklendi ki `change`/`input` her ikisi de
+  dinlenmesine rağmen her handler SADECE orijinal event tipinde tetiklensin
+  (aksi halde `type="date"` input'u hem `change` hem potansiyel `input`
+  event'inde iki kez tetiklenebilirdi — davranış değişikliği riski
+  ortadan kaldırıldı).
+- Bu 6 fonksiyonun tanımlı olduğu 5 kaynak dosyanın (`hesaplamalar.js`,
+  `krediler/01-genel-yardimcilar.js`, `krediler/02-nakit-avans.js`,
+  `odeme/06-genel-odeme-modali.js`, `veri-yonetimi.js`, `money-input.js`,
+  `gdrive.js`) `global-input-bridge.js`'yi GERİ import etmediği (dairesellik
+  yok) tekrar doğrulandı.
+- `vm.SourceTextModule` ile proje geneli syntax kontrolü — 0 hata; ayrıca
+  bu turda değişen 6 dosya ayrı ayrı doğrulandı.
+- Kalan tüm gerçek (yorum olmayan) inline `onchange=`/`oninput=` kullanım
+  yerlerinin (JS dosyalarında) TAMAMEN temizlendiği `grep -rn` ile
+  doğrulandı (geriye sadece 2 yorum satırı + `global-input-bridge.js`'nin
+  kendi açıklama yorumu kaldı).
+
+Cache-bust: `?v=36` → `?v=37` (153→153 sayımıyla doğrulandı).
+
+**Sıradaki tur için not — statik `window.X` temizliği (kalan ~75 fonksiyon,
+131 kullanım):** Bu iş, `index.html`'in KENDİSİNİ düzenlemeyi gerektiriyor
+— her statik `onchange="fn(...)"` / `oninput="fn(...)"` elementine
+`onclick-bootstrap.js`'nin `rf-oc-N` deseniyle aynı mantıkta bir id
+verilip (`rf-oi-N` gibi), `document.addEventListener('DOMContentLoaded', ...)`
+içinde `getElementById` + `addEventListener('change'|'input', ...)` ile
+bağlanması gerekiyor. Bu, Tur 18'deki delegation yaklaşımından FARKLI çünkü
+statik elementler zaten DOM'da hazır — id bazlı doğrudan bağlama yeterli,
+delegation'a gerek yok. Bu iş `onclick-bootstrap.js`'nin `onclick`
+dönüşümüyle NEREDEYSE BİREBİR AYNI, sadece `click` yerine `change`/`input`
+— muhtemelen benzer bir "otomatik üretim" (AST ile inline ifadelerin
+ayrıştırılıp fonksiyon çağrılarına çevrilmesi) yaklaşımı burada da
+uygulanabilir. Bu iş DI-MIGRATION'ın ana hedefinden (sayfa dosyalarını
+container'a taşımak) BAĞIMSIZ bir temizlik — ayrı bir tur olarak ele
+alınmalı, DI-MIGRATION sayaçlarını (14/78) etkilemez.
+
+

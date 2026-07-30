@@ -15,6 +15,11 @@ function getFormat() { return inject('core.format'); }
 function getCoreState() { return inject('core.state'); }
 function getDoviz() { return inject('domain.doviz'); }
 function getWrapRegistry() { return inject('core.wrapRegistry'); }
+// [DI-MIGRATION] ui.pages.tanimlamalarKategoriler (Tur 15'te taşındı). Bu
+// dosya (app-core-base.js) ile 03-kategoriler.js DAİRESEL (03-kategoriler.js
+// da saveData'yı bu dosyadan import ediyor) — bu yüzden diğer getX()'lerle
+// aynı fonksiyon-getter pattern'i kullanılıyor, top-level const/var YOK.
+function getTanimlamalarKategoriler() { return inject('ui.pages.tanimlamalarKategoriler'); }
 import { _pushHashState } from '@core/init.js';
 import { renderPage } from '@core/render-core.js';
 import { openModal } from '@components/modal-genel.js';
@@ -30,7 +35,6 @@ import { renderHesapTurFiltreler } from '@pages/hesaplar/04-hesap-liste-render.j
 import { kartDetayGeriDon } from '@pages/kartlar/03-kart-detay-ortak.js';
 import { renderNakitAvansCurGrid, renderNakitAvansLimitKural, renderNakitAvansTavanlar } from '@pages/krediler/02-nakit-avans.js';
 import { renderOzet } from '@pages/ozet.js';
-import { populateKategoriSelects } from '@pages/tanimlamalar/03-kategoriler.js';
 import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
 import { loadCurrencyConfig, updateParaBirimiPreview } from '@pages/tanimlamalar/06-para-birimi.js';
 import { renderVeriYonetimiOzet, renderYerelYedekDurumu } from '@pages/veri-yonetimi.js';
@@ -329,7 +333,7 @@ export function renderAll() {
   // Tüm populate/select'leri güncelle
   loadCurrencyConfig();
   getDoviz().populateCurrencySelects();
-  populateKategoriSelects();
+  getTanimlamalarKategoriler().populateKategoriSelects();
   populateEldenHesapSelect();
   populateEldenKisiSelect();
   renderHesapTurFiltreler();

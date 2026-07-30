@@ -1,17 +1,27 @@
 // core/global-input-bridge.js
 //
-// index.html içindeki inline oninput="..." / onchange="..." handler'ları
-// (ve wizard-routing.js'nin _wrRestoreModalForm ile formu geri yüklerken
-// tetiklediği sentetik input/change event'leri) burada import edilen
-// fonksiyonları window üzerinden çağırıyor. ES module export'ları
-// otomatik olarak window'a yazılmadığı için, onclick-bootstrap.js'nin
-// onclick için yaptığının bir benzeri burada oninput/onchange için
-// yapılıyor: her fonksiyon import edilip window'a bağlanıyor.
+// [ES-MODULE UYUMLU] Dinamik olarak (innerHTML ile) üretilen HTML
+// şablonlarındaki input/select elemanlarının change/input olaylarını
+// yönetir. Eskiden inline `onchange="fn(this, ...)"` / `oninput="fn(this)"`
+// attribute'ları kullanılıyordu — bunlar `window.fn` global fonksiyonu
+// gerektirir, ama ES module export'ları window'a otomatik yazılmaz. Bu
+// dosya artık `window.X = X` KULLANMIYOR: şablonlar `data-oc-handler="fn"`
+// (ve gerekirse `data-oc-arg="..."`) attribute'u ile işaretleniyor, burada
+// TEK bir `document.addEventListener('change'/'input', ...)` delegasyon
+// dinleyicisi bu attribute'u okuyup gerçek (import edilmiş, modül-scope'lu)
+// fonksiyonu çağırıyor. Element her innerHTML ile yeniden üretildiğinde bile
+// yeniden bağlama GEREKMEZ — delegasyon document seviyesinde tek sefer
+// kuruluyor (bkz. dosyanın sonundaki HANDLERS map'i ve addEventListener
+// blokları).
 //
-// NOT: onclick-bootstrap.js'nin aksine burada addEventListener'a
-// geçilmedi çünkü index.html'deki inline ifadeler çoğunlukla
-// `this.value` / `this.checked` kullanıyor; window köprüsü bunu
-// bozmadan en düşük riskli çözüm.
+// onclick-bootstrap.js'den FARKI: o dosya STATİK (index.html'de sabit)
+// elementleri DOMContentLoaded'da tek tek `getElementById` ile bulup
+// addEventListener bağlıyor — bu, sayfa yüklendiğinde hep aynı elementler
+// için işe yarar. Burada ise elementler taksit/nakit-avans gibi listelerde
+// DİNAMİK üretiliyor (her render'da yeniden yaratılıyor), bu yüzden
+// event delegation (document üzerinde dinleyip event.target'tan yukarı
+// doğru ilgili elementi bulma) kullanılıyor — dinamik DOM için doğru ve
+// standart yöntem, ayrıca window'a hiç dokunmuyor.
 
 import { inject } from '@core/container.js';
 const _kurServisleri = inject('services.kurServisleri');
@@ -32,7 +42,7 @@ import { _updateEldenTutarHint, onEldenHesapChange, onEldenKarsiIbanInput, onEld
 import { onHesapOtoGunlukToggleChange, onHesapTurChange } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
 import { filterHesapLog } from '@pages/hesaplar/06-hesap-log.js';
 import { onIslemAciklamaModalInput } from '@pages/islemler/01-aciklama-onerileri.js';
-import { onIslemKartChange, onIslemProvizyonManuelDegisti } from '@pages/islemler/02-islem-form-degisiklikleri.js';
+import { onIslemKartChange, onIslemProvizyonManuelDegisti, onIslemTaksitChange } from '@pages/islemler/02-islem-form-degisiklikleri.js';
 import { renderIslemler } from '@pages/islemler/03-islem-liste-render.js';
 import { renderIslemKategoriChips } from '@pages/islemler/06-islem-kategori-secici.js';
 import { kdIslemAramaDegisti, kdIslemSiralamaDegisti } from '@pages/kartlar/04-kart-detay-v1.js';
@@ -40,16 +50,18 @@ import { kd2IslemAramaDegisti, kd2IslemSiralamaDegisti } from '@pages/kartlar/05
 import { onKartOrtakGrupChange } from '@pages/kartlar/07-ortak-limit-grubu.js';
 import { _updateKartOdemeTutarHint, onKartOdemeHesapChange } from '@pages/kartlar/08-kart-odeme.js';
 import { _updateKiraDepozitoTutarHint, onKiraGunChange, onKiraHesapFullChange, onKiraKisiChange, onKiraPbManualChange, onKiraYontemChange, syncKiraManuelIban, toggleKiraDepozito } from '@pages/kira.js';
-import { autoSaveNakitAvansLimitKural, calcNakitAvans, onNaKartChange, onNaPbChange, onNaTarihChange } from '@pages/krediler/02-nakit-avans.js';
+import { onTaksitChange } from '@pages/krediler/01-genel-yardimcilar.js';
+import { autoSaveNakitAvansLimitKural, autoSaveNakitAvansTavan, calcNakitAvans, onNaKartChange, onNaPbChange, onNaTarihChange, onNaTaksitChange } from '@pages/krediler/02-nakit-avans.js';
 import { calcKmhKredi, onKmhToggleChange } from '@pages/krediler/03-kmh-kredi.js';
 import { calcKredi } from '@pages/krediler/04-bireysel-kredi.js';
 import { maasTypeChange, onMaasGunChange, onMaasHesapChange, onMaasKisiChange, onMaasPbManualChange, onMaasYontemChange, syncMaasManuelIban } from '@pages/maas.js';
 import { calcMevduat } from '@pages/mevduat/01-mevduat-form-wizard.js';
 import { onMevBaslangicChange, onMevHesapChange, onMevOtoHesapToggle, onMevStratejiChange } from '@pages/mevduat/06-mevduat-hesap-secim-formu.js';
+import { _odModalKrediAlanlariAyarla } from '@pages/odeme/06-genel-odeme-modali.js';
 import { ozetOdSetBugunScroll } from '@pages/ozet.js';
 import { filterSubeList } from '@pages/tanimlamalar/08-subeler.js';
 import { onTbkVadeliYenileToggle, tbkAyDetayFiltreUygula } from '@pages/tbk-detay.js';
-import { importBankalarJSON, importKategorilerJSON, importTumVeriJSON, vyDoldurOnizlemeDetay } from '@pages/veri-yonetimi.js';
+import { importBankalarJSON, importKategorilerJSON, importTumVeriJSON, vyDoldurOnizlemeDetay, vyRevSecAlan } from '@pages/veri-yonetimi.js';
 const _coreFormat = inject('core.format');
 const autoSaveGoruntuAyarlari = (...a) => _coreFormat.autoSaveGoruntuAyarlari(...a);
 const syncSaatAyrac = (...a) => _coreFormat.syncSaatAyrac(...a);
@@ -136,3 +148,53 @@ window.tbkAyDetayFiltreUygula = tbkAyDetayFiltreUygula;
 window.toggleKiraDepozito = toggleKiraDepozito;
 window.updateModalMoneyWraps = updateModalMoneyWraps;
 window.vyDoldurOnizlemeDetay = vyDoldurOnizlemeDetay;
+
+// ============================================================
+// [ES-MODULE UYUMLU] data-oc-handler delegasyonu
+// ------------------------------------------------------------
+// Şablonlarda `data-oc-handler="fnAdi"` (ve gerekirse `data-oc-arg="..."`)
+// ile işaretlenmiş elemanların change/input olaylarını burada, TEK bir
+// document-seviyeli dinleyiciyle yakalayıp doğru (import edilmiş) modül
+// fonksiyonunu çağırıyoruz. Her handler kendi orijinal imzasına uygun
+// küçük bir sarmalayıcı ile HANDLERS map'ine ekleniyor — böylece
+// event.target ('this' yerine geçer) ve gerekli data-* attribute'lardan
+// (idx/field/tip/cur vb.) orijinal argümanlar yeniden kurulur.
+// window'a HİÇBİR ŞEY YAZILMIYOR.
+const HANDLERS = {
+  // onIslemTaksitChange(el, idx, field) — idx/field data-islem-taksit-idx/
+  // data-islem-taksit-field attribute'larından okunuyor (bkz. hesaplamalar.js).
+  onIslemTaksitChange: (el) => onIslemTaksitChange(
+    el, Number(el.dataset.islemTaksitIdx), el.dataset.islemTaksitField
+  ),
+  // onTaksitChange(el, tip, idx, field) — tip/idx/field data-taksit-tip/
+  // data-taksit-idx/data-taksit-field attribute'larından okunuyor
+  // (bkz. krediler/01-genel-yardimcilar.js).
+  onTaksitChange: (el) => onTaksitChange(
+    el, el.dataset.taksitTip, Number(el.dataset.taksitIdx), el.dataset.taksitField
+  ),
+  // onNaTaksitChange(el) — parametresiz, doğrudan element.
+  onNaTaksitChange: (el) => onNaTaksitChange(el),
+  // autoSaveNakitAvansTavan(el) — parametresiz, doğrudan element.
+  autoSaveNakitAvansTavan: (el) => autoSaveNakitAvansTavan(el),
+  // _odModalKrediAlanlariAyarla(durum) — sabit argüman data-oc-arg'dan
+  // okunuyor (bkz. money-input.js: data-oc-arg="gecikti").
+  _odModalKrediAlanlariAyarla: (el) => _odModalKrediAlanlariAyarla(el.dataset.ocArg),
+  // vyRevSecAlan(key) — eskiden `this.value` kullanıyordu, delegation'da
+  // event.target.value ile aynı şey (bkz. gdrive.js).
+  vyRevSecAlan: (el) => vyRevSecAlan(el.value),
+};
+
+function _dispatchOcEvent(event) {
+  const el = event.target.closest('[data-oc-handler]');
+  if (!el) return;
+  // data-oc-event, elementin ORİJİNAL onchange/oninput tipini belirtir;
+  // yalnızca o event tipinde tetikleniyoruz ki davranış birebir korunsun
+  // (örn. tarih input'u sadece 'change'de, tutar input'u sadece 'input'ta
+  // eskiden olduğu gibi çalışsın).
+  if (el.dataset.ocEvent && el.dataset.ocEvent !== event.type) return;
+  const handler = HANDLERS[el.dataset.ocHandler];
+  if (typeof handler === 'function') handler(el);
+}
+document.addEventListener('change', _dispatchOcEvent);
+document.addEventListener('input', _dispatchOcEvent);
+
