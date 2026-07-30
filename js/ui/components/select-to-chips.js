@@ -1,4 +1,5 @@
 import { inject } from '@core/container.js';
+import { bankaIkonObj } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 // DUAL-MODE CONTAINER KAYDI: dört bağımlılık da (core.appCoreBase,
 // core.format, core.state, core.wrapRegistry) zaten container'a taşınmış
 // katmanlara ait, bu yüzden inject() ile tembel çözülüyor. @pages/*
