@@ -4460,6 +4460,13 @@
 <script type="module" src="js/core/constants.js?v=33"></script>
 <script type="module" src="js/core/app-core-base.js?v=33"></script>
 <script type="module" src="js/core/render-core.js?v=33"></script>
+<!-- [BUG FIX] Bu script tag'i eksikti: page-renderers.js hiçbir yerden
+     yüklenmiyordu (yalnızca kullanılmayan core/index.js barrel dosyası ona
+     referans veriyordu), bu yüzden provide('core.pageRenderers', ...) hiç
+     çalışmıyor ve her sayfa navigasyonunda render-core.js
+     "container: 'core.pageRenderers' namespace'i kayıtlı değil" hatasıyla
+     çöküyordu. -->
+<script type="module" src="js/core/page-renderers.js?v=33"></script>
 <script type="module" src="js/ui/components/modal-genel.js?v=33"></script>
 <script type="module" src="js/domain/iban-utils.js?v=33"></script>
 <script type="module" src="js/domain/doviz.js?v=33"></script>
