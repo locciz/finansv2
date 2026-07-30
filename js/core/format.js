@@ -8,9 +8,17 @@
 // "core.format namespace'i kayıtlı değil" hatası oluşuyordu. saveData artık
 // container üzerinden lazy resolve ediliyor, statik import kaldırıldı.
 import { inject } from '@core/container.js';
-const _coreState = inject('core.state');
+// [BUG FIX] `const _coreState = inject(...)` TDZ'ye tabiydi. format.js <->
+// 05-genel-oran-tablolari.js <-> state.js arasında DÖNGÜSEL import olduğu
+// için, bu dosya tam olarak bitirmeden (yani bu const satırına ulaşmadan)
+// tekrar import edilebiliyor — ve o an _coreState henüz TANIMLANMAMIŞ
+// (TDZ) durumda oluyor, "Cannot access '_coreState' before initialization"
+// hatası fırlatıyordu. `var` TDZ'ye tabi DEĞİLDİR (hoisted, başlangıç değeri
+// undefined) - inject()'in kendisi yan etkisiz olduğu için bu satır her
+// zaman güvenle en erken noktada çalışıp _coreState'i atar.
+var _coreState = inject('core.state');
 function getAppCoreBase() { return inject('core.appCoreBase'); }
-const _wrapRegistry = inject('core.wrapRegistry');
+var _wrapRegistry = inject('core.wrapRegistry');
 import { showToast } from '@components/modal-genel.js';
 import { refreshDateOverlays } from '@components/mobile-nav-tema/05-tarih-input-overlay.js';
 import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
