@@ -46,7 +46,14 @@ export function bankaIkonObj(b) {
   if(!b) return { emoji:'🏛️', renk:'var(--accent)', bg:'rgba(99,102,241,.1)', svg:null };
   const kod = (b.ibanKod||'').padStart(4,'0');
   const preset = _bankaVerisi.BANK_ICON_MAP[kod];
-  const svg = (b.logo || bankaLogoByKod(kod)) || null;
+  // [BUG FIX] Öncelik sırası tersine çevrildi: DB'de kalıcı olarak saklanan
+  // b.logo (seedPresetBankalar() ilk çalıştığında donmuş, eski bir string
+  // olabilir — ör. eski placeholder logo) yerine, HER ZAMAN güncel
+  // BANKA_LOGOLAR kaynağına (bankaLogoByKod) öncelik veriyoruz. Böylece
+  // kod tabanındaki logo güncellemeleri, önceden eklenmiş bankalarda da
+  // hemen yansır. Sadece kod tanınmıyorsa (özel/manuel eklenmiş banka)
+  // kayıtlı b.logo'ya düşülür.
+  const svg = bankaLogoByKod(kod) || b.logo || null;
   if(b.ikon) return { emoji: b.ikon, renk: preset?.renk || 'var(--accent)', bg: preset?.bg || 'rgba(99,102,241,.1)', svg };
   return { ...(preset || { emoji:'🏛️', renk:'var(--accent)', bg:'rgba(99,102,241,.1)' }), svg };
 }
