@@ -349,6 +349,9 @@ export function validateRequiredFields(fieldDefs) {
 
 // ── Toast bildirimleri ────────────────────────────────────────
 export function showToast(msg, type='success') {
+  // [GEÇİCİ DEBUG] Çift toast sorununu teşhis etmek için — kaynağı
+  // bulunca kaldırılacak.
+  console.trace('[DEBUG showToast]', msg, type);
   const GAP = 10;
   const BASE_BOTTOM = 24;
   // Mevcut toastların toplam yüksekliğini hesapla
