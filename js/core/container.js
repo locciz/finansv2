@@ -104,11 +104,6 @@ export function resolve(name) {
   return singletons[name];
 }
 
-/** Kayıtlı değilse hata fırlatmak yerine fallback döner. */
-export function resolveOr(name, fallback) {
-  return has(name) ? resolve(name) : fallback;
-}
-
 /**
  * `inject` — resolve()'un tembel/canlı vekil (Proxy) hali.
  * Tüketen modül, henüz kayıtlı olmayan bir namespace'i (yükleme sırası
@@ -128,17 +123,6 @@ export function inject(name) {
       return prop in resolve(name);
     },
   });
-}
-
-/** Test/hot-reload amaçlı: tüm kayıtları temizler. Üretimde kullanılmaz. */
-export function _resetForTests() {
-  for (const k of Object.keys(registry)) delete registry[k];
-  for (const k of Object.keys(singletons)) delete singletons[k];
-}
-
-/** Debug: kayıtlı tüm namespace isimlerini listeler. */
-export function listRegistered() {
-  return Object.keys(registry).sort();
 }
 
 /**

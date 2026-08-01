@@ -1,10 +1,13 @@
 import { saveData } from '@core/app-core-base.js';
 import { fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { inject } from '@core/container.js';
+import { getTatilSet } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+const _dateUtils = inject('core.dateUtils');
 import { ALL_CURRENCIES, DB, defaultCurrency } from '@core/state.js';
 import { buildCurrencyOptions } from '@domain/doviz.js';
 import { _tutarAsiyorMu, getStopajOrani } from '@domain/hesaplamalar.js';
 import { swizOzetSatirHtml, swizUpdateStepIndicator } from '@components/step-wizard.js';
-import { hesaplaMevduatOnizleme } from '@domain/mevduat-hesaplama.js';
+import { hesaplaGunlukVadeliVade, hesaplaMevduatOnizleme } from '@domain/mevduat-hesaplama.js';
 import { _markFieldError, showToast, openModal } from '@components/modal-genel.js';
 import { getMoneyInput, setDateInputValue, setMoneyInput } from '@components/money-input.js';
 import { applyChipsToContainer, wireAllMoneyCurButtons } from '@components/select-to-chips.js';
@@ -204,13 +207,51 @@ export function calcMevduat() {
   const tutar = getMoneyInput('mev-tutar')||0;
   const faizOran = parseFloat(document.getElementById('mev-faiz').value)||0;
   const stopaj = parseFloat(document.getElementById('mev-stopaj').value)||0;
-  const vade = parseInt(document.getElementById('mev-vade').value)||0;
   const bas = document.getElementById('mev-baslangic').value;
   const valor = parseInt(document.getElementById('mev-valor').value)||0;
+  const isGununeErteleEl = document.getElementById('mev-is-gunune-ertele');
+  const isGununeErtele = !!(isGununeErteleEl && isGununeErteleEl.checked);
+  const erteleFaizeYansisinEl = document.getElementById('mev-ertele-faize-yansisin');
+  const erteleFaizeYansisin = !!(erteleFaizeYansisinEl && erteleFaizeYansisinEl.checked);
+
+  // [YENİ] İkinci checkbox ("Erteleme faize yansısın") sadece günlük
+  // vadeli modda ve ilk checkbox açıkken anlamlı — diğer durumlarda gizle.
+  const erteleFaizeYansisinWrap = document.getElementById('mev-ertele-faize-yansisin-wrap');
+  if(erteleFaizeYansisinWrap) {
+    erteleFaizeYansisinWrap.style.display = (_mevGunlukMod && isGununeErtele) ? 'flex' : 'none';
+  }
+
+  // ── Günlük vadeli mod: vade (gün) alanı, başlangıç tarihine ve iki
+  // checkbox'a göre otomatik hesaplanır (bkz. hesaplaGunlukVadeliVade).
+  // "İş gününe ertele" KAPALIYSA her zaman tam 1 gün sonrası kullanılır
+  // (hafta sonu/tatil olsa bile); AÇIKSA bir sonraki iş gününe atlanır ve
+  // "faize yansısın" işaretliyse vade gün sayısı takvim farkına göre büyür.
+  if(_mevGunlukMod && bas) {
+    const gunlukVade = hesaplaGunlukVadeliVade(bas, {
+      isGununeErtele,
+      erteleFaizeYansisin,
+      tatilSet: getTatilSet(),
+      isIsBgunuFn: _dateUtils.isIsBgunu,
+      nextIsBgunuFn: _dateUtils.nextIsBgunu
+    });
+    const vadeInp = document.getElementById('mev-vade');
+    if(vadeInp) vadeInp.value = gunlukVade.vade;
+  }
+
+  const vade = parseInt(document.getElementById('mev-vade').value)||0;
 
   // ---- Saf hesaplama artık js/domain/mevduat-hesaplama.js'de ----
-  const hesap = hesaplaMevduatOnizleme(tutar, faizOran, stopaj, vade, valor, bas || null);
-  const { faizBazis, brutFaiz, stopajTutar, netFaiz, nihai, kazanc, kazanYuzde } = hesap;
+  // Günlük vadeli modda vade alanı zaten yukarıda doğru gün sayısına
+  // ayarlandığı ve bitiş tarihi de o gün sayısına göre türetildiği için,
+  // normal mevduat "vade sonunu iş gününe ertele" mantığını (bir daha
+  // ertelemesin diye) burada tekrar UYGULAMIYORUZ.
+  const hesap = hesaplaMevduatOnizleme(tutar, faizOran, stopaj, vade, valor, bas || null, {
+    isGununeErtele: _mevGunlukMod ? false : isGununeErtele,
+    tatilSet: getTatilSet(),
+    isIsBgunuFn: _dateUtils.isIsBgunu,
+    nextIsBgunuFn: _dateUtils.nextIsBgunu
+  });
+  const { faizBazis, brutFaiz, stopajTutar, netFaiz, nihai, kazanc, kazanYuzde, bitisErtelendi, bitisTarihOrijinalISO } = hesap;
 
   let bitisTarih = '';
   if(bas && vade) {
@@ -220,6 +261,37 @@ export function calcMevduat() {
   } else {
     const bitisGoster = document.getElementById('mev-bitis-goster');
     if(bitisGoster) bitisGoster.value = '';
+  }
+
+  // Erteleme bilgi notu — sadece gerçekten ertelendiğinde göster
+  const erteleBilgi = document.getElementById('mev-ertele-bilgi');
+  if(erteleBilgi) {
+    if(_mevGunlukMod && isGununeErtele && bas) {
+      // Günlük vadelide erteleme bilgisini hesaplaGunlukVadeliVade'nin
+      // sonucundan türet (vade alanı zaten buna göre dolduruldu).
+      const gv = hesaplaGunlukVadeliVade(bas, {
+        isGununeErtele: true,
+        erteleFaizeYansisin,
+        tatilSet: getTatilSet(),
+        isIsBgunuFn: _dateUtils.isIsBgunu,
+        nextIsBgunuFn: _dateUtils.nextIsBgunu
+      });
+      if(gv.ertelendi) {
+        erteleBilgi.style.display = '';
+        erteleBilgi.textContent = erteleFaizeYansisin
+          ? `Ertesi gün hafta sonu/resmi tatil olduğu için vade sonu ${bitisTarih} tarihine ertelendi ve faiz günü sayısı buna göre ${gv.vade} güne çıkarıldı.`
+          : `Ertesi gün hafta sonu/resmi tatil olduğu için vade sonu ${bitisTarih} tarihine ertelendi; faiz günü sayısı sabit 1 gün olarak kaldı.`;
+      } else {
+        erteleBilgi.style.display = 'none';
+        erteleBilgi.textContent = '';
+      }
+    } else if(bitisErtelendi && bitisTarihOrijinalISO) {
+      erteleBilgi.style.display = '';
+      erteleBilgi.textContent = `Vade sonu ${fmtDate(new Date(bitisTarihOrijinalISO+'T00:00:00'))} tarihine denk geliyordu, bu bir hafta sonu/resmi tatil olduğu için ${bitisTarih} tarihine ertelendi.`;
+    } else {
+      erteleBilgi.style.display = 'none';
+      erteleBilgi.textContent = '';
+    }
   }
 
   const cur = (document.getElementById('mev-para-birimi')||{}).value || 'TRY';
@@ -295,6 +367,14 @@ export function populateMevduatModal() {
   document.getElementById('mev-stopaj').value = getStopajOrani(localDateStr(new Date()));
   document.getElementById('mev-vade').value='';
   document.getElementById('mev-valor').value='0';
+  const isGununeErteleEl = document.getElementById('mev-is-gunune-ertele');
+  if(isGununeErteleEl) isGununeErteleEl.checked = false;
+  const erteleFaizeYansisinEl = document.getElementById('mev-ertele-faize-yansisin');
+  if(erteleFaizeYansisinEl) erteleFaizeYansisinEl.checked = false;
+  const erteleFaizeYansisinWrapEl = document.getElementById('mev-ertele-faize-yansisin-wrap');
+  if(erteleFaizeYansisinWrapEl) erteleFaizeYansisinWrapEl.style.display = 'none';
+  const erteleBilgiEl = document.getElementById('mev-ertele-bilgi');
+  if(erteleBilgiEl) { erteleBilgiEl.style.display = 'none'; erteleBilgiEl.textContent = ''; }
   document.getElementById('mev-preview').innerHTML='<div class="mev-preview-empty" style="padding:11px 14px;background:var(--surface3);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--text2);text-align:center">Değerleri girin, faiz otomatik hesaplanacak.</div>';
   const bitisGoster = document.getElementById('mev-bitis-goster');
   if(bitisGoster) bitisGoster.value = '';
@@ -373,7 +453,18 @@ export function saveMevduat() {
   // ---- Saf hesaplama: js/domain/mevduat-hesaplama.js:hesaplaMevduatOnizleme
   //      (calcMevduat'taki ÖNİZLEME ile AYNI kaynak — daha önce burada
   //      aynı formül ayrıca kopyalanmıştı, artık tek yerden okunuyor) ----
-  const _onizleme = hesaplaMevduatOnizleme(tutar, faizOran, stopaj, vade, valor, bas || null);
+  const isGununeErteleSave = !!(document.getElementById('mev-is-gunune-ertele')||{}).checked;
+  const erteleFaizeYansisinSave = !!(document.getElementById('mev-ertele-faize-yansisin')||{}).checked;
+  // Günlük vadeli modda "mev-vade" alanı calcMevduat() tarafından zaten
+  // hesaplaGunlukVadeliVade() ile doğru gün sayısına ayarlanmış durumda;
+  // burada hesaplaMevduatOnizleme'nin AYRICA erteleme yapmasını istemiyoruz
+  // (aksi halde vade iki kez ertelenmiş gibi davranırdı) — bkz. calcMevduat.
+  const _onizleme = hesaplaMevduatOnizleme(tutar, faizOran, stopaj, vade, valor, bas || null, {
+    isGununeErtele: _mevGunlukMod ? false : isGununeErteleSave,
+    tatilSet: getTatilSet(),
+    isIsBgunuFn: _dateUtils.isIsBgunu,
+    nextIsBgunuFn: _dateUtils.nextIsBgunu
+  });
   const { brutFaiz, netFaiz, nihai } = _onizleme;
 
   let bitis = '';
@@ -435,7 +526,9 @@ export function saveMevduat() {
     tutar, faizOran, stopaj, vade, valor,
     faiz: parseFloat(netFaiz.toFixed(2)),
     nihai: parseFloat(nihai.toFixed(2)),
-    gunluk: _mevGunlukMod
+    gunluk: _mevGunlukMod,
+    isGununeErtele: isGununeErteleSave,
+    erteleFaizeYansisin: erteleFaizeYansisinSave
   };
   if(editMevduatId) {
     const idx = DB.mevduatlar.findIndex(m=>m.id===editMevduatId);
@@ -534,6 +627,10 @@ export function editMevduat(id) {
   document.getElementById('mev-stopaj').value = m.stopaj;
   document.getElementById('mev-vade').value = m.vade;
   document.getElementById('mev-valor').value = m.valor||0;
+  const isGununeErteleEl = document.getElementById('mev-is-gunune-ertele');
+  if(isGununeErteleEl) isGununeErteleEl.checked = !!m.isGununeErtele;
+  const erteleFaizeYansisinEl = document.getElementById('mev-ertele-faize-yansisin');
+  if(erteleFaizeYansisinEl) erteleFaizeYansisinEl.checked = !!m.erteleFaizeYansisin;
   // Para birimi
   const curSel = document.getElementById('mev-para-birimi');
   if(curSel) {

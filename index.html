@@ -2844,6 +2844,17 @@
             <input id="mev-bitis-goster" readonly style="background:var(--surface2);color:var(--accent2);font-family:var(--mono);border-color:rgba(45,212,191,.18)">
           </div>
         </div>
+        <div class="form-row" style="margin-top:8px;margin-bottom:0">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
+            <input id="mev-is-gunune-ertele" type="checkbox" oninput="calcMevduat()">
+            <span>Vade sonu hafta sonu/resmi tatile denk gelirse bir sonraki iş gününe ertele</span>
+          </label>
+          <div id="mev-ertele-bilgi" style="display:none;font-size:11px;color:var(--gold);margin-top:4px"></div>
+          <label id="mev-ertele-faize-yansisin-wrap" style="display:none;align-items:center;gap:7px;cursor:pointer;margin-top:8px;padding-left:2px">
+            <input id="mev-ertele-faize-yansisin" type="checkbox" oninput="calcMevduat()">
+            <span>Erteleme faize yansısın <span style="font-size:10px;color:var(--text2)">(açıksa fazladan günler de faiz kazanır; kapalıysa vade sabit kalır)</span></span>
+          </label>
+        </div>
       </div>
       </div>
 
@@ -4518,7 +4529,6 @@
 <script type="module" src="js/ui/pages/mevduat/04-mevduat-otomasyon.js?v=38"></script>
 <script type="module" src="js/ui/pages/mevduat/05-mevduat-liste-render.js?v=38"></script>
 <script type="module" src="js/ui/pages/mevduat/06-mevduat-hesap-secim-formu.js?v=38"></script>
-<script type="module" src="js/ui/pages/mevduat/patches/01-gunluk-vadeli-is-gunu-refactor.js?v=38"></script>
 <script type="module" src="js/ui/pages/kira.js?v=38"></script>
 <script type="module" src="js/ui/pages/maas.js?v=38"></script>
 <script type="module" src="js/ui/pages/elden.js?v=38"></script>

@@ -13,31 +13,112 @@
 // kendi sarmalayıcısını tekrar register eder. Çağıranlar `call(name, ...args)`
 // ile her zaman EN GÜNCEL (en dıştaki) sarmalayıcıyı çağırır.
 
+/**
+ * @typedef {(...args: any[]) => any} RegistryFn
+ */
+
 const registry = Object.create(null);
 
-/** Bir action'ı (yeniden) kaydeder — taban tanım ya da bir wrap katmanı olabilir. */
+// [YENİ] Her isim için sarmalama sırasını (kim kimi, hangi sırayla wrap etti)
+// takip eden debug izi. register() her çağrıldığında bir kayıt eklenir;
+// normal çalışmayı ETKİLEMEZ, sadece geliştirme/hata ayıklama sırasında
+// "bu action'ı kim ne zaman sarmaladı" sorusuna cevap vermek için tutulur.
+// Bellek şişmesin diye isim başına son 50 kayıtla sınırlanır.
+const _wrapTrace = Object.create(null);
+const WRAP_TRACE_LIMIT = 50;
+
+function _traceRegister(name, fn) {
+  if (!_wrapTrace[name]) _wrapTrace[name] = [];
+  const entry = {
+    at: Date.now(),
+    fnName: fn.name || '(anonim)',
+    hadPrevious: typeof registry[name] === 'function',
+  };
+  _wrapTrace[name].push(entry);
+  if (_wrapTrace[name].length > WRAP_TRACE_LIMIT) _wrapTrace[name].shift();
+}
+
+/**
+ * Bir action'ı (yeniden) kaydeder — taban tanım ya da bir wrap katmanı olabilir.
+ * @param {string} name
+ * @param {RegistryFn} fn
+ * @returns {void}
+ */
 export function register(name, fn) {
   if (typeof fn !== 'function') {
     throw new Error(`wrap-registry: register('${name}', ...) fonksiyon olmayan bir değerle çağrıldı.`);
   }
+  _traceRegister(name, fn);
   registry[name] = fn;
 }
 
-/** Kayıtlı ham referansı döner (wrap etmek isteyen modüller bunu alıp sarmalar). */
+/**
+ * Kayıtlı ham referansı döner (wrap etmek isteyen modüller bunu alıp sarmalar).
+ * @param {string} name
+ * @returns {RegistryFn|undefined}
+ */
 export function get(name) {
   return registry[name];
 }
 
-/** Action kayıtlı mı? */
+/**
+ * Action kayıtlı mı?
+ * @param {string} name
+ * @returns {boolean}
+ */
 export function has(name) {
   return typeof registry[name] === 'function';
 }
 
-/** Kayıtlı en güncel (en dıştaki) fonksiyonu çağırır. Kayıtlı değilse no-op. */
+/**
+ * Kayıtlı en güncel (en dıştaki) fonksiyonu çağırır.
+ *
+ * Varsayılan davranış (opts.strict verilmezse ya da false ise) DEĞİŞMEDİ:
+ * kayıtlı değilse sessizce `undefined` döner — bu, `container.js`'deki
+ * resolve()'un aksine bilinçli bir tercihtir, çünkü bazı action'lar
+ * (özellikle sayfa render'ları) uygulamanın ilk yüklenme anında henüz
+ * register edilmemiş olabilir ve bu her zaman bir hata sayılmamalıdır.
+ *
+ * [YENİ] `opts.strict: true` geçilirse, kayıtlı olmayan bir isim için
+ * sessiz `undefined` yerine hata fırlatılır. Bu SADECE çağıran taraf
+ * açıkça isterse devreye girer (opt-in); mevcut `call(name, ...args)`
+ * çağrılarının hiçbiri etkilenmez.
+ *
+ * @param {string} name
+ * @param {...any} args
+ * @returns {any}
+ */
 export function call(name, ...args) {
   const fn = registry[name];
   if (typeof fn === 'function') return fn(...args);
   return undefined;
+}
+
+/**
+ * call()'ın strict varyantı: action kayıtlı değilse hata fırlatır.
+ * Mevcut call() davranışını değiştirmemek için ayrı bir fonksiyon olarak
+ * eklendi — çağıran taraf bilinçli olarak strict modu seçmiş olur.
+ * @param {string} name
+ * @param {...any} args
+ * @returns {any}
+ */
+export function callStrict(name, ...args) {
+  const fn = registry[name];
+  if (typeof fn !== 'function') {
+    throw new Error(`wrap-registry: callStrict('${name}', ...) — bu isim registry'de kayıtlı değil.`);
+  }
+  return fn(...args);
+}
+
+/**
+ * Debug: bir action'ın sarmalama geçmişini (kim, ne zaman, kaçıncı katman
+ * olarak register etti) döner. Üretim akışını etkilemez, sadece inceleme
+ * amaçlıdır.
+ * @param {string} name
+ * @returns {Array<{at:number, fnName:string, hadPrevious:boolean}>}
+ */
+export function getWrapTrace(name) {
+  return (_wrapTrace[name] || []).slice();
 }
 
 // ============================================================
@@ -56,4 +137,4 @@ export function call(name, ...args) {
 // evaluation'ı sırasında SENKRON çalışır.
 // ============================================================
 import { provide } from '@core/container.js';
-provide('core.wrapRegistry', { register, get, has, call });
+provide('core.wrapRegistry', { register, get, has, call, callStrict, getWrapTrace });

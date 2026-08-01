@@ -1,6 +1,7 @@
-import { isIsBgunu } from '@core/date-utils.js';
+import { isIsBgunu, nextIsBgunu } from '@core/date-utils.js';
 import { fmtDate, localDateStr, uid } from '@core/format.js';
 import { DB } from '@core/state.js';
+import { hesaplaGunlukVadeliVade } from '@domain/mevduat-hesaplama.js';
 import { getStopajOrani } from '@domain/hesaplamalar.js';
 import { showToast } from '@components/modal-genel.js';
 import { setMoneyInput } from '@components/money-input.js';
@@ -95,19 +96,16 @@ export function gunlukVadeliyeKoy(hesapId) {
     document.getElementById('mev-stopaj').value = getStopajOrani(todayStr);
   }
 
-  // ── Vade: bugünden sonraki ilk iş gününe kaç takvim günü varsa
-  const tatilSet = getTatilSet();
-  const bugun = new Date();
-  // Bugünden bir gün sonrasından başlayarak ilk iş gününü bul
-  let kontrol = new Date(bugun);
-  kontrol.setDate(kontrol.getDate() + 1);
-  while(!isIsBgunu(kontrol, tatilSet)) {
-    kontrol.setDate(kontrol.getDate() + 1);
-  }
-  const vadeSonuMs = kontrol.getTime() - new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate()).getTime();
-  const vadeGun = Math.round(vadeSonuMs / (1000*60*60*24));
-  const vadeInp = document.getElementById('mev-vade');
-  if(vadeInp) vadeInp.value = vadeGun;
+  // ── Vade: artık ayrı bir hesaplama yapılmıyor — checkbox'lar işaretlenip
+  // calcMevduat() çağrıldığında js/domain/mevduat-hesaplama.js:
+  // hesaplaGunlukVadeliVade() üzerinden otomatik hesaplanıyor (bkz. altta).
+  // [YENİ] Bu formdan manuel açılan günlük vadelilerde, eski (checkbox
+  // öncesi) davranışla tutarlı olması için iki checkbox da varsayılan
+  // olarak İŞARETLİ başlatılıyor; kullanıcı isterse kapatabilir.
+  const isGununeErteleEl = document.getElementById('mev-is-gunune-ertele');
+  if(isGununeErteleEl) isGununeErteleEl.checked = true;
+  const erteleFaizeYansisinEl = document.getElementById('mev-ertele-faize-yansisin');
+  if(erteleFaizeYansisinEl) erteleFaizeYansisinEl.checked = true;
 
   // Vade sonu stratejisi: ana para + faiz vade dolunca yine bu vadesiz hesaba dönsün
   const stratejiSel = document.getElementById('mev-strateji');
@@ -138,12 +136,18 @@ export function _gunlukVadeliAcOtomatik(hesap) {
   }
 
   // Vade: bugünden sonraki ilk iş gününe kaç takvim günü varsa (hafta sonu/tatil aşımı)
+  // [YENİ] Tam otomatik açılan günlük vadelilerde (kullanıcı formu görmediği
+  // için checkbox seçemiyor) eski davranış korunuyor: hafta sonu/tatile denk
+  // gelirse iş gününe ertele VE bu erteleme faize yansısın.
   const tatilSet = getTatilSet();
-  const baslangicD = new Date(bas+'T00:00:00');
-  let kontrol = new Date(baslangicD);
-  kontrol.setDate(kontrol.getDate() + 1);
-  while(!isIsBgunu(kontrol, tatilSet)) kontrol.setDate(kontrol.getDate() + 1);
-  const vade = Math.round((kontrol.getTime() - baslangicD.getTime()) / (1000*60*60*24));
+  const gunlukVade = hesaplaGunlukVadeliVade(bas, {
+    isGununeErtele: true,
+    erteleFaizeYansisin: true,
+    tatilSet,
+    isIsBgunuFn: isIsBgunu,
+    nextIsBgunuFn: nextIsBgunu
+  });
+  const vade = gunlukVade.vade;
 
   const yeniHesap = {
     id: uid(), banka: hesap.banka,
@@ -159,11 +163,9 @@ export function _gunlukVadeliAcOtomatik(hesap) {
     id: uid(), banka: hesap.banka, paraBirimi,
     hesapId: yeniHesap.id, kaynakHesapId: hesap.id, vadesizHesapId: hesap.id,
     strateji: 'tumu_vadesiz', baslangic: bas, tutar, faizOran, stopaj, vade, valor: 0,
-    gunluk: true,
+    gunluk: true, isGununeErtele: true, erteleFaizeYansisin: true,
   };
-  const startD = new Date(bas+'T00:00:00');
-  startD.setDate(startD.getDate() + vade);
-  yeniMev.bitis = localDateStr(startD);
+  yeniMev.bitis = gunlukVade.bitisISO;
   if(typeof calcMevduatObj === 'function') {
     const c = calcMevduatObj(yeniMev);
     yeniMev.faiz = c.faiz; yeniMev.nihai = c.nihai;

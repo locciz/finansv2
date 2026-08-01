@@ -8,12 +8,14 @@ const _appCoreBase = inject('core.appCoreBase');
 const saveData = (...a) => _appCoreBase.saveData(...a);
 const _dateUtils = inject('core.dateUtils');
 const isIsBgunu = (...a) => _dateUtils.isIsBgunu(...a);
+const nextIsBgunu = (...a) => _dateUtils.nextIsBgunu(...a);
 const _coreFormat = inject('core.format');
 const fmtCur = (...a) => _coreFormat.fmtCur(...a);
 const fmtDate = (...a) => _coreFormat.fmtDate(...a);
 const localDateStr = (...a) => _coreFormat.localDateStr(...a);
 const uid = (...a) => _coreFormat.uid(...a);
 import { showToast } from '@components/modal-genel.js';
+import { hesaplaGunlukVadeliVade } from '@domain/mevduat-hesaplama.js';
 import { calcMevduatObj } from '@pages/abonelik.js';
 import { mevduatTumunuVadesizeAktar, mevduatYenile, mevduatYenileAnaPara } from '@pages/mevduat/03-mevduat-yenileme-ve-kapama.js';
 import { renderMevduat } from '@pages/mevduat/05-mevduat-liste-render.js';
@@ -104,22 +106,36 @@ export function mevduatYenileTumOtomatik(mevId) {
     baslangic: m.bitis,
     tutar: yeniTutar, faizOran: m.faizOran, stopaj: m.stopaj, vade: m.vade, valor: m.valor||0,
     gunluk: m.gunluk,
+    isGununeErtele: !!m.isGununeErtele,
+    erteleFaizeYansisin: !!m.erteleFaizeYansisin,
   };
-  // Günlük vadeli mevduatlarda vade süresi sabit kopyalanamaz (bkz. mevduatYenileAnaParaOtomatik'teki
-  // aynı mantık) — her yenilemede, yeni başlangıç tarihinden sonraki ilk iş gününe göre yeniden hesaplanır.
   if(yeniMev.gunluk) {
+    // [YENİ] Günlük vadeli mevduatlarda vade/bitiş hesabı artık merkezi
+    // hesaplaGunlukVadeliVade() üzerinden yapılıyor — kullanıcının orijinal
+    // mevduatta seçtiği "iş gününe ertele" ve "erteleme faize yansısın"
+    // tercihleri, yenilenen mevduata da aynen uygulanıyor.
     const tatilSet = getTatilSet();
-    const baslangicD = new Date(yeniMev.baslangic+'T00:00:00');
-    let kontrol = new Date(baslangicD);
-    kontrol.setDate(kontrol.getDate() + 1);
-    while(!isIsBgunu(kontrol, tatilSet)) {
-      kontrol.setDate(kontrol.getDate() + 1);
+    const gunlukVade = hesaplaGunlukVadeliVade(yeniMev.baslangic, {
+      isGununeErtele: yeniMev.isGununeErtele,
+      erteleFaizeYansisin: yeniMev.erteleFaizeYansisin,
+      tatilSet,
+      isIsBgunuFn: isIsBgunu,
+      nextIsBgunuFn: nextIsBgunu
+    });
+    yeniMev.vade = gunlukVade.vade;
+    yeniMev.bitis = gunlukVade.bitisISO;
+  } else {
+    const startD = new Date(yeniMev.baslangic+'T00:00:00');
+    startD.setDate(startD.getDate() + (yeniMev.vade||30) + (yeniMev.valor||0));
+    // "Vade sonunu iş gününe ertele" tercihi, yenilenen mevduata da taşınır
+    // — bkz. js/ui/pages/mevduat/01-mevduat-form-wizard.js:calcMevduat ile
+    // aynı örüntü.
+    if(yeniMev.isGununeErtele && !isIsBgunu(startD, getTatilSet())) {
+      yeniMev.bitis = localDateStr(nextIsBgunu(startD, getTatilSet(), true));
+    } else {
+      yeniMev.bitis = localDateStr(startD);
     }
-    yeniMev.vade = Math.round((kontrol.getTime() - baslangicD.getTime()) / (1000*60*60*24));
   }
-  const startD = new Date(yeniMev.baslangic+'T00:00:00');
-  startD.setDate(startD.getDate() + (yeniMev.vade||30) + (yeniMev.valor||0));
-  yeniMev.bitis = localDateStr(startD);
   if(typeof calcMevduatObj === 'function') {
     const calc = calcMevduatObj(yeniMev);
     yeniMev.faiz = calc.faiz; yeniMev.nihai = calc.nihai;
@@ -202,25 +218,34 @@ export function mevduatYenileAnaParaOtomatik(mevId) {
     baslangic: m.bitis,
     tutar: m.tutar, faizOran: m.faizOran, stopaj: m.stopaj, vade: m.vade, valor: m.valor||0,
     gunluk: m.gunluk,
+    isGununeErtele: !!m.isGununeErtele,
+    erteleFaizeYansisin: !!m.erteleFaizeYansisin,
   };
-  // Günlük vadeli mevduatlarda vade süresi sabit kopyalanamaz: hafta sonu/tatil
-  // denk gelen döngülerde vade sayısı kayar (ör. Cuma açılışta vade=3 hesaplanır,
-  // bu sabit 3 her yenilemede kullanılırsa Pazartesi'den itibaren hafta içi
-  // günlerle senkron bozulur). Bunun yerine her yenilemede, yeni başlangıç
-  // tarihinden sonraki ilk iş gününe göre vade yeniden hesaplanır.
   if(yeniMev.gunluk) {
+    // [YENİ] Günlük vadeli mevduatlarda vade/bitiş hesabı merkezi
+    // hesaplaGunlukVadeliVade() üzerinden yapılıyor — kullanıcının orijinal
+    // mevduatta seçtiği "iş gününe ertele" ve "erteleme faize yansısın"
+    // tercihleri, yenilenen mevduata da aynen uygulanıyor.
     const tatilSet = getTatilSet();
-    const baslangicD = new Date(yeniMev.baslangic+'T00:00:00');
-    let kontrol = new Date(baslangicD);
-    kontrol.setDate(kontrol.getDate() + 1);
-    while(!isIsBgunu(kontrol, tatilSet)) {
-      kontrol.setDate(kontrol.getDate() + 1);
+    const gunlukVade = hesaplaGunlukVadeliVade(yeniMev.baslangic, {
+      isGununeErtele: yeniMev.isGununeErtele,
+      erteleFaizeYansisin: yeniMev.erteleFaizeYansisin,
+      tatilSet,
+      isIsBgunuFn: isIsBgunu,
+      nextIsBgunuFn: nextIsBgunu
+    });
+    yeniMev.vade = gunlukVade.vade;
+    yeniMev.bitis = gunlukVade.bitisISO;
+  } else {
+    const startD = new Date(yeniMev.baslangic+'T00:00:00');
+    startD.setDate(startD.getDate() + (yeniMev.vade||30) + (yeniMev.valor||0));
+    // "Vade sonunu iş gününe ertele" tercihi, yenilenen mevduata da taşınır.
+    if(yeniMev.isGununeErtele && !isIsBgunu(startD, getTatilSet())) {
+      yeniMev.bitis = localDateStr(nextIsBgunu(startD, getTatilSet(), true));
+    } else {
+      yeniMev.bitis = localDateStr(startD);
     }
-    yeniMev.vade = Math.round((kontrol.getTime() - baslangicD.getTime()) / (1000*60*60*24));
   }
-  const startD = new Date(yeniMev.baslangic+'T00:00:00');
-  startD.setDate(startD.getDate() + (yeniMev.vade||30) + (yeniMev.valor||0));
-  yeniMev.bitis = localDateStr(startD);
   if(typeof calcMevduatObj === 'function') {
     const calc = calcMevduatObj(yeniMev);
     yeniMev.faiz = calc.faiz; yeniMev.nihai = calc.nihai;

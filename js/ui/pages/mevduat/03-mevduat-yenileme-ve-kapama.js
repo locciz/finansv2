@@ -50,6 +50,10 @@ export function mevduatYenile(mevId) {
     const stratejiSel = document.getElementById('mev-strateji');
     if(stratejiSel) { stratejiSel.value = 'yenile_tum'; onMevStratejiChange(); }
     setDateInputValue('mev-baslangic', m.bitis || localDateStr(new Date()));
+    const isGununeErteleEl1 = document.getElementById('mev-is-gunune-ertele');
+    if(isGununeErteleEl1) isGununeErteleEl1.checked = !!m.isGununeErtele;
+    const erteleFaizeYansisinEl1 = document.getElementById('mev-ertele-faize-yansisin');
+    if(erteleFaizeYansisinEl1) erteleFaizeYansisinEl1.checked = !!m.erteleFaizeYansisin;
     calcMevduat();
     showToast(`${getBanka(m.banka)||'?'} mevduatı yenileniyor — yeni IBAN ve vadeyi girin`, 'info');
   }, 80);
@@ -63,6 +67,7 @@ export function mevduatYenileAnaPara(mevId) {
   if(!vadesizId) { showToast('Lütfen faizin aktarılacağı vadesiz hesabı seçin', 'error'); return; }
   openModal('modal-mevduat');
   setTimeout(()=>{
+    set_mevGunlukMod(!!m.gunluk);
     // Banka — hidden + display
     const bankaObj = m.banka ? (DB.bankalar||[]).find(b=>b.id===m.banka) : null;
     const hid = document.getElementById('mev-banka-hidden');
@@ -82,6 +87,10 @@ export function mevduatYenileAnaPara(mevId) {
     if(stratejiSel) { stratejiSel.value = 'yenile_ana_faiz_vadesiz'; onMevStratejiChange(); }
     _fillMevVadesizSel(vadesizId);
     setDateInputValue('mev-baslangic', m.bitis || localDateStr(new Date()));
+    const isGununeErteleEl2 = document.getElementById('mev-is-gunune-ertele');
+    if(isGununeErteleEl2) isGununeErteleEl2.checked = !!m.isGununeErtele;
+    const erteleFaizeYansisinEl2 = document.getElementById('mev-ertele-faize-yansisin');
+    if(erteleFaizeYansisinEl2) erteleFaizeYansisinEl2.checked = !!m.erteleFaizeYansisin;
     calcMevduat();
     showToast(`Ana para yenileniyor, faiz (${fmtCur(m.faiz, m.paraBirimi)}) vadesiz hesaba aktarılacak`, 'info');
   }, 80);
