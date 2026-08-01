@@ -1,6 +1,11 @@
-import { DB } from '@core/state.js';
-import { seçKategoriChip } from '@pages/tanimlamalar/03-kategoriler.js';
-import { openModal } from '@components/modal-genel.js';
+import { inject, provide } from '@core/container.js';
+const _coreState = inject('core.state');
+// DAİRESEL: tanimlamalar/03-kategoriler.js bu dosyayı da import ediyor
+// (renderIslemKategoriChips). inject() Proxy tembel çözüldüğü için sıra
+// sorun değil, ama üstte top-level const'a SARILMADI — sadece kullanım
+// anında (bindIslemKategoriChipClicks callback'i içinde) okunuyor.
+const _tanimlamalarKategoriler = inject('ui.pages.tanimlamalarKategoriler');
+const _modalGenel = inject('ui.components.modalGenel');
 // ============================================================
 // js/ui/pages/islemler/06-islem-kategori-secici.js
 // İşlem kategori seçim widget'ı
@@ -18,7 +23,7 @@ export function renderIslemKategoriChips() {
   }
   const q = (document.getElementById('islem-kategori-arama')||{}).value || '';
   const secili = document.getElementById('islem-kategori').value || '';
-  const tum = (DB.kategoriler||[]).filter(k => !q || k.ad.toLowerCase().includes(q.toLowerCase()));
+  const tum = (_coreState.DB.kategoriler||[]).filter(k => !q || k.ad.toLowerCase().includes(q.toLowerCase()));
   const temizChip = `<button type="button" class="kat-chip-clear" data-kat-id="" style="margin-bottom:10px">✕ Kategorisiz bırak</button>`;
   if(!tum.length) {
     grid.innerHTML = temizChip + `<div class="kat-chip-empty">Eşleşen kategori yok</div>`;
@@ -48,7 +53,7 @@ export function renderIslemKategoriChips() {
 // [ES module] onclick="seçKategoriChip(...)" kaldırıldı - gerçek addEventListener bağlanıyor.
 function bindIslemKategoriChipClicks(grid) {
   grid.querySelectorAll('[data-kat-id]').forEach(btn => {
-    btn.addEventListener('click', () => seçKategoriChip(btn.getAttribute('data-kat-id')));
+    btn.addEventListener('click', () => _tanimlamalarKategoriler.seçKategoriChip(btn.getAttribute('data-kat-id')));
   });
 }
 
@@ -56,7 +61,7 @@ export function openIslemKategoriModal() {
   const arama = document.getElementById('islem-kategori-arama');
   if(arama) arama.value = '';
   renderIslemKategoriChips();
-  openModal('modal-islem-kategori');
+  _modalGenel.openModal('modal-islem-kategori');
 }
 
 export function renderIslemKategoriButon() {
@@ -65,7 +70,7 @@ export function renderIslemKategoriButon() {
   const icon = document.getElementById('islem-kategori-btn-icon');
   const label = document.getElementById('islem-kategori-btn-label');
   if(!hidden || !btn || !icon || !label) return;
-  const kat = (DB.kategoriler||[]).find(k => k.id === hidden.value);
+  const kat = (_coreState.DB.kategoriler||[]).find(k => k.id === hidden.value);
   if(kat) {
     icon.textContent = kat.ikon || '🏷️';
     label.textContent = kat.ad;
@@ -76,4 +81,11 @@ export function renderIslemKategoriButon() {
     btn.classList.add('is-empty');
   }
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.islemKategoriSecici', {
+  renderIslemKategoriChips,
+  openIslemKategoriModal,
+  renderIslemKategoriButon,
+});
 

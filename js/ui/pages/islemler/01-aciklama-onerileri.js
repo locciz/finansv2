@@ -1,7 +1,8 @@
-import { DB } from '@core/state.js';
-import { AC_ENGELLI_KELIMELER } from '@pages/islemler/00-state.js';
-import { renderIslemKategoriButon } from '@pages/islemler/06-islem-kategori-secici.js';
-import { closeModal, openModal } from '@components/modal-genel.js';
+import { inject, provide } from '@core/container.js';
+const _coreState = inject('core.state');
+const _islemlerState = inject('ui.pages.islemlerState');
+const _islemKategoriSecici = inject('ui.pages.islemKategoriSecici');
+const _modalGenel = inject('ui.components.modalGenel');
 // ============================================================
 // js/ui/pages/islemler/01-aciklama-onerileri.js
 // İşlem açıklaması otomatik tamamlama/geçmiş öneri modalı
@@ -16,7 +17,7 @@ export function openIslemAciklamaModal() {
   const input = document.getElementById('islem-aciklama-modal-input');
   if(input) input.value = hidden ? hidden.value : '';
   renderIslemAciklamaModalList();
-  openModal('modal-islem-aciklama');
+  _modalGenel.openModal('modal-islem-aciklama');
   setTimeout(()=>{ if(input) { input.focus(); input.select(); } }, 60);
 }
 
@@ -58,17 +59,17 @@ export function islemAciklamaModalSec(el) {
   const ad = el.getAttribute('data-ac-ad') || '';
   const kat = el.getAttribute('data-ac-kat') || '';
   _islemAciklamaUygula(ad, kat);
-  closeModal('modal-islem-aciklama');
+  _modalGenel.closeModal('modal-islem-aciklama');
 }
 
 export function islemAciklamaModalOnayla() {
   const input = document.getElementById('islem-aciklama-modal-input');
   const ad = input ? input.value.trim() : '';
-  if(!ad) { closeModal('modal-islem-aciklama'); return; }
+  if(!ad) { _modalGenel.closeModal('modal-islem-aciklama'); return; }
   // Yazılan metin geçmişte kayıtlıysa kategoriyi de hatırlat
   const eslesen = _acGecmisVerisi().find(v => v.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'));
   _islemAciklamaUygula(ad, eslesen ? (eslesen.kategori||'') : '');
-  closeModal('modal-islem-aciklama');
+  _modalGenel.closeModal('modal-islem-aciklama');
 }
 
 export function _islemAciklamaUygula(ad, kat) {
@@ -77,7 +78,7 @@ export function _islemAciklamaUygula(ad, kat) {
   hidden.value = ad;
   if(kat) {
     const katEl = document.getElementById('islem-kategori');
-    if(katEl && !katEl.value) { katEl.value = kat; renderIslemKategoriButon(); } // sadece kategori boşsa otomatik doldur
+    if(katEl && !katEl.value) { katEl.value = kat; _islemKategoriSecici.renderIslemKategoriButon(); } // sadece kategori boşsa otomatik doldur
   }
   renderIslemAciklamaButon();
 }
@@ -103,17 +104,17 @@ export function onIslemAciklamaModalInput() {
 
 export function onIslemAciklamaModalKeydown(e) {
   if(e.key === 'Enter') { e.preventDefault(); islemAciklamaModalOnayla(); }
-  else if(e.key === 'Escape') { e.preventDefault(); closeModal('modal-islem-aciklama'); }
+  else if(e.key === 'Escape') { e.preventDefault(); _modalGenel.closeModal('modal-islem-aciklama'); }
 }
 
 export function _acEngelliMi(ad) {
   const l = (ad||'').toLocaleLowerCase('tr');
-  return AC_ENGELLI_KELIMELER.some(kw => l.includes(kw));
+  return _islemlerState.AC_ENGELLI_KELIMELER.some(kw => l.includes(kw));
 }
 
 export function _acGecmisVerisi() {
   const map = {};
-  (DB.islemler||[]).forEach(i=>{
+  (_coreState.DB.islemler||[]).forEach(i=>{
     const ac = (i.aciklama||'').trim();
     if(!ac) return;
     if(_acEngelliMi(ac)) return;
@@ -147,4 +148,20 @@ export function _acHighlight(text, query) {
   const after = _acEsc(text.slice(idx + query.length));
   return `${before}<mark>${match}</mark>${after}`;
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.islemAciklamaOnerileri', {
+  openIslemAciklamaModal,
+  renderIslemAciklamaModalList,
+  islemAciklamaModalSec,
+  islemAciklamaModalOnayla,
+  _islemAciklamaUygula,
+  renderIslemAciklamaButon,
+  onIslemAciklamaModalInput,
+  onIslemAciklamaModalKeydown,
+  _acEngelliMi,
+  _acGecmisVerisi,
+  _acEsc,
+  _acHighlight,
+});
 

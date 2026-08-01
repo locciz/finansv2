@@ -1,7 +1,8 @@
-import { localDateStr } from '@core/format.js';
-import { DB } from '@core/state.js';
-import { odOdendiMi } from '@pages/odeme/01-genel-yardimcilar.js';
-import { call } from '@core/wrap-registry.js';
+import { inject, provide } from '@core/container.js';
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _odemeGenelYardimcilar = inject('ui.pages.odemeGenelYardimcilar');
+const _wrapRegistry = inject('core.wrapRegistry');
 // ============================================================
 // js/ui/pages/mevduat/04-mevduat-otomasyon.js
 // Otomatik vade kontrolü ve yaklaşan ödeme tespiti
@@ -12,15 +13,15 @@ import { call } from '@core/wrap-registry.js';
 // dosya sınırı ve gruplama değişti.
 // ============================================================
 export function mevduatOtomatikVadeKontrol() {
-  if(!DB.mevduatlar) DB.mevduatlar = [];
-  const todayCheck = localDateStr(new Date());
+  if(!_coreState.DB.mevduatlar) _coreState.DB.mevduatlar = [];
+  const todayCheck = _format.localDateStr(new Date());
   let degisti = false;
-  (DB.mevduatlar||[]).forEach(m=>{
+  (_coreState.DB.mevduatlar||[]).forEach(m=>{
     if(m._kapatildi) return; // zaten otomatik yenilenmiş/aktarılmış eski kayıt
     if(m.bitis <= todayCheck && m.strateji && m.strateji !== '') {
-      const lk = call('_lKey', 'mevduat', m.id, null);
-      if(call('_lGet', lk) == null) {
-        if(call('mevduatOtoStratejiUygula', m.id)) degisti = true;
+      const lk = _wrapRegistry.call('_lKey', 'mevduat', m.id, null);
+      if(_wrapRegistry.call('_lGet', lk) == null) {
+        if(_wrapRegistry.call('mevduatOtoStratejiUygula', m.id)) degisti = true;
       }
     }
   });
@@ -33,8 +34,8 @@ export function mevduatYaklasanOdemedeGoster(m, todayStr, todayDate) {
   const od = m.odDurum || null;
   if(od && od.durum === 'iptal') return false;
 
-  const lk = call('_lKey', 'mevduat', m.id, null);
-  const aktarimYapildi = call('_lGet', lk) != null || odOdendiMi(od);
+  const lk = _wrapRegistry.call('_lKey', 'mevduat', m.id, null);
+  const aktarimYapildi = _wrapRegistry.call('_lGet', lk) != null || _odemeGenelYardimcilar.odOdendiMi(od);
 
   // _kapatildi hem manuel kapatma hem de vadesize aktarım için kullanılıyor.
   // Bu yüzden tek başına gizleme sebebi saymıyoruz; aktarım/ödendi yoksa
@@ -43,4 +44,10 @@ export function mevduatYaklasanOdemedeGoster(m, todayStr, todayDate) {
 
   return true;
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.mevduatOtomasyon', {
+  mevduatOtomatikVadeKontrol,
+  mevduatYaklasanOdemedeGoster,
+});
 

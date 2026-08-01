@@ -1,7 +1,8 @@
-import { localDateStr } from '@core/format.js';
-import { DB } from '@core/state.js';
-import { _hesapVarsayilanVeyaBankaHesabi, _hesaplariIlgiliBankayaGoreSirala } from '@pages/hesaplar/01-genel-yardimcilar.js';
-import { call } from '@core/wrap-registry.js';
+import { inject, provide } from '@core/container.js';
+const _format = inject('core.format');
+const _coreState = inject('core.state');
+const _hesaplarGenelYardimcilar = inject('ui.pages.hesaplarGenelYardimcilar');
+const _wrapRegistry = inject('core.wrapRegistry');
 // ============================================================
 // js/ui/pages/odeme/01-genel-yardimcilar.js
 // Genel yardımcılar — durum hesaplama, badge/toggle render, hesap seçim listesi
@@ -16,7 +17,7 @@ export function _odIlgiliBankaId(tip, item) {
   if (tip === 'kart') return item.banka || null;
   if (tip === 'kredi') return item.banka || null;
   if (tip === 'kmh') {
-    const kaynak = (DB.kartlar || []).find(k => k.id === item.kmhId) || (DB.hesaplar || []).find(h => h.id === item.kmhId);
+    const kaynak = (_coreState.DB.kartlar || []).find(k => k.id === item.kmhId) || (_coreState.DB.hesaplar || []).find(h => h.id === item.kmhId);
     return kaynak ? (kaynak.banka || null) : null;
   }
   return item.banka || null;
@@ -24,8 +25,8 @@ export function _odIlgiliBankaId(tip, item) {
 
 export function _odHesapSecimListesiHazirla(tip, item, hesaplar, mevcutHesapId, paraBirimi) {
   const bankaId = _odIlgiliBankaId(tip, item);
-  const sirali = _hesaplariIlgiliBankayaGoreSirala(hesaplar || [], bankaId, paraBirimi);
-  const secili = _hesapVarsayilanVeyaBankaHesabi(sirali, mevcutHesapId || '', bankaId, paraBirimi);
+  const sirali = _hesaplarGenelYardimcilar._hesaplariIlgiliBankayaGoreSirala(hesaplar || [], bankaId, paraBirimi);
+  const secili = _hesaplarGenelYardimcilar._hesapVarsayilanVeyaBankaHesabi(sirali, mevcutHesapId || '', bankaId, paraBirimi);
   return { hesaplar: sirali, hesapId: secili, bankaId };
 }
 
@@ -35,7 +36,7 @@ export function odDurumFiltreNormalize(d) {
 
 export function odEfektifDurum(ov, tarih) {
   if(ov && ov.durum) return odDurumFiltreNormalize(ov.durum);
-  const todayStr = localDateStr(new Date());
+  const todayStr = _format.localDateStr(new Date());
   return (tarih && tarih.length === 10 && tarih < todayStr) ? 'gecikti' : 'bekliyor';
 }
 
@@ -107,7 +108,7 @@ export function odSetDurum(item, key, data) {
 }
 
 export function odBadgeHtml(durum, tarih, tutar) {
-  const todayStr = localDateStr(new Date());
+  const todayStr = _format.localDateStr(new Date());
   const d = durum || (tarih && tarih.length === 10 && tarih < todayStr ? 'gecikti' : 'bekliyor');
   const map = {
     odendi:   ['od-odendi',   '✓ Ödendi'],
@@ -128,7 +129,7 @@ export function odBadgeHtml(durum, tarih, tutar) {
 }
 
 export function odToggleBtn(tip, id, key, tarih, tutar, extraLabel) {
-  const item = call('odGetItem', tip, id);
+  const item = _wrapRegistry.call('odGetItem', tip, id);
   if(!item) return '';
   const ov = odGetDurum(item, key);
   const badge = odBadgeHtml(ov?.durum, tarih, tutar);
@@ -142,4 +143,24 @@ export function odKartToggleBtn(kartId, pb, donemKey, toplamBorc, kalanBorc, ode
   const enc = encodeURIComponent(JSON.stringify({tip:'kart', id:kartId, pb, donemKey, toplamBorc, kalanBorc, odemeTarihi}));
   return `<span class="od-btn" data-od="${enc}" style="cursor:pointer">${badge}</span>`;
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.odemeGenelYardimcilar', {
+  _odIlgiliBankaId,
+  _odHesapSecimListesiHazirla,
+  odDurumFiltreNormalize,
+  odEfektifDurum,
+  odGetDurum,
+  odPlanlananTutar,
+  odFiilenGerceklesenTutar,
+  odIptalMi,
+  odOdendiMi,
+  odBeklemedeMi,
+  odKiraMaasOverride,
+  odKartDonemOverride,
+  odSetDurum,
+  odBadgeHtml,
+  odToggleBtn,
+  odKartToggleBtn,
+});
 

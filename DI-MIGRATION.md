@@ -1241,5 +1241,181 @@ deseniyle taşınmalı. Basit tek-fonksiyonlu statik satırlar ise
 kalan tek-fonksiyonlu ~74 satırı otomatik/toplu şekilde aynı dosyaya
 eklemek. Bu iş DI-MIGRATION'ın ana hedefinden bağımsız, ayrı bir tur.
 
+## Tur 20'de tamamlanan — sayaç düzeltmesi + ui/pages katmanında 2 yeni dosya (13/77 → 15/77)
+
+**Önce sayaç doğrulaması yapıldı (önceki turlardaki iddialarla gerçek durum
+karşılaştırıldı):**
+- `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages | wc -l` → **13**, Tur
+  19'un iddia ettiği "14/78" YANLIŞMIŞ.
+- `find js/ui/pages -name "*.js" | wc -l` → **77**, iddia edilen "78"
+  YANLIŞMIŞ.
+- Tur 12'de bahsedilen `mevduat/patches/01-gunluk-vadeli-is-gunu-refactor.js`
+  dosyası PROJEDE HİÇ YOK (`find` ile arandı, bulunamadı) — geçmiş bir
+  turda ya yanlış rapor edilmiş ya da sonradan silinmiş, ama sayaç hiç
+  düzeltilmemiş. Gerçek taşınan dosya sayısı hep 13'müş, 14 değil.
+- Bu düzeltmeden sonraki gerçek durum: 77 dosyadan 13'ü taşınmıştı, 64 kaldı
+  (Tur 19'un "64 kaldı" sonucu tesadüfen doğruydu, çünkü 78-14=64 ile
+  77-13=64 aynı çıkıyor — ama ARA ADIMLAR yanlıştı).
+
+**Bu turda taşınan 2 dosya** ("1 `@pages/*` importlu" 6 adaydan ikisi —
+hedef namespace'leri ZATEN container'da olan, yani hemen `inject()`'e
+çevrilebilecek olanlar seçildi; diğer 4'ün hedefi henüz taşınmamış):
+
+- `islemler/06-islem-kategori-secici.js` → `ui.pages.islemKategoriSecici`
+  (`core.state`, `ui.components.modalGenel` inject'e çevrildi). **Dairesel
+  bağımlılık teyit edildi:** `tanimlamalar/03-kategoriler.js` bu dosyayı
+  GERİ import ediyor (`renderIslemKategoriChips`) — Tur 15'in notuyla
+  uyumlu. `ui.pages.tanimlamalarKategoriler` (Tur 15'te zaten container'a
+  taşınmıştı) top-level `const`'a sarıldı ama SADECE bir event-listener
+  callback'i içinde (`bindIslemKategoriChipClicks`) kullanılıyor — modül
+  eval zamanında DEĞİL, tıklama anında okunuyor, bu yüzden TDZ/circular-
+  reentry riski yok (`inject()` zaten lazy Proxy döndürüyor).
+- `odeme/01-genel-yardimcilar.js` → `ui.pages.odemeGenelYardimcilar`
+  (`core.format`, `core.state`, `ui.pages.hesaplarGenelYardimcilar`,
+  `core.wrapRegistry` inject'e çevrildi). **Dairesellik kontrolü yapıldı,
+  YOK** — `hesaplar/01-genel-yardimcilar.js` bu dosyayı geri import
+  etmiyor (`grep` ile doğrulandı), tamamen güvenli, top-level const'lar
+  sorunsuz.
+
+**Bilinçli olarak ele alınmayan 4 aday** (hedefleri henüz container'a
+taşınmadığı için): `hesaplar/06-hesap-log.js` (→
+`hesaplar/04-hesap-liste-render.js`), `mevduat/04-mevduat-otomasyon.js`
+(→ bu turda taşınan `odeme/01-genel-yardimcilar.js`'e artık taşınabilir,
+bir SONRAKİ turda ele alınmalı), `odeme/patches/02-wizard-footer-modal-
+koru.js` (→ `kartlar/08-kart-odeme.js`), `odeme/patches/07-genel-ui-burst-
+refresh.js` (→ `islemler/03-islem-liste-render.js`).
+
+**Kritik doğrulama yapıldı:**
+- Çift-prefix taraması (`_coreState._coreState`, `_format._format`,
+  `_wrapRegistry._wrapRegistry`, `_hesaplarGenelYardimcilar.
+  _hesaplarGenelYardimcilar`, `_tanimlamalarKategoriler.
+  _tanimlamalarKategoriler`, `_modalGenel._modalGenel` vb.) her iki
+  dosyada da yapıldı — bulunmadı.
+- Bare (prefix'siz) `DB.`/`localDateStr(`/`call('odGetItem'` kalıntısı
+  taraması yapıldı — bulunmadı.
+- `node --check` ile TÜM proje dosya dosya (`find js -name "*.js"`)
+  taranıp doğrulandı — 0 hata.
+- İki dosyanın gerçek tüketicileri (`islemler/06-...` için 6 dosya,
+  `odeme/01-...` için 16 dosya) `grep -rl` ile listelendi, dual-mode
+  gereği BİLİNÇLİ OLARAK dokunulmadı — kendi turlarında `inject()`'e
+  çevrilecekler.
+
+Cache-bust: `?v=38` → `?v=39` (yalnızca `<link rel="stylesheet">` tag'leri —
+`<script type="module">` tag'leri artık hiç `?v=N` taşımıyor, bkz. daha
+önceki oturumdaki ayrı düzeltme; 32→32 sayımıyla doğrulandı).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **15** (önceki gerçek 13 + bu turdaki 2).
+
+**Metodolojik not — sayaç disiplini:** Bundan sonraki HER turun BAŞINDA,
+önceki turun iddia ettiği sayıyı KÖRÜ KÖRÜNE kabul etmek yerine
+`grep -rlE "provide\(...)"` ve `find ... | wc -l` ile YENİDEN ölçülmeli.
+Bu tur, en az iki geçmiş turdan (Tur 12 hayali dosya, ardılları düzeltmeden
+devralmış) kaynaklanan bir sayaç sürüklenmesini düzeltti.
+
+**Sıradaki tur için not:** 77 dosyadan 15'i tamamlandı, 62 kaldı. Şimdi
+"1 `@pages/*` importlu" kalan 4 aday (yukarıda listelendi) yeniden
+taranmalı — özellikle `mevduat/04-mevduat-otomasyon.js` artık taşınabilir
+durumda (hedefi bu turda container'a girdi). Onun ardından yine "2
+`@pages/*` importlu" katmana geçilebilir (`islemler/01-aciklama-onerileri.js`,
+`islemler/04-islem-filtre.js`, `krediler/05-kredi-tipi-tanimlama.js`,
+`odeme/05-hesap-secim-popup.js`, `odeme/patches/04-bakiye-hooklari.js`,
+`odeme/patches/06-bakiye-bilgi-kutusu-kaldirildi.js`,
+`tanimlamalar/04-tbk-faiz-oranlari.js`, `tanimlamalar/05-genel-oran-
+tablolari.js`, `tanimlamalar/06-para-birimi.js`, `tanimlamalar/08-subeler.js`,
+`tanimlamalar/09-urun-tipleri.js`, `tanimlamalar/10-resmi-tatiller.js`) —
+her biri taşınmadan ÖNCE kendi 2 `@pages/*` hedefinin container durumu ve
+olası dairesellik `grep -n "^import "` ile TEK TEK doğrulanmalı (Tur 15'te
+standartlaştırılan checklist).
+
+**ÖNEMLİ — bu ortamda yapılamayan doğrulama:** `islemler/06-islem-kategori-
+secici.js` işlem formundaki kategori chip seçici widget'ını, `odeme/01-
+genel-yardimcilar.js` ödeme durumu rozet/toggle render'ının TAMAMINI (kira,
+maaş, kart, kredi, KMH ödeme durumları) besliyor — teslimden önce
+yerelde/GitHub Pages'te test edilmeli: işlem ekleme formunda kategori
+seçici modalı (arama, chip tıklama, "kategorisiz bırak"), VE ödeme
+durumu rozetlerinin (✓ Ödendi / ◉ Bekliyor / ⚠ Gecikti vb.) kira, maaş,
+kart, kredi, KMH sayfalarının hepsinde doğru göründüğü.
+
+## Tur 21'de tamamlanan — ui/pages katmanında 2 yeni dosya (15/77 → 17/77)
+
+**Sayaç önce yeniden ölçüldü** (Tur 20'nin metodolojik dersine uygun):
+`grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages | wc -l` → 15,
+`find js/ui/pages -name "*.js" | wc -l` → 77. Tur 20'nin bıraktığı durumla
+BİREBİR eşleşti, sürüklenme yok.
+
+**Bu turda taşınan 2 dosya:**
+
+- `mevduat/04-mevduat-otomasyon.js` → `ui.pages.mevduatOtomasyon`
+  (`core.format`, `core.state`, `ui.pages.odemeGenelYardimcilar` [Tur
+  20'de taşınmıştı], `core.wrapRegistry` inject'e çevrildi — Tur 20'nin
+  notunda önerilen tam bu dosyaydı, hedefi bu turda hazır olduğu için
+  çevrildi). Dairesellik kontrolü yapıldı — YOK. `DB.mevduatlar = []`
+  satırı `_coreState.DB`'nin KENDİSİNE değil `.mevduatlar` PROPERTY'sine
+  atama yapıyor — kritik kural ihlali değil, doğrulandı.
+- `islemler/01-aciklama-onerileri.js` → `ui.pages.islemAciklamaOnerileri`
+  (`core.state`, `ui.pages.islemlerState`, `ui.pages.islemKategoriSecici`
+  [bu turdan önceki turda taşınmıştı], `ui.components.modalGenel`
+  inject'e çevrildi). Dairesellik kontrolü yapıldı — YOK (ne
+  `islemler/00-state.js` ne `06-islem-kategori-secici.js` bu dosyayı geri
+  import ediyor). `AC_ENGELLI_KELIMELER` hedefte `export var` ile mutable
+  ama `islemler/00-state.js` zaten kendi kendini namespace-self-import
+  pattern'iyle (`_self`) provide etmişti (Tur 11) — bu yüzden
+  `_islemlerState.AC_ENGELLI_KELIMELER` canlı binding, ekstra önlem
+  gerekmedi.
+
+**Bu turda ele alınmayan diğer adaylar** (hedefleri henüz container'da
+değil, kontrol edildi): `odeme/patches/02-wizard-footer-modal-koru.js` ve
+`odeme/patches/06-bakiye-bilgi-kutusu-kaldirildi.js` (ikisi de
+`kartlar/08-kart-odeme.js`'e bağımlı, o dosya hâlâ taşınmadı — `grep -c
+"provide("` ile 0 olduğu doğrulandı), `islemler/04-islem-filtre.js` (→
+`islemler/03-islem-liste-render.js`, taşınmadı), `odeme/05-hesap-secim-
+popup.js` (→ `odeme/08-popup-giris-noktalari.js`, taşınmadı), 5
+`tanimlamalar/*` dosyası (`04-tbk-faiz-oranlari.js` HARİÇ hepsi
+`tanimlamalar/02-ana-sayfa.js`'ye bağımlı — o dosya taşınmadı,
+`04-tbk-faiz-oranlari.js` ise `ozet.js` ve `tbk-detay.js`'ye bağımlı,
+ikisi de taşınmadı), `krediler/05-kredi-tipi-tanimlama.js` (→
+`tanimlamalar/02-ana-sayfa.js`, taşınmadı).
+
+**Kritik doğrulama yapıldı:**
+- Çift-prefix taraması (`_coreState._coreState`, `_format._format`,
+  `_wrapRegistry._wrapRegistry`, `_odemeGenelYardimcilar.
+  _odemeGenelYardimcilar`, `_islemlerState._islemlerState`,
+  `_islemKategoriSecici._islemKategoriSecici`, `_modalGenel._modalGenel`)
+  her iki dosyada da yapıldı — bulunmadı.
+- Bare (prefix'siz) `DB.`/`localDateStr(`/`call(`/`AC_ENGELLI_KELIMELER`/
+  `renderIslemKategoriButon(`/`openModal(`/`closeModal(` kalıntısı
+  taraması yapıldı — bulunmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: `?v=39` → `?v=40` (yalnızca `<link rel="stylesheet">` tag'leri;
+32→32 sayımıyla doğrulandı).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **17** (önceki gerçek 15 + bu turdaki 2).
+
+**Sıradaki tur için not:** 77 dosyadan 17'si tamamlandı, 60 kaldı. Şu an
+"2 `@pages/*` importlu" katmandaki geri kalan adayların HEPSİ ya
+`tanimlamalar/02-ana-sayfa.js`'ye ya da başka henüz taşınmamış büyük
+render dosyalarına (`islemler/03-islem-liste-render.js`,
+`kartlar/08-kart-odeme.js`, `odeme/08-popup-giris-noktalari.js`,
+`ozet.js`, `tbk-detay.js`) bağımlı — yani "düşük-bağımlılık" stratejisi
+tekrar tükendi (Tur 13'teki gibi). Bir sonraki tur için iki seçenek:
+(a) fan-in'i yüksek bir hedef sayfayı (örn. `tanimlamalar/02-ana-sayfa.js`
+— en az 4 `tanimlamalar/*` dosyasının beklediği hedef, kendi import
+sayısı önce `grep -n "^import "` ile ölçülmeli) doğrudan taşımak, böylece
+5-6 bekleyen dosya birden açılır; (b) `islemler/01-aciklama-onerileri.js`
+ve `islemler/06-islem-kategori-secici.js`'in kendi tüketicilerini
+`inject()`'e çevirme turuna geçmek (DI-MIGRATION madde 2, paralel seçenek
+olarak Tur 15'te de önerilmişti).
+
+**ÖNEMLİ — bu ortamda yapılamayan doğrulama:** `mevduat/04-mevduat-
+otomasyon.js` otomatik vade kontrolünü ve yaklaşan ödeme tespitini,
+`islemler/01-aciklama-onerileri.js` işlem açıklaması otomatik tamamlama
+modalını besliyor — teslimden önce yerelde/GitHub Pages'te test
+edilmeli: mevduat listesinde otomatik vade yenileme davranışı, işlem
+ekleme formunda açıklama öneri modalı (arama, geçmiş öneriler, "Kullan",
+Enter/Escape tuşları).
+
 
 
