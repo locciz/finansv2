@@ -7,6 +7,7 @@ import { hesapBakiyeDurumTespit, renderBakiyeIzlemePanel } from '@components/mob
 import { _restoreHesapFiltreFromDB, bindTblFiltreChips, tblBankaFiltrePopupBtnHtml, tblFiltreChipsHtml, tblFiltreClearHtml, tblSiralamaAyarla, tblSiralamaBarHtml, tblSiralamaOku, tblSiralamaUygula } from '@components/tablo-filtre-sirala.js';
 import { HESAP_DURUM_BADGE } from '@pages/hesaplar/00-state.js';
 import { bankaIkonObj, getBanka, getHesapTurBadge, getHesapTurDotIkon, getHesapTurLabel } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
+import { hydrateBankLogos } from '@domain/banka-logo-cache.js';
 import { getSubeAdFromKodlar } from '@pages/tanimlamalar/08-subeler.js';
 import { openNakitLogModal, openHesapLogModal } from '@pages/hesaplar/06-hesap-log.js';
 import { vadeliyeKoy, gunlukVadeliyeKoy } from '@pages/mevduat/02-mevduat-vadeliye-koyma.js';
@@ -160,6 +161,11 @@ export function renderHesaplar() {
   }).join('');
 
   const hesaplarTbodyEl = document.getElementById('hesaplar-tbody');
+  // Banka logolarını (varsa) localStorage cache'inden doldur; cache'te
+  // yoksa bir kez indirip cache'ler — böylece bu tablo her yeniden
+  // render edildiğinde aynı bankalar için tekrar tekrar ağ isteği
+  // atılmaz (bkz. banka-logo-cache.js).
+  hydrateBankLogos(hesaplarTbodyEl);
   // [ES module] onclick="navigator.clipboard...", "vadeliyeKoy(...)", "gunlukVadeliyeKoy(...)",
   // "openTransferModal(...)", "openHesapLogModal(...)", "openHesapModal(...)", "deleteHesap(...)"
   // kaldırıldı - gerçek addEventListener bağlanıyor.
