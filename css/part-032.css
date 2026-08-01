@@ -18,7 +18,11 @@
   gap:6px !important;
   line-height:1.1 !important;
 }
-:is(button,a,[onclick],[role="button"],input,select,textarea):focus-visible{
+/* [BUG FIX] input/select/textarea çıkarıldı — bunların zaten kendi
+   box-shadow tabanlı (altın renkli) focus ring'i var; bu kural onlara da
+   uygulanınca aynı input üzerinde birden fazla çerçeve efekti (altın
+   box-shadow + mavi outline) üst üste biniyordu. */
+:is(button,a,[onclick],[role="button"]):focus-visible{
   outline:2px solid rgba(79,110,247,.65) !important;
   outline-offset:2px !important;
 }

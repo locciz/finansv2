@@ -1,4 +1,4 @@
-import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { fmtAyYil, fmtCur, fmtDate, fmtHaftaGunu, localDateStr } from '@core/format.js';
 import { DB } from '@core/state.js';
 import { getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
 import { phSet } from '@components/modal-genel.js';
@@ -20,7 +20,7 @@ import { register } from '@core/wrap-registry.js';
 export function _ekstreBekleyenKartHtml(kart, key, extreDt, odemeDt, opts) {
   opts = opts || {};
   const [y, m] = key.split('-').map(Number);
-  const ayLabel = new Date(y, m - 1, 1).toLocaleDateString('tr-TR', {year:'numeric', month:'long'});
+  const ayLabel = fmtAyYil(new Date(y, m - 1, 1));
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const odemeDtMs = new Date(odemeDt + 'T00:00:00');
   const kalanGun = Math.round((odemeDtMs - today) / 86400000);
@@ -160,7 +160,7 @@ export function renderExtreKartOzetListesi() {
       ${avatarHtml}
       <div class="extre-kart-row-main">
         <div class="extre-kart-row-ad">${kart.ad}</div>
-        <div class="extre-kart-row-sub"><span class="extre-kart-row-bank-name">${banka||''}</span> · ${period.label || new Date(period.year,period.month,1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'})}</div>
+        <div class="extre-kart-row-sub"><span class="extre-kart-row-bank-name">${banka||''}</span> · ${period.label || fmtAyYil(new Date(period.year,period.month,1))}</div>
         ${barHtml}
       </div>
       <div class="extre-kart-row-right">
@@ -257,7 +257,7 @@ export function renderExtreler() {
     if(periodMap.has(key)) return key;
     const d = kartDonemHesapla(kart, y, m, tatilSet, key);
     if(!d) return null;
-    const label = new Date(y,m,1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
+    const label = fmtAyYil(new Date(y,m,1));
     periodMap.set(key, {
       key, label,
       extre: d.extre,
@@ -404,13 +404,13 @@ export function renderExtreler() {
           <div class="exk-box-icon">✂️</div>
           <div class="exk-box-label">Ekstre Kesim</div>
           <div class="exk-box-val">${fmtDate(p.extre)}</div>
-          <div class="exk-box-meta">${new Date(p.extre+'T00:00:00').toLocaleDateString('tr-TR',{weekday:'long'})}</div>
+          <div class="exk-box-meta">${fmtHaftaGunu(new Date(p.extre+'T00:00:00'))}</div>
         </div>
         <div class="exk-box${isPast?' exk-box-past':kalanGun<=3&&!isPast?' exk-box-urgent':' exk-box-ok'}">
           <div class="exk-box-icon">💳</div>
           <div class="exk-box-label">Son Ödeme</div>
           <div class="exk-box-val">${fmtDate(p.odeme)}</div>
-          <div class="exk-box-meta" style="color:${kalanColor}">${new Date(p.odeme+'T00:00:00').toLocaleDateString('tr-TR',{weekday:'long'})} · ${kalanStr}${p.ertelendi?` · <span style="color:var(--warn)">Eski: ${fmtDate(p.odemeVarsayilan)}</span>`:''}</div>
+          <div class="exk-box-meta" style="color:${kalanColor}">${fmtHaftaGunu(new Date(p.odeme+'T00:00:00'))} · ${kalanStr}${p.ertelendi?` · <span style="color:var(--warn)">Eski: ${fmtDate(p.odemeVarsayilan)}</span>`:''}</div>
         </div>
         ${asgariBox}
         ${kart.limit > 0 ? (()=>{ const kb = kartToplamBorcByPb[pb]||0; const kbPct = Math.min(100,Math.round(kb/kart.limit*100)); return `<div class="exk-box">

@@ -1,5 +1,5 @@
 import { applyMigrations, saveData } from '@core/app-core-base.js';
-import { localDateStr, uid } from '@core/format.js';
+import { fmtDate, fmtTime, localDateStr, uid } from '@core/format.js';
 import { DB, replaceObjectContents } from '@core/state.js';
 import { showConfirm, showToast } from '@components/modal-genel.js';
 import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
@@ -474,7 +474,7 @@ export function importTumVeriJSON(event) {
       return;
     }
 
-    const tarihBilgi = parsed.tarih ? `<div style="margin-bottom:8px">Yedek tarihi: <b>${new Date(parsed.tarih).toLocaleString('tr-TR')}</b></div>` : '';
+    const tarihBilgi = parsed.tarih ? `<div style="margin-bottom:8px">Yedek tarihi: <b>${fmtDate(new Date(parsed.tarih))} ${fmtTime(new Date(parsed.tarih))}</b></div>` : '';
     vyDoldurOnayModal(gelenData, tarihBilgi);
   };
   reader.onerror = () => showToast('Dosya okunamadı', 'error');
@@ -543,7 +543,7 @@ export function renderYerelYedekDurumu() {
   if(!raw) { row.style.display = 'none'; return; }
   try {
     const parsed = JSON.parse(raw);
-    info.innerHTML = `💾 Bu tarayıcıda yerel yedek bulundu: <b>${new Date(parsed.tarih).toLocaleString('tr-TR')}</b>`;
+    info.innerHTML = `💾 Bu tarayıcıda yerel yedek bulundu: <b>${fmtDate(new Date(parsed.tarih))} ${fmtTime(new Date(parsed.tarih))}</b>`;
     row.style.display = 'flex';
   } catch(e) { row.style.display = 'none'; }
 }

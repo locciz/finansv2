@@ -1,4 +1,4 @@
-import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { fmtAyYil, fmtCur, fmtDate, localDateStr } from '@core/format.js';
 import { DB } from '@core/state.js';
 import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
 import { phSet } from '@components/modal-genel.js';
@@ -52,7 +52,7 @@ export function renderIslemler() {
   const sortedMonths = Array.from(months).sort().reverse();
   fa.innerHTML = sortedMonths.map(m=>{
     const [y,mo]=m.split('-');
-    return `<option value="${m}">${new Date(y,mo-1,1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'})}</option>`;
+    return `<option value="${m}">${fmtAyYil(new Date(y,mo-1,1))}</option>`;
   }).join('');
   phSet(fa, 'Tüm Aylar', (curAy && months.has(curAy)) ? curAy : '', '— Henüz işlem yok —');
 

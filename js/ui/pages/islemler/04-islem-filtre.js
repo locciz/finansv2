@@ -1,4 +1,5 @@
 import { saveData } from '@core/app-core-base.js';
+import { fmtAyYil } from '@core/format.js';
 import { DB } from '@core/state.js';
 import { _islemFiltreRestored, renderIslemler, set_islemFiltreRestored } from '@pages/islemler/03-islem-liste-render.js';
 import { getKartRenk } from '@pages/kartlar/01-kart-data.js';
@@ -43,7 +44,7 @@ export function renderIslemFiltreBadge() {
     }
     if(fa && fa.value) {
       const [y,mo] = fa.value.split('-');
-      const label = new Date(y,mo-1,1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
+      const label = fmtAyYil(new Date(y,mo-1,1));
       pills.push({ key:'ay', label });
     }
     if(ft && ft.value) {
@@ -95,7 +96,7 @@ export function renderIslemFiltreGrids() {
     const opts = [`<button type="button" class="chip-select-opt${!fa.value?' active':''}" data-val="">Tüm Aylar</button>`]
       .concat(months.map(m=>{
         const [y,mo]=m.split('-');
-        const label = new Date(y,mo-1,1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
+        const label = fmtAyYil(new Date(y,mo-1,1));
         return `<button type="button" class="chip-select-opt${fa.value===m?' active':''}" data-val="${m}">${label}</button>`;
       }));
     ayGrid.innerHTML = opts.length > 1 ? opts.join('') : '<div class="info-box" style="margin:0">Henüz işlem yok</div>';

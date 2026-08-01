@@ -1,4 +1,4 @@
-import { fmt } from '@core/format.js';
+import { fmt, fmtDate, fmtTime } from '@core/format.js';
 import { DB } from '@core/state.js';
 // ============================================================
 // js/ui/pages/odeme/03-odeme-log.js
@@ -42,8 +42,7 @@ export function _odLogRender(tip, id, key) {
   el.innerHTML = `<div class="od-log-title">Geçmiş (${kayitlar.length})</div>` +
     kayitlar.map(k=>{
       const dt = new Date(k.ts);
-      const dtStr = dt.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
-                    dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+      const dtStr = fmtDate(dt) + ' ' + fmtTime(dt);
       const dot = durumDot[k.durum] || '#6b7280';
       return `<div class="od-log-item">
         <div class="od-log-dot" style="background:${dot}"></div>

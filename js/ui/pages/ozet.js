@@ -1,6 +1,6 @@
 import { saveData } from '@core/app-core-base.js';
 import { addDaysStr } from '@core/date-utils.js';
-import { fmt, fmtCur, fmtCurShort, fmtDate, localDateStr } from '@core/format.js';
+import { fmt, fmtAy, fmtCur, fmtCurShort, fmtDate, fmtTamTarih, localDateStr } from '@core/format.js';
 import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
 import { paraBirimiCevirGuvenli, pbRenkAl } from '@domain/doviz.js';
 import { _krediTaksitKalan, calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getBireyselKrediKalan, getBireyselKrediTaksitler, getExtreDonemi, getIslemTaksitliste, getKrediKalanBorc, getKrediTaksitler, getMaasOdemeGunu, getStopajOrani } from '@domain/hesaplamalar.js';
@@ -153,7 +153,7 @@ export function renderOzet() {
   // listeden düşüyordu. Diğer tüm tarihler zaten T00:00:00 ile oluşturulduğu için
   // today da gün başına sabitleniyor.
   const today = new Date(); today.setHours(0,0,0,0);
-  document.getElementById('ozet-date').textContent = today.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('ozet-date').textContent = fmtTamTarih(today);
 
   const todayStr = localDateStr(today);
   const year = today.getFullYear();
@@ -907,7 +907,7 @@ export function renderOzet() {
       return `<div class="ozet-od-row ozet-od-${aciliyet}${tamOdendi?' ozet-od-odendi':''}"${ankorMu?' data-od-bugun-ankor="1"':''}${gridStyle}>
         <div class="ozet-od-date">
           <div class="ozet-od-day">${u.tarih.getDate()}</div>
-          <div class="ozet-od-month">${u.tarih.toLocaleDateString('tr-TR',{month:'short'})}</div>
+          <div class="ozet-od-month">${fmtAy(u.tarih, {kisa:true})}</div>
         </div>
         <div class="ozet-od-icon">${turIconMap[u.tur]||'📌'}</div>
         ${bankaColHtml}

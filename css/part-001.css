@@ -5335,7 +5335,16 @@ html[data-theme="light"] .ortak-limit-hint { background: rgba(124,58,237,.05); b
 /* ── Smooth font rendering ── */
 * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 /* ── Focus-visible ring (accessibility + style) ── */
-:focus-visible { outline: 2px solid rgba(251,191,36,.55); outline-offset: 2px; border-radius: 6px; }
+/* [BUG FIX] input/select/textarea hariç tutuldu: bu elemanların zaten
+   kendi box-shadow tabanlı focus ring'i var (bkz. "input:focus, select:focus,
+   textarea:focus" kuralları). Bu evrensel :focus-visible kuralı onlara da
+   uygulanınca aynı anda hem outline hem box-shadow görünüyordu — tek bir
+   input'ta iki farklı çerçeve üst üste binmiş gibi bir görünüme yol
+   açıyordu. Form elemanları için outline'ı burada devre dışı bırakıyoruz,
+   diğer tüm etkileşimli elemanlar (buton, link, kart vb.) eskisi gibi
+   outline ring'i almaya devam ediyor. */
+:focus-visible:not(input):not(select):not(textarea) { outline: 2px solid rgba(251,191,36,.55); outline-offset: 2px; border-radius: 6px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
 button:focus-visible, a:focus-visible { outline-offset: 3px; }
 /* ── Empty state styling ── */
 .empty-state { justify-content: center; }
@@ -6890,7 +6899,9 @@ html[data-theme="light"] .card-title::before {
   100% { transform: translateX(100%); }
 }
 /* ── 27. GLOBAL — Daha iyi focus-visible ─────────────────── */
-:focus-visible {
+/* [BUG FIX] Aynı sebeple (bkz. yukarıdaki ilk :focus-visible kuralındaki not)
+   input/select/textarea burada da hariç tutuldu — çift çerçeve sorunu. */
+:focus-visible:not(input):not(select):not(textarea) {
   outline: 2px solid rgba(251,191,36,.55);
   outline-offset: 2px;
   border-radius: 6px;

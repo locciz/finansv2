@@ -1,4 +1,4 @@
-import { fmt, fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { fmt, fmtAyYil, fmtCur, fmtDate, localDateStr } from '@core/format.js';
 import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
 import { ODEME_DURUM, HESAP_TUR, DURUM } from '@core/constants.js';
 import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
@@ -37,7 +37,7 @@ export function odAcPopupKart(kartId, pb, donemKey, toplamBorc, kalanBorc, odeme
   document.getElementById('od-modal-icon').textContent = '💳';
   document.getElementById('od-modal-icon').style.background = 'rgba(79,142,247,.15)';
   const [dy, dm] = String(donemKey).split('-').map(Number);
-  const donemLabel = (dy && dm) ? new Date(dy, dm-1, 1).toLocaleDateString('tr-TR',{year:'numeric',month:'long'}) : '';
+  const donemLabel = (dy && dm) ? fmtAyYil(new Date(dy, dm-1, 1)) : '';
   document.getElementById('od-modal-label').textContent = donemLabel ? `${kart.ad} · ${donemLabel}` : kart.ad;
   document.getElementById('od-modal-sub').textContent   = 'Kart Ödemesi';
   document.getElementById('od-mi-tarih').textContent    = odemeTarihi ? fmtDate(odemeTarihi) : '—';

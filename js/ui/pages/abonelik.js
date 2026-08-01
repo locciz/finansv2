@@ -1,7 +1,7 @@
 import { saveData } from '@core/app-core-base.js';
 import { tblFiltreKaydet, tblFiltreMultiToggle, tblFiltreOku, tblFiltreOkuMulti } from '@core/app-core.js';
 import { isIsBgunu } from '@core/date-utils.js';
-import { fmt, fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
+import { fmt, fmtAy, fmtCur, fmtDate, localDateStr, uid } from '@core/format.js';
 import { ALL_CURRENCIES, DB, defaultCurrency } from '@core/state.js';
 import { buildCurrencyOptions } from '@domain/doviz.js';
 import { _bakiyeDelta, _sync } from '@domain/hesap-entegrasyon-motoru.js';
@@ -969,7 +969,7 @@ export function renderOzetGrafikler() {
   const months6 = [];
   for(let i=5; i>=0; i--) {
     const d = new Date(year, month-i, 1);
-    months6.push({ y: d.getFullYear(), m: d.getMonth(), label: d.toLocaleDateString('tr-TR',{month:'short'}) });
+    months6.push({ y: d.getFullYear(), m: d.getMonth(), label: fmtAy(d, {kisa:true}) });
   }
 
   function ayGelirGider(y, m) {

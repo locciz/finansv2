@@ -138,6 +138,65 @@ export function applyFormatToken(pattern, dt) {
     .replace('d', d);
 }
 
+// ── Ay/yıl ve haftagünü etiketleri (global tarih formatına duyarlı) ─
+// [BUG FIX] Uygulama genelinde (kart/ekstre/işlem/ödeme/kredi/özet/abonelik
+// sayfalarında) dönem etiketleri ("Ocak 2025" vb.) ve haftagünü metinleri
+// önceden sabit `toLocaleDateString('tr-TR', ...)` ile üretiliyordu. Bu,
+// Görüntü Ayarları'ndaki kullanıcı tarih formatını (gün/ay/yıl sırası) yok
+// sayıyordu. Aşağıdaki yardımcılar FORMAT_CONFIG.tarihFormat içindeki
+// yyyy/MM/dd token sırasına bakarak aynı sırayı ay-yıl ve haftagünü
+// etiketlerine de uygular; böylece tüm bu etiketler tek bir global
+// ayardan besleniyor.
+const AYLAR_UZUN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const AYLAR_KISA = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+const GUNLER_UZUN = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+
+function _tarihFormatPattern() {
+  return getCoreState().FORMAT_CONFIG.tarihFormat || 'dd/MM/yyyy';
+}
+
+// Sadece ay adı (yılsız). opts.kisa: true ise "Ağu", false ise "Ağustos"
+export function fmtAy(dt, opts) {
+  return (opts && opts.kisa ? AYLAR_KISA : AYLAR_UZUN)[dt.getMonth()];
+}
+
+// dt: Date nesnesi (veya {getFullYear,getMonth} sağlayan herhangi bir obje)
+// opts.kisaAy: true ise "Oca 2025", false ise "Ocak 2025" (varsayılan)
+// opts.kisaYil: true ise yılın son 2 hanesi
+export function fmtAyYil(dt, opts) {
+  opts = opts || {};
+  const pattern = _tarihFormatPattern();
+  const y = dt.getFullYear();
+  const yStr = opts.kisaYil ? String(y).slice(-2) : String(y);
+  const mStr = (opts.kisaAy ? AYLAR_KISA : AYLAR_UZUN)[dt.getMonth()];
+  // Pattern içinde yyyy/yy token'ı MM token'ından önce geçiyorsa
+  // ("yyyy-MM-dd" gibi) yıl önce, aksi halde ("dd/MM/yyyy" gibi) ay önce.
+  const yIdx = pattern.search(/y{2,4}/);
+  const mIdx = pattern.indexOf('MM') !== -1 ? pattern.indexOf('MM') : pattern.indexOf('M');
+  const yilOnce = yIdx !== -1 && mIdx !== -1 && yIdx < mIdx;
+  return yilOnce ? `${yStr} ${mStr}` : `${mStr} ${yStr}`;
+}
+
+// dt: Date nesnesi. opts.kisa: true ise "Paz", false ise "Pazar" (varsayılan)
+export function fmtHaftaGunu(dt, opts) {
+  const kisaMap = { 'Pazar':'Paz','Pazartesi':'Pzt','Salı':'Sal','Çarşamba':'Çar','Perşembe':'Per','Cuma':'Cum','Cumartesi':'Cmt' };
+  const uzun = GUNLER_UZUN[dt.getDay()];
+  return (opts && opts.kisa) ? kisaMap[uzun] : uzun;
+}
+
+// Tam tarih: "Cuma, 1 Ağustos 2026" tarzı, global gün/ay/yıl sırasına duyarlı
+export function fmtTamTarih(dt) {
+  const pattern = _tarihFormatPattern();
+  const y = String(dt.getFullYear());
+  const gun = String(dt.getDate());
+  const ay = AYLAR_UZUN[dt.getMonth()];
+  const yIdx = pattern.search(/y{2,4}/);
+  const dIdx = pattern.search(/d{1,2}/);
+  const gunOnce = dIdx !== -1 && (yIdx === -1 || dIdx < yIdx);
+  const govde = gunOnce ? `${gun} ${ay} ${y}` : `${y} ${ay} ${gun}`;
+  return `${fmtHaftaGunu(dt)}, ${govde}`;
+}
+
 export function applyTimeToken(pattern, dt) {
   const H = dt.getHours();
   const h = H % 12 || 12;
@@ -386,6 +445,7 @@ provide('core.format', {
   syncSaatAyracFromFormat, syncTarihAyrac, syncSaatAyrac, setTarihFormat,
   setSaatFormat, updateGoruntuPreview, saveGoruntuAyarlari,
   autoSaveGoruntuAyarlari, resetGoruntuAyarlari, updateFmtCurOverride,
+  fmtAy, fmtAyYil, fmtHaftaGunu, fmtTamTarih,
   get _gaAutoSaveTimer() { return _gaAutoSaveTimer; },
 });
 

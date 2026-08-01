@@ -10,7 +10,10 @@ img, svg, video, canvas { max-width: 100%; }
 input, select, textarea, button { font: inherit; max-width: 100%; }
 input, select, textarea { min-width: 0 !important; }
 button, .btn, .filter-chip, .sort-chip, .tab-btn, .nav-btn, .mob-nav-btn, .btn-act, [role="button"] { touch-action: manipulation; }
-:is(button, .btn, .filter-chip, .sort-chip, .tab-btn, .btn-act, input, select, textarea):focus-visible {
+/* [BUG FIX] input/select/textarea çıkarıldı — aynı sebeple (bkz. part-032.css'teki
+   aynı düzeltme notu): form alanlarının kendi box-shadow tabanlı focus ring'i
+   var, bu kural onlara da eklenince çift/üçlü çerçeve efekti oluşuyordu. */
+:is(button, .btn, .filter-chip, .sort-chip, .tab-btn, .btn-act):focus-visible {
   outline: 2px solid rgba(79,110,247,.72) !important;
   outline-offset: 2px !important;
   box-shadow: 0 0 0 4px rgba(79,110,247,.12) !important;

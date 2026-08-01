@@ -174,7 +174,7 @@ export function _mevOzetDoldur() {
       ${satir('Hesap', `<span style="font-family:inherit">${hesapBilgi}</span>`)}
       ${satir('Para Birimi', cur)}
       ${satir('Tutar', fmtCur(tutar, cur))}
-      ${satir('Başlangıç', bas || '—')}
+      ${satir('Başlangıç', bas ? fmtDate(new Date(bas+'T00:00:00')) : '—')}
       ${satir('Vade', vade + ' gün')}
       ${valor ? satir('Valör', valor + ' gün') : ''}
       ${satir('Vade Sonu', bitisTxt)}

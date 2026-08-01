@@ -1,4 +1,4 @@
-import { fmt, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
+import { fmt, fmtAyYil, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
 import { FORMAT_CONFIG } from '@core/state.js';
 import { calcTaksit } from '@domain/hesaplamalar.js';
 import { setDateInputValue, setMoneyInput } from '@components/money-input.js';
@@ -118,7 +118,7 @@ export function resetTekTaksit(btn, tip, idx, origTarih, origTutar) {
   if(tarihInput) { setDateInputValue(tarihInput, origTarih); }
   if(donemEl && origTarih) {
     const d = new Date(origTarih + 'T00:00:00');
-    donemEl.textContent = d.toLocaleDateString('tr-TR', {month:'short', year:'numeric'});
+    donemEl.textContent = fmtAyYil(d, {kisaAy:true});
   }
   if(tutarInput) {
     tutarInput.value = fmtMoneyCustom(origTutar, 2, FORMAT_CONFIG.ondalikAyrac||',', FORMAT_CONFIG.binlikAyrac??'.');

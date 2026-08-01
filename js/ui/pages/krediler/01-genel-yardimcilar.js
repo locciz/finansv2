@@ -1,5 +1,5 @@
 import { isIsBgunu, nextIsBgunu } from '@core/date-utils.js';
-import { fmt, fmtDate, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
+import { fmt, fmtAyYil, fmtDate, fmtMoneyCustom, localDateStr, parseTutarStr } from '@core/format.js';
 import { DB, FORMAT_CONFIG } from '@core/state.js';
 import { _krediMetrik, _krediTaksitOdendiMi, getBireyselKrediTaksitler, getKrediTaksitler } from '@domain/hesaplamalar.js';
 import { bindMoneyInputs } from '@components/money-input.js';
@@ -140,7 +140,7 @@ export function _taksitPlaniRowsRender(tip, container, rowsEl, taksitData, aylik
       <div class="tp-no">${i+1}</div>
       <input type="date" class="tp-input" value="${t.tarih}" data-date-compact="1"
         data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tarih" data-oc-handler="onTaksitChange" data-oc-event="change">
-      <div class="tp-donem" data-taksit-idx="${i}" data-taksit-tip="${tip}">${t.tarih ? (()=>{ const d=new Date(t.tarih+'T00:00:00'); return d.toLocaleDateString('tr-TR',{month:'short',year:'numeric'}); })() : '—'}</div>
+      <div class="tp-donem" data-taksit-idx="${i}" data-taksit-tip="${tip}">${t.tarih ? (()=>{ const d=new Date(t.tarih+'T00:00:00'); return fmtAyYil(d, {kisaAy:true}); })() : '—'}</div>
       <input type="text" inputmode="decimal" id="${tip}-tak-tutar-${i}" class="tp-input tp-input-tutar money-input${isModified ? ' tp-modified' : ''}" value="${tutarDisplay}" data-decimals="2"
         data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-field="tutar" data-oc-handler="onTaksitChange" data-oc-event="input" data-orig="${aylikStr}">
       <button class="tp-del tp-reset-btn" title="Bu taksiti standarda sıfırla" data-taksit-tip="${tip}" data-taksit-idx="${i}" data-taksit-tarih="${t.tarih}" data-orig="${aylikStr}">↺</button>
@@ -180,7 +180,7 @@ export function onTaksitChange(el, tip, idx, field) {
     const donemEl = row ? row.querySelector('.tp-donem') : null;
     if(donemEl && el.value) {
       const d = new Date(el.value + 'T00:00:00');
-      donemEl.textContent = d.toLocaleDateString('tr-TR', {month:'short', year:'numeric'});
+      donemEl.textContent = fmtAyYil(d, {kisaAy:true});
     } else if(donemEl) {
       donemEl.textContent = '—';
     }
@@ -267,7 +267,7 @@ export function _renderKrediKart(kr, tip, todayStr) {
     const buAy   = t.tarih.slice(0,7) === todayStr.slice(0,7);
     const rowCls  = odendiMi ? 'gecmis' : gecikmis ? 'gecikmis' : buAy ? 'bu-ay' : '';
     const noCls   = odendiMi ? 'gecmis-no' : gecikmis ? 'gecikmis-no' : buAy ? 'bu-ay-no' : 'gelecek-no';
-    const donem   = (()=>{ const d=new Date(t.tarih+'T00:00:00'); return d.toLocaleDateString('tr-TR',{month:'short',year:'2-digit'}); })();
+    const donem   = (()=>{ const d=new Date(t.tarih+'T00:00:00'); return fmtAyYil(d, {kisaAy:true, kisaYil:true}); })();
     // Durum her zaman değiştirilebilir — vadesi geçmiş taksit de dahil (aksi hâlde
     // "ödendi" işaretlemek isteyen kullanıcı tıklayacak bir şey bulamıyordu).
     const odemeBtn = _krediOdemeBtn(tip==='kmh'?'kmh':'kredi', kr, t, todayStr, baslik+' #'+t.no);

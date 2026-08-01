@@ -1,4 +1,4 @@
-import { fmtCur, fmtDate, localDateStr } from '@core/format.js';
+import { fmtAyYil, fmtCur, fmtDate, localDateStr } from '@core/format.js';
 import { _currentHashPage, _currentHashParams, _pushHashState } from '@core/init.js';
 import { DB, defaultCurrency } from '@core/state.js';
 import { calcExtreTarihiOdemeModuyla, calcOdemeTarihi, getExtreDonemi, getIslemTaksitliste } from '@domain/hesaplamalar.js';
@@ -179,7 +179,11 @@ export function kdRenderExtreler() {
     const extreDt = calcExtreTarihiOdemeModuyla(kart, y, m, tatilSet);
     if (!extreDt) return null;
     const odemeDt = calcOdemeTarihi(extreDt, kart.odemeSure, kart.odemeGunTip, tatilSet);
-    const label = new Date(y, m, 1).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long' });
+    // [BUG FIX] Önceden sabit 'tr-TR' locale'i ile toLocaleDateString
+    // kullanılıyordu; bu, Görüntü Ayarları'ndaki kullanıcı tarih formatını
+    // yok sayıyordu. Artık merkezi fmtAyYil() ile FORMAT_CONFIG.tarihFormat'a
+    // uygun ay-yıl sırası kullanılıyor (uygulama genelinde ortak).
+    const label = fmtAyYil(new Date(y, m, 1));
     // Ertelenmiş dönemlerde son ödeme tarihi kullanıcının belirlediği yeni tarihe göre yansır.
     const odemeEfektif = kartOdemeTarihiEfektif(kart, key, localDateStr(odemeDt));
     periodMap.set(key, {

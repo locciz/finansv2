@@ -1,5 +1,8 @@
 import { inject } from '@core/container.js';
 const _coreState = inject('core.state');
+const _coreFormat = inject('core.format');
+const fmtDate = (...a) => _coreFormat.fmtDate(...a);
+const fmtTime = (...a) => _coreFormat.fmtTime(...a);
 const _kurServisleri = inject('services.kurServisleri');
 const _wrapRegistry = inject('core.wrapRegistry');
 // core.appCoreBase container'da kayıtlı (Tur 4) — bu turda çevrildi.
@@ -52,7 +55,7 @@ export function gDriveGeriYukleYerelYedek() {
   if(!raw) { showToast('Yerel yedek bulunamadı', 'error'); return; }
   let parsed;
   try { parsed = JSON.parse(raw); } catch(e) { showToast('Yerel yedek okunamadı', 'error'); return; }
-  const ustBilgi = `<div style="margin-bottom:8px">Yerel yedek tarihi: <b>${new Date(parsed.tarih).toLocaleString('tr-TR')}</b></div>`;
+  const ustBilgi = `<div style="margin-bottom:8px">Yerel yedek tarihi: <b>${fmtDate(new Date(parsed.tarih))} ${fmtTime(new Date(parsed.tarih))}</b></div>`;
   vyDoldurOnayModal(parsed.data, ustBilgi);
 }
 
@@ -112,7 +115,7 @@ export async function gDriveOnizleRevizyon(revisionId) {
     });
     const doluAlanlar = dolular.filter(f=>f.count>0);
     const rev = _gDriveRevizyonListesi.find(r=>r.id===revisionId);
-    const tarih = rev ? new Date(rev.modifiedTime).toLocaleString('tr-TR', {dateStyle:'medium', timeStyle:'short'}) : '';
+    const tarih = rev ? (fmtDate(new Date(rev.modifiedTime)) + ' ' + fmtTime(new Date(rev.modifiedTime))) : '';
 
     onizleme.innerHTML = `
       <div style="margin-bottom:12px">
@@ -482,7 +485,7 @@ export async function gDriveSyncNow() {
 export function _gDriveRenderRevizyonListesi() {
   const list = document.getElementById('drive-revizyon-list');
   list.innerHTML = _gDriveRevizyonListesi.map((r,i) => {
-    const tarih = new Date(r.modifiedTime).toLocaleString('tr-TR', {dateStyle:'medium', timeStyle:'short'});
+    const tarih = fmtDate(new Date(r.modifiedTime)) + ' ' + fmtTime(new Date(r.modifiedTime));
     const kb = r.size ? Math.round(r.size/1024) + ' KB' : '';
     const guncelMi = i === 0;
     const seciliMi = r.id === _gDriveSeciliRevizyonId;
