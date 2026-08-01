@@ -13,7 +13,6 @@ const _kisiler = inject('ui.components.kisiler');
 const _modalGenel = inject('ui.components.modalGenel');
 import { populateEldenKisiSelect } from '@pages/elden.js';
 import { bankaLogoByKod } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
-import { hydrateBankLogos } from '@domain/banka-logo-cache.js';
 import { getSubeAdFromKodlar } from '@pages/tanimlamalar/08-subeler.js';
 import { _pickBankaLogo } from '@pages/tanimlamalar/07-bankalar.js';
 // ============================================================
@@ -47,8 +46,6 @@ export function _renderBankaLogoPicker(selectedSvg) {
   picker.querySelectorAll('.altyapi-logo-picker-item').forEach(item => {
     item.addEventListener('click', () => _pickBankaLogo(Number(item.getAttribute('data-idx'))));
   });
-  // Banka logolarını cache'ten doldur (bkz. banka-logo-cache.js).
-  hydrateBankLogos(picker);
 }
 
 export function _selectBankaLogo(svg) {

@@ -9,7 +9,6 @@ import { kartAltyapiRenk } from '@pages/kartlar/01-kart-data.js';
 import { deleteKrediTip, openKrediTipModal } from '@pages/krediler/05-kredi-tipi-tanimlama.js';
 import { krediTipiRenk } from '@pages/krediler/01-genel-yardimcilar.js';
 import { _renkKolonHtml, _tanimBadgeHtml, bankaIkonObj, paraBirimiRenk, urunTipiRenk } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
-import { hydrateBankLogos } from '@domain/banka-logo-cache.js';
 import { deleteParaBirimi, editParaBirimi, setGosterimParaBirimi } from '@pages/tanimlamalar/06-para-birimi.js';
 import { deleteBanka, openBankaModal } from '@pages/tanimlamalar/07-bankalar.js';
 import { openSubeModal } from '@pages/tanimlamalar/08-subeler.js';
@@ -51,9 +50,6 @@ export function renderTanimlamalar() {
       <button class="btn btn-danger btn-sm btn-act tnm-banka-delete-btn" data-id="${b.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button>
     </td>
   </tr>`;}).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:16px">Kayıt yok</td></tr>';
-  // Banka logolarını cache'ten doldur (bkz. banka-logo-cache.js) — tekrar
-  // tekrar ağ isteği atılmasını önler.
-  hydrateBankLogos(document.getElementById('banka-tbody'));
 
   document.getElementById('urun-tip-tbody').innerHTML = (DB.urunTipler||[]).map(t=>`<tr>
     <td>${t.ad}</td>
