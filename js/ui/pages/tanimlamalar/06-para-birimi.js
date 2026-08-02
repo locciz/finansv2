@@ -3,14 +3,18 @@ import { fmtCur } from '@core/format.js';
 import { renderPage } from '@core/render-core.js';
 import { ALL_CURRENCIES, CURRENCY_CONFIG, DB, defaultCurrency, replaceObjectContents, setDefaultCurrency } from '@core/state.js';
 import { populateCurrencySelects, rebuildAllCurrencies } from '@domain/doviz.js';
-import { inject } from '@core/container.js';
+import { inject, provide } from '@core/container.js';
 const _kurServisleri = inject('services.kurServisleri');
-import { showConfirm, showToast, validateRequiredFields } from '@components/modal-genel.js';
-import { updateMoneyWrapSymbols } from '@components/money-input.js';
-import { swizUpdateStepIndicator } from '@components/step-wizard.js';
-import { DEFAULT_CURRENCY_CONFIG, PB_STEP_COUNT, _pbCurrentStep, editParaBirimiKod, setEditParaBirimiKod, set_pbCurrentStep } from '@pages/tanimlamalar/00-state.js';
-import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
-import { closeModal, openModal } from '@components/modal-genel.js';
+const _modalGenel = inject('ui.components.modalGenel');
+const _moneyInput = inject('ui.components.moneyInput');
+const _stepWizard = inject('ui.components.stepWizard');
+const _tanimlamalarState = inject('ui.pages.tanimlamalarState');
+// DAİRESEL: tanimlamalar/02-ana-sayfa.js bu dosyayı da import ediyor
+// (deleteParaBirimi/editParaBirimi/setGosterimParaBirimi). renderTanimlamalar()
+// SADECE fonksiyon gövdelerinde (setGosterimParaBirimi, saveParaBirimi,
+// deleteParaBirimi) çağrılıyor, modül eval zamanında değil — bu yüzden
+// top-level const güvenli (Tur 15/20/21/22 deseniyle uyumlu).
+const _tanimlamalarAnaSayfa = inject('ui.pages.tanimlamalarAnaSayfa');
 import { register } from '@core/wrap-registry.js';
 // ============================================================
 // js/ui/pages/tanimlamalar/06-para-birimi.js
@@ -38,7 +42,7 @@ export function loadCurrencyConfig() {
     });
   }
   // Önce varsayılanları yükle
-  replaceObjectContents(CURRENCY_CONFIG, {...DEFAULT_CURRENCY_CONFIG});
+  replaceObjectContents(CURRENCY_CONFIG, {..._tanimlamalarState.DEFAULT_CURRENCY_CONFIG});
   // DB'deki özel para birimlerini ekle/override
   if(DB.paraBirimleri) {
     DB.paraBirimleri.forEach(pb => {
@@ -91,7 +95,7 @@ export function setParaBirimi(code) {
   }
   updateParaBirimiPreview(code);
   // money-wrap sembol ve kod güncelle
-  updateMoneyWrapSymbols(code);
+  _moneyInput.updateMoneyWrapSymbols(code);
   const activePage = document.querySelector('.page.active');
   if(activePage) renderPage(activePage.id.replace('page-',''));
 }
@@ -118,7 +122,7 @@ export function selectParaBirimi(code) {
 }
 
 export function openParaBirimiModal(kod=null) {
-  setEditParaBirimiKod(kod);
+  _tanimlamalarState.setEditParaBirimiKod(kod);
   pbStepGoto(1);
   _kurServisleri.set_pbTestJsonCache({});
   const title = document.getElementById('para-birimi-modal-title');
@@ -171,39 +175,39 @@ export function openParaBirimiModal(kod=null) {
     setBase({ symbol:'', ad:'', flag:'', icon:'', position:'prefix', decimals:2, locale:'tr-TR' }, { tip:'manuel' });
   }
   _kurServisleri.pbKurTipDegisti();
-  openModal('modal-para-birimi');
+  _modalGenel.openModal('modal-para-birimi');
 }
 
 export function setGosterimParaBirimi(code) {
   setParaBirimi(code);
-  renderTanimlamalar();
-  showToast(code + ' gösterim para birimi olarak ayarlandı');
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
+  _modalGenel.showToast(code + ' gösterim para birimi olarak ayarlandı');
 }
 
 export function editParaBirimi(kod) { openParaBirimiModal(kod); }
 
 export function pbStepGoto(step) {
-  step = Math.max(1, Math.min(PB_STEP_COUNT, step));
-  set_pbCurrentStep(step);
+  step = Math.max(1, Math.min(_tanimlamalarState.PB_STEP_COUNT, step));
+  _tanimlamalarState.set_pbCurrentStep(step);
   const modal = document.getElementById('modal-para-birimi');
   if (!modal) return;
   // ---- Saf DOM güncelleme: js/ui/components/step-wizard.js:swizUpdateStepIndicator ----
-  swizUpdateStepIndicator(modal, step);
+  _stepWizard.swizUpdateStepIndicator(modal, step);
   const backBtn = document.getElementById('pb-step-back-btn');
   const nextBtn = document.getElementById('pb-step-next-btn');
   const saveBtn = document.getElementById('pb-step-save-btn');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
-  if (nextBtn) nextBtn.style.display = step < PB_STEP_COUNT ? '' : 'none';
-  if (saveBtn) saveBtn.style.display = step === PB_STEP_COUNT ? '' : 'none';
+  if (nextBtn) nextBtn.style.display = step < _tanimlamalarState.PB_STEP_COUNT ? '' : 'none';
+  if (saveBtn) saveBtn.style.display = step === _tanimlamalarState.PB_STEP_COUNT ? '' : 'none';
   const body = modal.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
 }
 register('wizardStepGoto:modal-para-birimi', pbStepGoto);
-register('wizardCurrentStep:modal-para-birimi', () => _pbCurrentStep);
+register('wizardCurrentStep:modal-para-birimi', () => _tanimlamalarState._pbCurrentStep);
 
 export function _pbValidateStep(step) {
   if (step === 1) {
-    if (!validateRequiredFields([
+    if (!_modalGenel.validateRequiredFields([
       {id:'pb-kod',    msg:'Para birimi kodu zorunlu (örn. EUR)'},
       {id:'pb-sembol', msg:'Sembol zorunlu (örn. €)'},
       {id:'pb-ad',     msg:'Para birimi adı zorunlu'}
@@ -214,23 +218,23 @@ export function _pbValidateStep(step) {
 }
 
 export function pbStepNext() {
-  if (!_pbValidateStep(_pbCurrentStep)) return;
-  pbStepGoto(_pbCurrentStep + 1);
+  if (!_pbValidateStep(_tanimlamalarState._pbCurrentStep)) return;
+  pbStepGoto(_tanimlamalarState._pbCurrentStep + 1);
 }
 
 register('wizardStepNext:modal-para-birimi', pbStepNext);
 
 
 export function pbStepBack() {
-  pbStepGoto(_pbCurrentStep - 1);
+  pbStepGoto(_tanimlamalarState._pbCurrentStep - 1);
 }
 
 export function saveParaBirimi() {
   const kod = document.getElementById('pb-kod').value.trim().toUpperCase();
   const sembol = document.getElementById('pb-sembol').value.trim();
   const ad = document.getElementById('pb-ad').value.trim();
-  if(!kod || !sembol || !ad) { showToast('Kod, sembol ve ad zorunlu', 'error'); return; }
-  if(!editParaBirimiKod && CURRENCY_CONFIG[kod]) { showToast('Bu kod zaten mevcut, düzenlemek için ✏️ butonunu kullanın', 'error'); return; }
+  if(!kod || !sembol || !ad) { _modalGenel.showToast('Kod, sembol ve ad zorunlu', 'error'); return; }
+  if(!_tanimlamalarState.editParaBirimiKod && CURRENCY_CONFIG[kod]) { _modalGenel.showToast('Bu kod zaten mevcut, düzenlemek için ✏️ butonunu kullanın', 'error'); return; }
   if(!DB.paraBirimleri) DB.paraBirimleri = [];
   const existing = DB.paraBirimleri.findIndex(pb=>pb.kod===kod);
 
@@ -242,7 +246,7 @@ export function saveParaBirimi() {
     kurKaynagi = { tip: 'tcmb', tcmbKodu: tcmbKoduGirilen || kod };
   } else if (kurTip === 'ozel') {
     const gecerliKaynaklar = _kurServisleri._pbKaynaklar.filter(k => k.url && k.url.trim());
-    if (!gecerliKaynaklar.length) { showToast('En az bir URL giriniz', 'error'); return; }
+    if (!gecerliKaynaklar.length) { _modalGenel.showToast('En az bir URL giriniz', 'error'); return; }
     kurKaynagi = { tip: 'ozel', kaynaklar: gecerliKaynaklar };
   } else {
     kurKaynagi = { tip: 'manuel' };
@@ -267,19 +271,37 @@ export function saveParaBirimi() {
   saveData();
   loadCurrencyConfig();
   populateCurrencySelects();
-  closeModal('modal-para-birimi');
-  renderTanimlamalar();
-  showToast('Para birimi kaydedildi');
+  _modalGenel.closeModal('modal-para-birimi');
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
+  _modalGenel.showToast('Para birimi kaydedildi');
 }
 
 export function deleteParaBirimi(kod) {
-  showConfirm(`"${kod}" para birimini silmek istiyor musunuz?`, () => {
+  _modalGenel.showConfirm(`"${kod}" para birimini silmek istiyor musunuz?`, () => {
     DB.paraBirimleri = (DB.paraBirimleri||[]).filter(pb=>pb.kod!==kod);
     saveData();
     loadCurrencyConfig();
     populateCurrencySelects();
-    renderTanimlamalar();
-    showToast('Para birimi silindi');
+    _tanimlamalarAnaSayfa.renderTanimlamalar();
+    _modalGenel.showToast('Para birimi silindi');
   });
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.tanimlamalarParaBirimi', {
+  loadCurrencyConfig,
+  updateParaBirimiPreview,
+  setParaBirimi,
+  renderParaBirimiGrid,
+  selectParaBirimi,
+  openParaBirimiModal,
+  setGosterimParaBirimi,
+  editParaBirimi,
+  pbStepGoto,
+  _pbValidateStep,
+  pbStepNext,
+  pbStepBack,
+  saveParaBirimi,
+  deleteParaBirimi,
+});
 

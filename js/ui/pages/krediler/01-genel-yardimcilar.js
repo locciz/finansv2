@@ -293,8 +293,8 @@ export function _renderKrediKart(kr, tip, todayStr) {
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="kredi-kart-badge" style="background:${statusBg};color:${statusColor}">${statusTxt}</span>
-        <button class="btn btn-ghost btn-sm btn-act kredi-kart-edit-btn" data-tip="${tip}" data-id="${kr.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button>
-        <button class="btn btn-danger btn-sm btn-act kredi-kart-delete-btn" data-tip="${tip}" data-id="${kr.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button>
+        <button class="btn btn-ghost btn-sm btn-act kredi-kart-edit-btn" data-kredi-tip="${tip}" data-id="${kr.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button>
+        <button class="btn btn-danger btn-sm btn-act kredi-kart-delete-btn" data-kredi-tip="${tip}" data-id="${kr.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button>
       </div>
     </div>
 

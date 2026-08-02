@@ -1644,3 +1644,241 @@ yeni adaylar açığa çıkarabilir).
 
 
 
+
+## Tur 25'te tamamlanan — ui/pages katmanında 1 dosya (21/77 → 22/77)
+
+`tanimlamalar/06-para-birimi.js` taşındı (Tur 23/24'te ertelenmiş, en
+büyük bağımlılık setine sahip kardeş dosya).
+
+**Sayaç önce yeniden ölçüldü:** 21/77, Tur 24 ile birebir eşleşti.
+
+**`tanimlamalar/06-para-birimi.js` → `ui.pages.tanimlamalarParaBirimi`:**
+- `@core/*` ve `@domain/*` importlarına (Tur 22'deki bilinçli kapsam
+  kararıyla tutarlı olarak) DOKUNULMADI — sadece `@components/*` ve
+  `@pages/*` importları `inject()`'e çevrildi.
+- `@components/modal-genel.js` (`showConfirm`, `showToast`,
+  `validateRequiredFields`, `closeModal`, `openModal`) → `_modalGenel`.
+- `@components/money-input.js` (`updateMoneyWrapSymbols`) → `_moneyInput`.
+- `@components/step-wizard.js` (`swizUpdateStepIndicator`) → `_stepWizard`.
+- `tanimlamalar/00-state.js` (`DEFAULT_CURRENCY_CONFIG`, `PB_STEP_COUNT`,
+  `_pbCurrentStep`, `editParaBirimiKod`, `setEditParaBirimiKod`,
+  `set_pbCurrentStep`) → `_tanimlamalarState` (`_self` pattern; canlı
+  değişkenler modül namespace objesi üzerinden okunuyor).
+- `tanimlamalar/02-ana-sayfa.js` (`renderTanimlamalar`) →
+  `_tanimlamalarAnaSayfa`. **Dairesellik teyit edildi** (02-ana-sayfa.js
+  bu dosyayı `deleteParaBirimi`/`editParaBirimi`/`setGosterimParaBirimi`
+  için geri import ediyor) — tüm kullanımlar `addEventListener`
+  callback'i içinde, top-level çağrı yok, güvenli.
+- `_kurServisleri` (önceki turdan zaten `inject()` edilmişti, bu turda
+  DOKUNULMADI, olduğu gibi bırakıldı).
+
+**Kritik doğrulama yapıldı:**
+- 5 hedef namespace'in (`ui.components.modalGenel`,
+  `ui.components.moneyInput`, `ui.components.stepWizard`,
+  `ui.pages.tanimlamalarState`, `ui.pages.tanimlamalarAnaSayfa`) GERÇEKTEN
+  container'da olduğu TEK TEK `grep -rn "provide("` ile doğrulandı; her
+  provide bloğunun içeriği okunup ihtiyaç duyulan fonksiyonları
+  gerçekten export ettiği teyit edildi (Tur 22 dersi).
+- Dairesellik `02-ana-sayfa.js` ile doğrulandı ve yorumla belgelendi.
+- **Eksik olan `provide()` çağrısı fark edildi ve eklendi:** bu dosya
+  önceki turların taşıdığı kardeşlerinin aksine yalnızca `inject()`
+  ediyordu, kendi export'larını container'a `provide()` etmiyordu —
+  DI-MIGRATION dual-mode deseniyle tutarlılık için 14 export'u içeren
+  `ui.pages.tanimlamalarParaBirimi` provide bloğu eklendi. Bu adım
+  atlanmış olsaydı dosya "taşınmış" görünecek ama gerçek sayaca
+  (`provide('ui.pages.` grep'i) yansımayacaktı.
+- Çift-prefix taraması yapıldı — bulunmadı.
+- Bare (prefix'siz) kalıntı taraması yapıldı (yorum satırları hariç) —
+  kodda kalıntı yok.
+- Export listesi (14 fonksiyon: `loadCurrencyConfig`,
+  `updateParaBirimiPreview`, `setParaBirimi`, `renderParaBirimiGrid`,
+  `selectParaBirimi`, `openParaBirimiModal`, `setGosterimParaBirimi`,
+  `editParaBirimi`, `pbStepGoto`, `_pbValidateStep`, `pbStepNext`,
+  `pbStepBack`, `saveParaBirimi`, `deleteParaBirimi`) DEĞİŞMEDİĞİ
+  doğrulandı — mevcut tüketiciler (02-ana-sayfa.js dual-mode importu)
+  kırılmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: kullanıcı isteği üzerine bu turda YAPILMADI.
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **22** (önceki gerçek 21 + bu turdaki 1).
+
+**Sıradaki tur için not:** 77 dosyadan 22'si tamamlandı, 55 kaldı.
+`tanimlamalar/*` kardeş kümesi artık tamamen bitti (00, 02, 06, 08, 09,
+10 hepsi container'da). Sıradaki adaylar için önerilen tarama:
+`ui.components.selectToChips`, `ui.components.moneyInput` ve
+`ui.components.stepWizard` namespace'lerini kullanan BAŞKA `@pages/*`
+dosyaları taranabilir (`grep -rl "select-to-chips.js\|money-input.js\|
+step-wizard.js" js/ui/pages` ile hızlı bir tarama yeni adaylar açığa
+çıkarabilir), ya da `tanimlamalar/` dışındaki başka bir alt-klasör
+(`kartlar/`, `krediler/`, `mevduat/` vb.) taranarak benzer büyüklükte
+(4-10 import) bir sonraki aday seçilebilir. Her aday için üç kontrol
+(dairesellik, top-level/callback ayrımı, hedefin GERÇEKTEN container'da
+olup olmadığı) ayrı ayrı tekrarlanmalı; ayrıca bu turda fark edildiği
+gibi, taşınan dosyanın kendi `provide()` bloğunu unutmadığından da
+emin olunmalı — aksi halde dosya taşınmış görünür ama gerçek sayaca
+yansımaz.
+
+## Tur 26'da tamamlanan — ui/pages katmanında 1 dosya (22/77 → 23/77)
+
+**Önceki turun notundaki hata düzeltildi:** Tur 24'ün notu "tanimlamalar/*
+kardeşi tamamen bitti" diyordu, ama yeniden tarama `04-tbk-faiz-
+oranlari.js`, `05-genel-oran-tablolari.js` ve `07-bankalar.js`'nin hâlâ
+container'da olmadığını gösterdi. `04` ve `05` incelendi ama ERTELENDİ:
+- `04-tbk-faiz-oranlari.js` → `@pages/ozet.js` ve `@pages/tbk-detay.js`'a
+  bağımlı, ikisi de `provide()` etmiyor (container'da değil) — taşınamaz.
+- `05-genel-oran-tablolari.js` → `@pages/hesaplar/04-hesap-liste-
+  render.js`'e bağımlı, o da container'da değil — taşınamaz.
+- `07-bankalar.js` → tüm hedefleri (`ibanUi`, `modalGenel`, `00-state`,
+  `01-genel-yardimcilar`, `02-ana-sayfa`) container'da doğrulandı, bu
+  turda TAŞINDI.
+
+**Sayaç önce yeniden ölçüldü:** 22/77, Tur 25 ile birebir eşleşti.
+
+**`tanimlamalar/07-bankalar.js` → `ui.pages.tanimlamalarBankalar`:**
+- `@core/*` ve `@domain/*` importlarına dokunulmadı (`saveData`, `uid`,
+  `DB`, `BANKA_LOGOLAR`, `BANK_ICON_MAP` aynen kaldı).
+- `@components/iban-ui.js` (`_renderBankaLogoPicker`, `_selectBankaLogo`,
+  `onBankaIbanKodInput`) → `_ibanUi`.
+- `@components/modal-genel.js` (`_sidebarDim` [kullanılmıyor ama zaten
+  import edilmişti, tutarlılık için prefix'lendi], `showConfirm`,
+  `showToast`, `validateRequiredFields`, `closeModal`, `openModal`) →
+  `_modalGenel`.
+- `tanimlamalar/00-state.js` (`PRESET_BANKALAR`, `editBankaId`,
+  `setEditBankaId`) → `_tanimlamalarState`.
+- `tanimlamalar/01-genel-yardimcilar.js` (`bankaLogoByKod`) →
+  `_tanimlamalarGenelYardimcilar` (namespace:
+  `ui.pages.tanimlamalarGenelYardimcilar`, `_self` pattern — bu dosya
+  aslında `@domain/tanim-yardimcilar.js`'den re-export yapıyor, ama
+  provide edilen isim `tanimlamalarGenelYardimcilar`).
+- `tanimlamalar/02-ana-sayfa.js` (`renderTanimlamalar`) →
+  `_tanimlamalarAnaSayfa`. **Dairesellik teyit edildi** (02-ana-sayfa.js
+  bu dosyayı `openBankaModal`/`deleteBanka` için geri import ediyor) —
+  tüm kullanımlar `addEventListener` callback'i içinde, top-level çağrı
+  yok, güvenli.
+
+**Kritik doğrulama yapıldı:**
+- 5 hedef namespace'in (`ui.components.ibanUi`, `ui.components.
+  modalGenel`, `ui.pages.tanimlamalarState`, `ui.pages.
+  tanimlamalarGenelYardimcilar`, `ui.pages.tanimlamalarAnaSayfa`)
+  GERÇEKTEN container'da olduğu TEK TEK `grep -n "provide("` ile
+  doğrulandı; her provide bloğunun içeriği okunup ihtiyaç duyulan
+  fonksiyonları gerçekten export ettiği teyit edildi.
+- Dairesellik `02-ana-sayfa.js` ile doğrulandı ve yorumla belgelendi.
+- `provide()` bloğu eklendi (Tur 25'te fark edilen eksiklik dersi
+  tekrarlanmadı — bu kez baştan planlandı): 5 export'u içeren
+  `ui.pages.tanimlamalarBankalar`.
+- Çift-prefix taraması yapıldı — bulunmadı.
+- Bare (prefix'siz) kalıntı taraması yapıldı — kodda kalıntı yok
+  (yalnızca yorumlarda, biri düzeltildi çünkü replace script'i
+  yanlışlıkla bir yorum satırındaki metni de değiştirmişti — kontrol
+  edilip elle geri düzeltildi; bu, python bulk-replace'in yorum
+  satırlarını da tarayabileceğinin bir hatırlatıcısı, Tur 23'teki sed
+  kaçağı dersiyle aynı kategoride).
+- Export listesi (5 fonksiyon: `openBankaModal`, `_pickBankaLogo`,
+  `saveBanka`, `seedPresetBankalar`, `deleteBanka`) DEĞİŞMEDİĞİ
+  doğrulandı — mevcut tüketiciler (02-ana-sayfa.js dual-mode importu)
+  kırılmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: bu turda da YAPILMADI (kullanıcı isteği hâlâ geçerli).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **23** (önceki gerçek 22 + bu turdaki 1).
+
+**Sıradaki tur için not:** 77 dosyadan 23'ü tamamlandı, 54 kaldı.
+`tanimlamalar/*` klasöründe GERÇEKTEN kalan: `04-tbk-faiz-oranlari.js`
+ve `05-genel-oran-tablolari.js` — ikisi de şu an bağımlılıkları
+(`ozet.js`, `tbk-detay.js`, `hesaplar/04-hesap-liste-render.js`)
+container'da olmadığı için ERTELENMİŞ durumda. Bunları taşımanın iki
+yolu var: (a) önce `ozet.js`/`tbk-detay.js`/`hesaplar/04-hesap-liste-
+render.js`'i container'a taşımak (ama bunlar `@pages/*` kök dosyaları,
+büyük olabilir — önce boyutlarına bakılmalı), ya da (b) `tanimlamalar/`
+dışında container'da olan hedeflere bağımlı başka bir aday aramak.
+**ÖNEMLİ:** Bir sonraki tur, "X klasörü tamamen bitti" gibi bir iddiada
+bulunmadan önce MUTLAKA o klasördeki HER dosyayı tek tek `grep -q
+"provide(" dosya` ile taramalı (Tur 24 bu adımı atlayıp yanlış iddiada
+bulunmuştu). Her aday için üç kontrol (dairesellik, top-level/callback
+ayrımı, hedefin container'da olup olmadığı) ayrı ayrı tekrarlanmalı.
+
+## Tur 27'de tamamlanan — ui/pages katmanında 1 dosya (23/77 → 24/77)
+
+Tur 26'nın önerdiği (b) yolu izlendi: `tanimlamalar/` dışında,
+`@pages/*` bağımlılıklarının HEPSİ container'da olan yeni bir aday
+klasör-genelinde taramayla arandı (python script: her henüz taşınmamış
+dosyanın `@pages/*` importlarını çıkarıp hepsinin `provide()` eden bir
+dosyaya karşılık gelip gelmediği kontrol edildi). İki aday bulundu
+(`krediler/05-kredi-tipi-tanimlama.js`: 8 import/2 @pages hedefi,
+`veri-yonetimi.js`: 10 import/3 @pages hedefi) — küçüğü seçildi.
+
+**Sayaç önce yeniden ölçüldü:** 23/77, Tur 26 ile birebir eşleşti.
+
+**Önemli düzeltme (`tanimlamalar/*` klasörü durumu netleştirildi):**
+`hesaplar/`, `mevduat/`, `krediler/`, `kartlar/`, `islemler/`, `odeme/`
+klasörlerinin TAMAMI tek tek tarandı (Tur 26'nın "her dosyayı kontrol
+et" uyarısı bu turda tekrarlandı) — bu klasörlerdeki neredeyse tüm
+henüz-taşınmamış dosyalar birbirlerine (veya kendi klasörlerindeki
+henüz-taşınmamış kardeşlerine) dairesel/zincir bağımlı, bu yüzden şu an
+TAŞINAMAZLAR. Sadece `@pages/*` bağımlılıkları TAMAMEN container'da
+olan dosyalar taşınabilir; bu turda bulunan tek uygun küçük aday
+`krediler/05-kredi-tipi-tanimlama.js` oldu.
+
+**`krediler/05-kredi-tipi-tanimlama.js` → `ui.pages.kredilerKrediTipiTanimlama`:**
+- `@core/*` importlarına dokunulmadı (`saveData`, `uid`, `DB` aynen
+  kaldı; bu dosyada `@domain/*` import yoktu).
+- `@components/modal-genel.js` (`_sidebarDim`, `showConfirm`,
+  `showToast`, `validateRequiredFields`, `closeModal`) → `_modalGenel`.
+- `@components/select-to-chips.js` (`applyChipsToContainer`) →
+  `_selectToChips`. **Not:** provide bloğu 1246 satırlık dosyanın
+  sonunda uzun bir obje listesiydi; `applyChipsToContainer`'ın gerçekten
+  o listede olup olmadığı ilk `grep -A10` ile net görülemedi (blok daha
+  uzundu), `view` ile TAM blok okunarak doğrulandı — kısayol grep'lerin
+  büyük provide bloklarında yanıltıcı olabileceğinin hatırlatıcısı.
+- `krediler/00-state.js` (`editKrediTipId`, `setEditKrediTipId`) →
+  `_kredilerState` (namespace: `ui.pages.kredilerState`, `_self`
+  pattern).
+- `tanimlamalar/02-ana-sayfa.js` (`renderTanimlamalar`) →
+  `_tanimlamalarAnaSayfa`. **Dairesellik teyit edildi** (02-ana-sayfa.js
+  bu dosyayı `openKrediTipModal`/`deleteKrediTip` için geri import
+  ediyor) — tüm kullanımlar `addEventListener` callback'i içinde,
+  top-level çağrı yok, güvenli.
+
+**Kritik doğrulama yapıldı:**
+- 3 hedef namespace'in (`ui.components.modalGenel`, `ui.components.
+  selectToChips`, `ui.pages.kredilerState`, `ui.pages.
+  tanimlamalarAnaSayfa` — aslında 4) GERÇEKTEN container'da olduğu ve
+  ihtiyaç duyulan fonksiyonları export ettiği TEK TEK doğrulandı.
+- Dairesellik `02-ana-sayfa.js` ile doğrulandı ve yorumla belgelendi.
+- `provide()` bloğu baştan planlanarak eklendi: 3 export'u içeren
+  `ui.pages.kredilerKrediTipiTanimlama`.
+- Çift-prefix taraması yapıldı — bulunmadı.
+- Bare (prefix'siz) kalıntı taraması yapıldı — kodda kalıntı yok
+  (yalnızca bir yorum satırında, python bulk-replace yine yorum
+  satırını da değiştirmişti — Tur 26'daki gibi fark edilip elle geri
+  düzeltildi; bu artık üçüncü kez tekrarlanan bir desen, bir SONRAKİ
+  turda regex replace scriptine yorum satırlarını atlayan bir kontrol
+  eklenmesi düşünülebilir).
+- Export listesi (3 fonksiyon: `openKrediTipModal`, `saveKrediTip`,
+  `deleteKrediTip`) DEĞİŞMEDİĞİ doğrulandı — mevcut tüketiciler
+  (02-ana-sayfa.js dual-mode importu) kırılmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: bu turda da YAPILMADI (kullanıcı isteği hâlâ geçerli).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **24** (önceki gerçek 23 + bu turdaki 1).
+
+**Sıradaki tur için not:** 77 dosyadan 24'ü tamamlandı, 53 kaldı.
+Bulunan ama henüz taşınmamış ikinci aday hâlâ geçerli:
+`veri-yonetimi.js` (10 import, 3 @pages hedefi: `tanimlamalar/
+01-genel-yardimcilar.js`, `tanimlamalar/02-ana-sayfa.js`,
+`tanimlamalar/03-kategoriler.js` — üçü de container'da doğrulanmalı
+ama Tur 26/27'deki hedeflerle örtüştüğü için büyük olasılıkla
+uygundur). Bunun ötesinde, aynı python tarama scripti (bu turda
+kullanılan: her henüz-taşınmamış dosyanın TÜM @pages/* hedeflerinin
+provide() eden bir dosyaya karşılık gelip gelmediğini kontrol eden)
+tekrar çalıştırılarak güncel aday listesi yeniden üretilmeli — her
+turda bir dosya taşındıkça yeni adaylar açığa çıkabilir (ör. bu turda
+`krediler/05-kredi-tipi-tanimlama.js` taşınınca, ona bağımlı olan
+başka bir dosya varsa o da artık aday olabilir).

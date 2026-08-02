@@ -82,17 +82,17 @@ export function renderOranTablo(tip) {
       <td class="mono" style="${isActive?'color:var(--accent2);font-weight:600':''}">${fmtDate(row.tarih)}${isActive?' <span style="font-size:9px;background:rgba(0,232,138,.12);color:var(--accent2);padding:1px 5px;border-radius:4px;margin-left:4px">GEÇERLİ</span>':''}</td>
       <td class="mono" style="${isActive?'color:var(--accent2);font-weight:600':''}">%${row.oran}</td>
       <td style="text-align:right">
-        <button class="btn btn-ghost btn-sm btn-act oran-edit-btn" data-tip="${tip}" data-id="${row.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button>
-        <button class="btn btn-danger btn-sm btn-act oran-del-btn" data-tip="${tip}" data-id="${row.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button>
+        <button class="btn btn-ghost btn-sm btn-act oran-edit-btn" data-oran-tip="${tip}" data-id="${row.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button>
+        <button class="btn btn-danger btn-sm btn-act oran-del-btn" data-oran-tip="${tip}" data-id="${row.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button>
       </td>
     </tr>`;
   }).join('');
   // [ES module] onclick="openOranModal(...)" ve onclick="deleteOran(...)" kaldırıldı.
   tbody.querySelectorAll('.oran-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => openOranModal(btn.getAttribute('data-tip'), btn.getAttribute('data-id')));
+    btn.addEventListener('click', () => openOranModal(btn.getAttribute('data-oran-tip'), btn.getAttribute('data-id')));
   });
   tbody.querySelectorAll('.oran-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => deleteOran(btn.getAttribute('data-tip'), btn.getAttribute('data-id')));
+    btn.addEventListener('click', () => deleteOran(btn.getAttribute('data-oran-tip'), btn.getAttribute('data-id')));
   });
 }
 
