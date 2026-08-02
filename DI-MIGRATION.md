@@ -1417,5 +1417,230 @@ edilmeli: mevduat listesinde otomatik vade yenileme davranışı, işlem
 ekleme formunda açıklama öneri modalı (arama, geçmiş öneriler, "Kullan",
 Enter/Escape tuşları).
 
+## Tur 22'de tamamlanan — yüksek fan-in'li hedef sayfa taşındı (17/77 → 18/77)
+
+Tur 21'in önerdiği (a) seçeneği uygulandı: `tanimlamalar/02-ana-sayfa.js`
+(fan-in 10, en az 4 bekleyen `tanimlamalar/*` dosyasının hedefi) taşındı.
+
+**Kritik keşif — yanlış ilk deneme, geri alındı:** Dosyanın 13 `@pages/*`
+importunun TAMAMINI hemen `inject()`'e çevirmeye başlandı (gerekçe: hepsi
+SADECE `renderTanimlamalar()` fonksiyon gövdesinde/event-listener
+callback'lerinde kullanılıyor, top-level çağrı yok — bu doğruydu). ANCAK
+bu adımdan SONRA her 13 hedefin GERÇEKTEN container'da olup olmadığı
+`grep -c "provide("` ile TEK TEK kontrol edildiğinde, sadece 2'sinin
+(`tanimlamalar/01-genel-yardimcilar.js`, `tanimlamalar/03-kategoriler.js`)
+gerçekten `provide()` edilmiş olduğu görüldü — kalan 11'i (`kartlar/09-
+kart-altyapi.js`, `hesaplar/02-hesap-turu-tanimlama.js`, `kartlar/01-kart-
+data.js`, `krediler/05-kredi-tipi-tanimlama.js`, `krediler/01-genel-
+yardimcilar.js`, `tanimlamalar/06-para-birimi.js`, `07-bankalar.js`,
+`08-subeler.js`, `09-urun-tipleri.js`, `10-resmi-tatiller.js`,
+`tanimlamalar/05-genel-oran-tablolari.js`) `inject()` etmek, henüz var
+OLMAYAN namespace'lere işaret eden bir Proxy oluşturup çalışma zamanında
+"kayıtlı değil" hatası fırlatacaktı. İlk deneme TAMAMEN GERİ ALINDI, doğru
+yaklaşımla yeniden yapıldı: sadece gerçekten container'da olan
+bağımlılıklar `inject()`'e çevrildi, kalan 11'i (+ yeni bulunan
+`@components/kisiler.js`, o da container'da çıktı) dual-mode gereği
+statik import olarak BIRAKILDI.
+
+**Bu turda yapılan gerçek değişiklik:**
+- `tanimlamalar/01-genel-yardimcilar.js` → `_tanimlamalarGenelYardimcilar`
+  (namespace: `ui.pages.tanimlamalarGenelYardimcilar`, `_self` pattern,
+  Tur 11'den beri container'da).
+- `tanimlamalar/03-kategoriler.js` → `_kategoriler` (namespace:
+  `ui.pages.tanimlamalarKategoriler`, Tur 15'ten beri container'da,
+  SADECE `renderKategoriGrid` kullanılıyor, `renderTanimlamalar()`
+  gövdesinde — çift yönlü dairesellik olsa da callback içinde olmadığı
+  için (doğrudan fonksiyon gövdesi başında çağrılıyor, ama modül EVAL
+  zamanında değil, `renderTanimlamalar()` ÇAĞRILDIĞINDA — yani her ikisi
+  de modülleri tamamen yüklendikten SONRA) güvenli).
+- `@components/kisiler.js` → `_kisiler` (namespace: `ui.components.
+  kisiler`, Tur 9'dan beri container'da; bu dosyanın `kisiler.js`'i geri
+  import etmediği ayrıca doğrulandı — dairesellik yok).
+- Kalan 11 `@pages/*` importu (yukarıda listelendi) + `renderTumOranTablolari`
+  (`tanimlamalar/05-genel-oran-tablolari.js`, henüz taşınmadı) BİLİNÇLİ
+  OLARAK statik import olarak bırakıldı.
+- `DB`/`CURRENCY_CONFIG`/`defaultCurrency` (`@core/state.js`) ve `fmtDate`
+  (`@core/format.js`) importlarına BU TURDA dokunulmadı — kapsamı `@pages/*`
+  ve `@components/*` katmanıyla sınırlı tutmak için bilinçli tercih (Tur
+  4-5'teki core-katmanı ayrımıyla tutarlı).
+- Fonksiyon gövdesinde 9 kullanım yeri güncellendi: `renderKategoriGrid()`
+  → `_kategoriler.renderKategoriGrid()`, `renderKisilerGrid()` →
+  `_kisiler.renderKisilerGrid()`, `bankaIkonObj(b)` →
+  `_tanimlamalarGenelYardimcilar.bankaIkonObj(b)`, 4× `_tanimBadgeHtml(...)`
+  → `_tanimlamalarGenelYardimcilar._tanimBadgeHtml(...)` (içindeki
+  `urunTipiRenk`/`paraBirimiRenk` çağrıları da uygun şekilde prefix'lendi,
+  `krediTipiRenk`/`kartAltyapiRenk` İSE statik import'tan geldiği için
+  DOKUNULMADI), 4× `_renkKolonHtml(...)` →
+  `_tanimlamalarGenelYardimcilar._renkKolonHtml(...)`.
+- `provide('ui.pages.tanimlamalarAnaSayfa', { renderTanimlamalar })`
+  eklendi.
+
+**Kritik doğrulama yapıldı:**
+- İlk (yanlış) denemenin TAMAMEN geri alındığı, hiçbir `inject('ui.pages.
+  kartAltyapi')` gibi var olmayan namespace çağrısının kalmadığı `grep`
+  ile teyit edildi.
+- Bare (prefix'siz) `renderKategoriGrid(`/`renderKisilerGrid(`/
+  `bankaIkonObj(`/`_tanimBadgeHtml(`/`_renkKolonHtml(`/`urunTipiRenk(`/
+  `paraBirimiRenk(` kalıntısı taraması yapıldı — bulunmadı (bir ilk
+  geçişte `urunTipiRenk(t.id)` satırı prefix'siz kalmıştı, ikinci bir
+  düzeltmeyle giderildi).
+- Çift-prefix taraması yapıldı — bulunmadı.
+- `kisiler.js`'in bu dosyayı geri import etmediği ayrıca doğrulandı
+  (yeni bulunan bağımlılık olduğu için ekstra dikkat gerekti).
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+- Bu dosyanın export ettiği tek isim (`renderTanimlamalar`) DEĞİŞMEDİĞİ
+  için mevcut 10 tüketicinin (dual-mode, statik import) KIRILMADIĞI
+  doğrulandı.
+
+Cache-bust: `?v=40` → `?v=41` (32→32 sayımıyla doğrulandı).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **18** (önceki gerçek 17 + bu turdaki 1).
+
+**Metodolojik ders — YENİ checklist maddesi:** Bir dosyanın TÜM
+`@pages/*`/`@components/*` importlarının "sadece fonksiyon gövdesinde
+kullanılıyor, güvenli" olması, o importların `inject()`'e çevrilebileceği
+anlamına GELMEZ — ayrı bir soru olan "hedef GERÇEKTEN container'da mı"
+(`grep -c "provide("` ile TEK TEK) HER ZAMAN önce sorulmalı. Bu tur, bu
+iki kontrolü birbirine karıştırıp yanlış bir ilk deneme yaptı, ama
+teslim ETMEDEN önce fark edilip düzeltildi. Bundan sonra: (1) dairesellik
+taraması (Tur 15), (2) top-level çağrı mı callback-içi mi taraması (Tur
+20/21 örtük), (3) hedefin GERÇEKTEN provide edilmiş olup olmadığı taraması
+(bu tur) — ÜÇÜ DE her taşımadan önce ayrı ayrı yapılmalı.
+
+**Sıradaki tur için not:** 77 dosyadan 18'i tamamlandı, 59 kaldı. Bu
+turun açtığı 4 bekleyen dosya (`06-para-birimi.js`, `08-subeler.js`,
+`09-urun-tipleri.js`, `10-resmi-tatiller.js` — hepsi artık SADECE
+`tanimlamalar/00-state.js` ve YENİ taşınan `tanimlamalar/02-ana-sayfa.js`'ye
+bağımlı, ikisi de container'da) şimdi taşınabilir hale geldi — bunlardan
+biri veya birkaçı bir sonraki turun doğal hedefi. Her biri için önce
+`grep -n "^import "` ile TAM import listesi ve dairesellik (02-ana-
+sayfa.js zaten dairesel olduğu biliniyor — callback-içi kullanım
+garantisi her dosya için AYRI doğrulanmalı) kontrol edilmeli.
+
+## Tur 23'te tamamlanan — ui/pages katmanında 1 yeni dosya (18/77 → 19/77)
+
+Tur 22'nin açtığı 4 adaydan (`06-para-birimi.js`, `08-subeler.js`,
+`09-urun-tipleri.js`, `10-resmi-tatiller.js`) en düşük bağımlılıklı olan
+seçildi: `tanimlamalar/08-subeler.js` → `ui.pages.tanimlamalarSubeler`.
+
+**Sayaç önce yeniden ölçüldü:** 18/77, Tur 22 ile birebir eşleşti.
+
+**Taşınan bağımlılıklar (3):**
+- `@components/modal-genel.js` (`_sidebarDim`) → `_modalGenel` (namespace:
+  `ui.components.modalGenel`, uzun süredir container'da).
+- `tanimlamalar/00-state.js` (`setSubeModalBankaId`, `setSubeListTumu`,
+  `subeListTumu`, `subeModalBankaId`) → `_tanimlamalarState` (namespace:
+  `ui.pages.tanimlamalarState`, `_self` pattern — mutable `var` export'lar
+  canlı binding ile okunuyor).
+- `tanimlamalar/02-ana-sayfa.js` (`renderTanimlamalar`) →
+  `_tanimlamalarAnaSayfa` (namespace: `ui.pages.tanimlamalarAnaSayfa`,
+  Tur 22'de taşınmıştı). **Dairesellik teyit edildi:** `02-ana-sayfa.js`
+  bu dosyayı GERİ import ediyor (`openSubeModal`) — Tur 22'nin kendi
+  yorumunda zaten öngörülmüştü. `renderTanimlamalar()` çağrıları SADECE
+  `deleteSube`/`saveSubeForm` fonksiyon gövdelerinde, modül eval
+  zamanında DEĞİL — güvenli (Tur 15/20/21/22 deseniyle tutarlı).
+
+**Kritik doğrulama yapıldı:**
+- Her 3 hedefin GERÇEKTEN container'da olduğu `grep -c "provide("` ile
+  TEK TEK doğrulandı (Tur 22'nin dersi uygulandı — körü körüne
+  `inject()`'e çevrilmedi).
+- `x.id === subeModalBankaId` deseninin (4 farklı fonksiyonda tekrar
+  eden) `sed` ile TOPLU değil, önce `python3` bulk-replace'te KAÇTIĞI
+  fark edilip ayrı bir `sed` geçişiyle 4 yerde de düzeltildiği doğrulandı.
+- Bare (prefix'siz) `setSubeModalBankaId(`/`setSubeListTumu(`/
+  `subeListTumu`/`subeModalBankaId`/`_sidebarDim(`/`renderTanimlamalar(`
+  kalıntısı taraması yapıldı — sadece bir yorum satırında (zararsız)
+  eşleşme bulundu, kodda kalıntı yok.
+- Çift-prefix taraması yapıldı — bulunmadı.
+- Bu dosyanın export ettiği 8 fonksiyon isminin (`getSubeAdFromKodlar`,
+  `openSubeModal`, `refreshSubeModal`, `filterSubeList`, `renderSubeList`,
+  `editSube`, `deleteSube`, `saveSubeForm`) DEĞİŞMEDİĞİ doğrulandı —
+  mevcut tüketiciler (dual-mode, statik import) kırılmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: `?v=41` → `?v=42` (32→32 sayımıyla doğrulandı).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **19** (önceki gerçek 18 + bu turdaki 1).
+
+**Sıradaki tur için not:** 77 dosyadan 19'u tamamlandı, 58 kaldı. Kalan 3
+kardeş dosya (`06-para-birimi.js`, `09-urun-tipleri.js`, `10-resmi-
+tatiller.js`) hâlâ uygun — hepsi `tanimlamalar/00-state.js`,
+`02-ana-sayfa.js` ve `modal-genel.js`'ye bağımlı, üçü de container'da.
+`06-para-birimi.js` en fazla bağımlılığa sahip (`app-core-base.js`,
+`format.js`, `render-core.js`, `state.js`, `doviz.js`, `modal-genel.js`,
+`money-input.js`, `step-wizard.js`, `00-state.js`, `02-ana-sayfa.js` —
+10 import, çoğu `@core`/`@domain`/`@components` katmanından, bunların
+container durumu AYRICA kontrol edilmeli), `09-urun-tipleri.js` ve
+`10-resmi-tatiller.js` ise `08-subeler.js`'e çok benzer boyutta (5-6
+import) — bir sonraki turun doğal adayları. Her biri için (1) dairesellik,
+(2) top-level çağrı mı callback-içi mi, (3) hedefin GERÇEKTEN container'da
+olup olmadığı — üç kontrol de AYRI AYRI tekrarlanmalı (Tur 22 dersi).
+
+## Tur 24'te tamamlanan — ui/pages katmanında 2 yeni dosya (19/77 → 21/77)
+
+Tur 23'ün önerdiği iki küçük kardeş dosya birlikte taşındı:
+`tanimlamalar/09-urun-tipleri.js` ve `tanimlamalar/10-resmi-tatiller.js`.
+
+**Sayaç önce yeniden ölçüldü:** 19/77, Tur 23 ile birebir eşleşti.
+
+**`tanimlamalar/09-urun-tipleri.js` → `ui.pages.tanimlamalarUrunTipleri`:**
+- `@components/modal-genel.js` (`_sidebarDim`, `showConfirm`,
+  `validateRequiredFields`, `closeModal`, `openModal`) → `_modalGenel`.
+- `@components/select-to-chips.js` (`applyChipsToContainer`) →
+  `_selectToChips` (namespace: `ui.components.selectToChips`, container'da
+  olduğu `grep -c "provide("` ile doğrulandı).
+- `tanimlamalar/00-state.js` (`editUrunTipId`, `setEditUrunTipId`) →
+  `_tanimlamalarState` (`_self` pattern).
+- `tanimlamalar/02-ana-sayfa.js` (`renderTanimlamalar`) →
+  `_tanimlamalarAnaSayfa`. **Dairesellik teyit edildi** (02-ana-sayfa.js
+  bu dosyayı `deleteUrunTip`/`editUrunTip` için geri import ediyor) — tüm
+  kullanımlar fonksiyon gövdesinde, güvenli.
+
+**`tanimlamalar/10-resmi-tatiller.js` → `ui.pages.tanimlamalarResmiTatiller`:**
+- Yukarıdaki aynı 2 hedef (`_modalGenel`, `_tanimlamalarState`,
+  `_tanimlamalarAnaSayfa`) + `@components/money-input.js`
+  (`setDateInputValue`) → `_moneyInput` (namespace: `ui.components.
+  moneyInput`, container'da olduğu doğrulandı).
+- **Özel durum:** `showToast` çağrıları `if(typeof showToast ===
+  'function') showToast(...)` savunmacı deseniyle sarılıydı — bu, `_modalGenel.
+  showToast` şeklinde güncellendi (`typeof _modalGenel.showToast ===
+  'function'`), çünkü `_modalGenel` bir Proxy nesnesi ve `showToast`
+  property'si her zaman fonksiyon olarak çözülüyor; orijinal savunmacı
+  kontrol semantiği korunmuş oldu.
+- `_kurServisleri` (Tur 23'ten önce zaten `inject()` edilmişti, bu turda
+  DOKUNULMADI, olduğu gibi bırakıldı).
+
+**Kritik doğrulama yapıldı:**
+- Her hedefin (`selectToChips`, `moneyInput` dahil, ikisi de İLK KEZ bu
+  projede `inject()` edilen namespace'ler) GERÇEKTEN container'da olduğu
+  `grep -c "provide("` ile TEK TEK doğrulandı (Tur 22 dersi).
+- İki dosyada da dairesellik (`02-ana-sayfa.js` ile) doğrulandı ve
+  yorumla belgelendi.
+- Bare (prefix'siz) kalıntı taraması her iki dosyada da yapıldı — sadece
+  yorum satırlarında (zararsız) eşleşme bulundu.
+- Çift-prefix taraması her iki dosyada da yapıldı — bulunmadı.
+- Her iki dosyanın export listesi (`09-urun-tipleri.js`: 4 fonksiyon,
+  `10-resmi-tatiller.js`: 5 fonksiyon) DEĞİŞMEDİĞİ doğrulandı — mevcut
+  tüketiciler (dual-mode) kırılmadı.
+- `node --check` ile TÜM proje dosya dosya taranıp doğrulandı — 0 hata.
+
+Cache-bust: `?v=42` → `?v=43` (32→32 sayımıyla doğrulandı).
+
+**Gerçek sayı doğrulaması:** `grep -rlE "provide\(['\"]ui\.pages\." js/ui/pages
+| wc -l` → **21** (önceki gerçek 19 + bu turdaki 2).
+
+**Sıradaki tur için not:** 77 dosyadan 21'i tamamlandı, 56 kaldı. Kalan
+tek `tanimlamalar/*` kardeşi `06-para-birimi.js` — 10 import ile en
+büyüğü, hedefleri (`app-core-base.js`, `render-core.js`, `doviz.js`,
+`step-wizard.js` gibi daha önce hiç dokunulmamış modüller) TEK TEK
+`grep -c "provide("` ile kontrol edilmeden taşınmamalı. Alternatif
+olarak, artık `ui.components.selectToChips` ve `ui.components.moneyInput`
+namespace'leri de "provider" listesine katıldığı için, bu iki bileşeni
+kullanan BAŞKA `@pages/*` dosyaları da taranabilir (`grep -rl
+"select-to-chips.js\|money-input.js" js/ui/pages` ile hızlı bir tarama
+yeni adaylar açığa çıkarabilir).
+
 
 

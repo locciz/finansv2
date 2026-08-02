@@ -1,13 +1,16 @@
 import { saveData } from '@core/app-core-base.js';
 import { uid } from '@core/format.js';
 import { DB } from '@core/state.js';
-import { inject } from '@core/container.js';
+import { inject, provide } from '@core/container.js';
 const _kurServisleri = inject('services.kurServisleri');
-import { _sidebarDim, showToast, validateRequiredFields } from '@components/modal-genel.js';
-import { setDateInputValue } from '@components/money-input.js';
-import { editTatilId, setEditTatilId } from '@pages/tanimlamalar/00-state.js';
-import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
-import { closeModal, openModal } from '@components/modal-genel.js';
+const _modalGenel = inject('ui.components.modalGenel');
+const _moneyInput = inject('ui.components.moneyInput');
+const _tanimlamalarState = inject('ui.pages.tanimlamalarState');
+// DAİRESEL: tanimlamalar/02-ana-sayfa.js bu dosyayı da import ediyor
+// (deleteTatil, editTatil). renderTanimlamalar() SADECE fonksiyon
+// gövdelerinde çağrılıyor, modül eval zamanında değil — top-level const
+// güvenli (Tur 15/20/21/22/23/24 deseniyle tutarlı).
+const _tanimlamalarAnaSayfa = inject('ui.pages.tanimlamalarAnaSayfa');
 // ============================================================
 // js/ui/pages/tanimlamalar/10-resmi-tatiller.js
 // Resmi tatil listesi (otomatik güncelleme + CRUD)
@@ -71,14 +74,14 @@ export async function resmiTatilleriGuncelle() {
     }
 
     saveData();
-    renderTanimlamalar();
+    _tanimlamalarAnaSayfa.renderTanimlamalar();
     status.style.color = 'var(--teal)';
     status.textContent = `✓ ${eklenen} yeni tatil eklendi${atlanan ? `, ${atlanan} zaten vardı` : ''} (${yillar.join(' & ')})`;
-    if(typeof showToast === 'function') showToast(`${eklenen} yeni tatil eklendi${atlanan ? `, ${atlanan} zaten vardı` : ''}`, 'success');
+    if(typeof _modalGenel.showToast === 'function') _modalGenel.showToast(`${eklenen} yeni tatil eklendi${atlanan ? `, ${atlanan} zaten vardı` : ''}`, 'success');
   } catch (e) {
     status.style.color = 'var(--danger)';
     status.textContent = '✗ API bağlantı hatası: ' + e.message;
-    if(typeof showToast === 'function') showToast('API bağlantı hatası: ' + e.message, 'error');
+    if(typeof _modalGenel.showToast === 'function') _modalGenel.showToast('API bağlantı hatası: ' + e.message, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = '🔄 Resmi Tatilleri Güncelle';
@@ -87,42 +90,51 @@ export async function resmiTatilleriGuncelle() {
 }
 
 export function openTatilModal() {
-  setEditTatilId(null);
+  _tanimlamalarState.setEditTatilId(null);
   document.getElementById('tatil-modal-title').textContent = 'Resmi Tatil Günü Ekle';
-  setDateInputValue('tatil-tarih', '');
+  _moneyInput.setDateInputValue('tatil-tarih', '');
   document.getElementById('tatil-aciklama').value = '';
-  openModal('modal-tatil');
+  _modalGenel.openModal('modal-tatil');
 }
 
 export function editTatil(id) {
-  setEditTatilId(id);
+  _tanimlamalarState.setEditTatilId(id);
   const t = DB.tatiller.find(x=>x.id===id);
   if(!t) return;
   document.getElementById('tatil-modal-title').textContent = 'Tatil Günü Düzenle';
-  setDateInputValue('tatil-tarih', t.tarih);
+  _moneyInput.setDateInputValue('tatil-tarih', t.tarih);
   document.getElementById('tatil-aciklama').value = t.aciklama;
-  document.getElementById('modal-tatil').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
+  document.getElementById('modal-tatil').classList.add('open'); document.body.classList.add('modal-open'); _modalGenel._sidebarDim(true);
 }
 
 export function saveTatil() {
   const tarih = document.getElementById('tatil-tarih').value;
   const aciklama = document.getElementById('tatil-aciklama').value.trim();
-  if(!validateRequiredFields([{id:'tatil-tarih',msg:'Tarih zorunlu'}])) return;
-  if(editTatilId) {
-    const idx = DB.tatiller.findIndex(t=>t.id===editTatilId);
+  if(!_modalGenel.validateRequiredFields([{id:'tatil-tarih',msg:'Tarih zorunlu'}])) return;
+  if(_tanimlamalarState.editTatilId) {
+    const idx = DB.tatiller.findIndex(t=>t.id===_tanimlamalarState.editTatilId);
     if(idx>=0) DB.tatiller[idx]={...DB.tatiller[idx], tarih, aciklama};
   } else {
     DB.tatiller.push({id:uid(), tarih, aciklama});
   }
-  setEditTatilId(null);
+  _tanimlamalarState.setEditTatilId(null);
   saveData();
-  closeModal('modal-tatil');
-  renderTanimlamalar();
+  _modalGenel.closeModal('modal-tatil');
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
 }
 
 export function deleteTatil(id) {
   DB.tatiller = DB.tatiller.filter(t=>t.id!==id);
   saveData();
-  renderTanimlamalar();
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.tanimlamalarResmiTatiller', {
+  resmiTatilleriGuncelle,
+  openTatilModal,
+  editTatil,
+  saveTatil,
+  deleteTatil,
+});
 

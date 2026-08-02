@@ -1,8 +1,13 @@
 import { saveData } from '@core/app-core-base.js';
 import { DB } from '@core/state.js';
-import { _sidebarDim } from '@components/modal-genel.js';
-import { setSubeListTumu, setSubeModalBankaId, subeListTumu, subeModalBankaId } from '@pages/tanimlamalar/00-state.js';
-import { renderTanimlamalar } from '@pages/tanimlamalar/02-ana-sayfa.js';
+import { inject, provide } from '@core/container.js';
+const _modalGenel = inject('ui.components.modalGenel');
+const _tanimlamalarState = inject('ui.pages.tanimlamalarState');
+// DAİRESEL: tanimlamalar/02-ana-sayfa.js bu dosyayı da import ediyor
+// (openSubeModal). renderTanimlamalar() SADECE fonksiyon gövdelerinde
+// (deleteSube, saveSubeForm) çağrılıyor, modül eval zamanında değil —
+// bu yüzden top-level const güvenli (Tur 15/20/21 deseniyle uyumlu).
+const _tanimlamalarAnaSayfa = inject('ui.pages.tanimlamalarAnaSayfa');
 // ============================================================
 // js/ui/pages/tanimlamalar/08-subeler.js
 // Şube tanımlama CRUD'u
@@ -21,21 +26,21 @@ export function getSubeAdFromKodlar(bankaKodu, subeKodu) {
 }
 
 export function openSubeModal(bankaId) {
-  setSubeModalBankaId(bankaId);
+  _tanimlamalarState.setSubeModalBankaId(bankaId);
   const b = DB.bankalar.find(x => x.id === bankaId);
   if(!b) return;
   document.getElementById('sube-modal-title').textContent = b.kisa + ' — Şubeler';
   document.getElementById('sube-arama').value = '';
-  document.getElementById('modal-sube').classList.add('open'); document.body.classList.add('modal-open'); _sidebarDim(true);
+  document.getElementById('modal-sube').classList.add('open'); document.body.classList.add('modal-open'); _modalGenel._sidebarDim(true);
   refreshSubeModal();
 }
 
 export function refreshSubeModal() {
-  const b = DB.bankalar.find(x => x.id === subeModalBankaId);
+  const b = DB.bankalar.find(x => x.id === _tanimlamalarState.subeModalBankaId);
   if(!b) return;
   const ibanKod = b.ibanKod || '';
   const list = (DB.subeler && DB.subeler[ibanKod]) || [];
-  setSubeListTumu([...list]);
+  _tanimlamalarState.setSubeListTumu([...list]);
   document.getElementById('sube-modal-banka-info').textContent = 'IBAN Kodu: ' + (ibanKod||'—') + ' · Toplam: ' + list.length + ' şube';
   document.getElementById('sube-arama').value = '';
   renderSubeList(list);
@@ -43,7 +48,7 @@ export function refreshSubeModal() {
 
 export function filterSubeList() {
   const q = document.getElementById('sube-arama').value.trim().toLowerCase();
-  const filtered = q ? subeListTumu.filter(s => s.k.includes(q) || s.a.toLowerCase().includes(q)) : subeListTumu;
+  const filtered = q ? _tanimlamalarState.subeListTumu.filter(s => s.k.includes(q) || s.a.toLowerCase().includes(q)) : _tanimlamalarState.subeListTumu;
   renderSubeList(filtered);
 }
 
@@ -74,7 +79,7 @@ export function renderSubeList(list) {
 }
 
 export function editSube(kod) {
-  const b = DB.bankalar.find(x => x.id === subeModalBankaId);
+  const b = DB.bankalar.find(x => x.id === _tanimlamalarState.subeModalBankaId);
   if(!b || !b.ibanKod) return;
   const list = DB.subeler[b.ibanKod] || [];
   const s = list.find(x => x.k === kod);
@@ -87,17 +92,17 @@ export function editSube(kod) {
 }
 
 export function deleteSube(kod) {
-  const b = DB.bankalar.find(x => x.id === subeModalBankaId);
+  const b = DB.bankalar.find(x => x.id === _tanimlamalarState.subeModalBankaId);
   if(!b || !b.ibanKod) return;
   if(!DB.subeler[b.ibanKod]) return;
   DB.subeler[b.ibanKod] = DB.subeler[b.ibanKod].filter(s => s.k !== kod);
   saveData();
-  renderTanimlamalar();
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
   refreshSubeModal();
 }
 
 export function saveSubeForm() {
-  const b = DB.bankalar.find(x => x.id === subeModalBankaId);
+  const b = DB.bankalar.find(x => x.id === _tanimlamalarState.subeModalBankaId);
   if(!b) return;
   const ibanKod = b.ibanKod || '';
   if(!ibanKod) { alert('Bu bankanın IBAN kodu yok, önce IBAN kodunu tanımlayın.'); return; }
@@ -120,7 +125,19 @@ export function saveSubeForm() {
   document.getElementById('sube-edit-orig-kod').value = '';
   document.getElementById('sube-kaydet-btn').textContent = 'Ekle';
   saveData();
-  renderTanimlamalar();
+  _tanimlamalarAnaSayfa.renderTanimlamalar();
   refreshSubeModal();
 }
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.tanimlamalarSubeler', {
+  getSubeAdFromKodlar,
+  openSubeModal,
+  refreshSubeModal,
+  filterSubeList,
+  renderSubeList,
+  editSube,
+  deleteSube,
+  saveSubeForm,
+});
 

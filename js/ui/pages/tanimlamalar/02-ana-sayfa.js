@@ -1,22 +1,34 @@
 import { fmtDate } from '@core/format.js';
 import { CURRENCY_CONFIG, DB, defaultCurrency } from '@core/state.js';
-import { inject } from '@core/container.js';
+import { inject, provide } from '@core/container.js';
 const _kurServisleri = inject('services.kurServisleri');
-import { renderKisilerGrid } from '@components/kisiler.js';
 import { deleteKartAltyapi, openKartAltyapiModal } from '@pages/kartlar/09-kart-altyapi.js';
 import { renderHesapTurTablo } from '@pages/hesaplar/02-hesap-turu-tanimlama.js';
 import { kartAltyapiRenk } from '@pages/kartlar/01-kart-data.js';
 import { deleteKrediTip, openKrediTipModal } from '@pages/krediler/05-kredi-tipi-tanimlama.js';
 import { krediTipiRenk } from '@pages/krediler/01-genel-yardimcilar.js';
-import { _renkKolonHtml, _tanimBadgeHtml, bankaIkonObj, paraBirimiRenk, urunTipiRenk } from '@pages/tanimlamalar/01-genel-yardimcilar.js';
 import { deleteParaBirimi, editParaBirimi, setGosterimParaBirimi } from '@pages/tanimlamalar/06-para-birimi.js';
 import { deleteBanka, openBankaModal } from '@pages/tanimlamalar/07-bankalar.js';
 import { openSubeModal } from '@pages/tanimlamalar/08-subeler.js';
 import { deleteUrunTip, editUrunTip } from '@pages/tanimlamalar/09-urun-tipleri.js';
 import { deleteTatil, editTatil } from '@pages/tanimlamalar/10-resmi-tatiller.js';
-import { renderKategoriGrid } from '@pages/tanimlamalar/03-kategoriler.js';
 import { renderTumOranTablolari } from '@pages/tanimlamalar/05-genel-oran-tablolari.js';
 import { register } from '@core/wrap-registry.js';
+// DAİRESEL (7 dosya): tanimlamalar/06-para-birimi.js, 07-bankalar.js,
+// 08-subeler.js, 09-urun-tipleri.js, 10-resmi-tatiller.js,
+// kartlar/09-kart-altyapi.js, krediler/05-kredi-tipi-tanimlama.js — bu
+// dosyayı GERİ import ediyorlar (renderTanimlamalar). Bu 7 dosya (+
+// hesaplar/02-hesap-turu-tanimlama.js, kartlar/01-kart-data.js,
+// krediler/01-genel-yardimcilar.js) henüz container'a taşınmadığı için
+// (`grep -c "provide("` ile TEK TEK doğrulandı, hepsi 0) BİLİNÇLİ OLARAK
+// statik import olarak bırakıldı — dual-mode gereği. SADECE
+// `tanimlamalar/01-genel-yardimcilar.js`, `tanimlamalar/03-kategoriler.js`
+// (ikisi de Tur 15/önceki turlarda zaten container'a taşınmıştı) VE
+// `@components/kisiler.js` (Tur 9'dan beri container'da, dairesellik
+// yok — kontrol edildi) `inject()`'e çevrildi.
+const _tanimlamalarGenelYardimcilar = inject('ui.pages.tanimlamalarGenelYardimcilar');
+const _kategoriler = inject('ui.pages.tanimlamalarKategoriler');
+const _kisiler = inject('ui.components.kisiler');
 // ============================================================
 // js/ui/pages/tanimlamalar/02-ana-sayfa.js
 // Tanımlamalar ana sayfası render
@@ -27,14 +39,14 @@ import { register } from '@core/wrap-registry.js';
 // dosya sınırı ve gruplama değişti.
 // ============================================================
 export function renderTanimlamalar() {
-  renderKategoriGrid();
+  _kategoriler.renderKategoriGrid();
   renderHesapTurTablo();
   renderTumOranTablolari();
-  renderKisilerGrid();
+  _kisiler.renderKisilerGrid();
   _kurServisleri.loadCorsProxyWorkerInput();
 
   document.getElementById('banka-tbody').innerHTML = (DB.bankalar||[]).map((b,i)=>{
-    const ikon = bankaIkonObj(b);
+    const ikon = _tanimlamalarGenelYardimcilar.bankaIkonObj(b);
     const ikonHtml = ikon.svg
       ? `<span class="bank-logo bank-logo-lg" style="margin-right:6px;vertical-align:middle">${ikon.svg}</span>`
       : `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:18px;background:${ikon.bg};margin-right:6px;vertical-align:middle">${ikon.emoji}</span>`;
@@ -53,8 +65,8 @@ export function renderTanimlamalar() {
 
   document.getElementById('urun-tip-tbody').innerHTML = (DB.urunTipler||[]).map(t=>`<tr>
     <td>${t.ad}</td>
-    <td>${_tanimBadgeHtml(t.kod, urunTipiRenk(t.id))}</td>
-    <td>${_renkKolonHtml(t.renk)}</td>
+    <td>${_tanimlamalarGenelYardimcilar._tanimBadgeHtml(t.kod, _tanimlamalarGenelYardimcilar.urunTipiRenk(t.id))}</td>
+    <td>${_tanimlamalarGenelYardimcilar._renkKolonHtml(t.renk)}</td>
     <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm btn-act tnm-urun-edit-btn" data-id="${t.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button><button class="btn btn-danger btn-sm btn-act tnm-urun-delete-btn" data-id="${t.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button></td>
   </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px">Kayıt yok</td></tr>';
 
@@ -62,8 +74,8 @@ export function renderTanimlamalar() {
   if(krediTipTbody) {
     krediTipTbody.innerHTML = (DB.krediTipleri||[]).map(t=>`<tr>
       <td>${t.ad}</td>
-      <td>${_tanimBadgeHtml(t.kod, krediTipiRenk(t.id))}</td>
-      <td>${_renkKolonHtml(t.renk)}</td>
+      <td>${_tanimlamalarGenelYardimcilar._tanimBadgeHtml(t.kod, krediTipiRenk(t.id))}</td>
+      <td>${_tanimlamalarGenelYardimcilar._renkKolonHtml(t.renk)}</td>
       <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm btn-act tnm-kredi-tip-edit-btn" data-id="${t.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button><button class="btn btn-danger btn-sm btn-act tnm-kredi-tip-delete-btn" data-id="${t.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button></td>
     </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px">Kayıt yok</td></tr>';
   }
@@ -76,8 +88,8 @@ export function renderTanimlamalar() {
         : '';
       return `<tr>
       <td>${logoHtml}<span style="vertical-align:middle">${t.ad}</span></td>
-      <td>${_tanimBadgeHtml(t.kod, kartAltyapiRenk(t.id))}</td>
-      <td>${_renkKolonHtml(t.renk)}</td>
+      <td>${_tanimlamalarGenelYardimcilar._tanimBadgeHtml(t.kod, kartAltyapiRenk(t.id))}</td>
+      <td>${_tanimlamalarGenelYardimcilar._renkKolonHtml(t.renk)}</td>
       <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm btn-act tnm-kart-altyapi-edit-btn" data-id="${t.id}" style="margin-right:4px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H2v-3L11.5 2.5z"/></svg></button><button class="btn btn-danger btn-sm btn-act tnm-kart-altyapi-delete-btn" data-id="${t.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:block"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg></button></td>
     </tr>`;}).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px">Kayıt yok</td></tr>';
   }
@@ -116,8 +128,8 @@ export function renderTanimlamalar() {
                 ? `<span style="color:var(--text3);font-size:11px">Otomatik çekilmiyor</span>${kaynakEtiket}`
                 : `<span style="color:var(--text3);font-size:11px">Henüz çekilemedi</span>${kaynakEtiket}`));
       return `<tr${isDefault ? ' style="background:rgba(16,185,129,.06)"' : ''}>
-        <td>${_tanimBadgeHtml(code, paraBirimiRenk(code), true)}</td>
-        <td>${_renkKolonHtml(cfg.renk)}</td>
+        <td>${_tanimlamalarGenelYardimcilar._tanimBadgeHtml(code, _tanimlamalarGenelYardimcilar.paraBirimiRenk(code), true)}</td>
+        <td>${_tanimlamalarGenelYardimcilar._renkKolonHtml(cfg.renk)}</td>
         <td class="mono" style="font-size:16px">${cfg.symbol}</td>
         <td>${cfg.ad || code}</td>
         <td style="font-size:16px">${cfg.flag || '—'}</td>
@@ -199,3 +211,8 @@ export function renderTanimlamalar() {
 // [ES module] taban render fonksiyonu(ları) odeme/patches zincirinin
 // hook() ile sarmalayabilmesi için wrap-registry'ye kaydediliyor.
 register('renderTanimlamalar', renderTanimlamalar);
+
+// ── DI-MIGRATION dual-mode kaydı ──────────────────────────────
+provide('ui.pages.tanimlamalarAnaSayfa', {
+  renderTanimlamalar,
+});
